@@ -1,0 +1,85 @@
+\section{Worked Examples (Concept + Implementation Numbers)}
+\label{sec:examples}
+
+\subsection{Example A: Conceptual claim-level reasoning chain}
+Claim:
+\begin{quote}
+\textit{``Barack Obama was born in Hawaii.''}
+\end{quote}
+Candidate triples might include:
+\begin{itemize}
+\item \texttt{(Barack\_Obama, birthPlace, Honolulu)}
+\item \texttt{(Honolulu, isPartOf, Hawaii)}
+\item \texttt{(Barack\_Obama, birthPlace, Kenya)}
+\item \texttt{(Barack\_Obama, spouse, Michelle\_Obama)}
+\end{itemize}
+
+Interpretation under Component 2:
+\begin{itemize}
+\item support stream increases flow along entailment-leaning edges,
+\item refute stream preserves contradiction edge to Kenya,
+\item neutral spouse edge receives low bridge value after neutrality cap.
+\end{itemize}
+This example illustrates why dual streams and bridge capping are both necessary.
+
+\subsection{Example B: M2 policy-aware recovery numbers (from run logs)}
+This is the exact synthetic M2 pattern used in dev notes:
+anchors: $A, C$.
+
+Active edges:
+\begin{itemize}
+\item \texttt{a1}: $A\leftrightarrow B$ with $(p_{ent},p_{con},p_{neu})=(0.65,0.05,0.30)$
+\item \texttt{a2}: $C\leftrightarrow D$ with $(0.62,0.06,0.32)$
+\end{itemize}
+
+Suspended edges include one true bridge:
+\texttt{s\_bridge: B\leftrightarrow C} with $(0.52,0.08,0.12)$,
+and three high-rel but noisy non-bridges.
+
+Mask values:
+\begin{align}
+ m_{sup}(\texttt{s\_bad1}) &= \sigmoid(4\cdot0.83-2)=0.789182, \\
+ m_{ref}(\texttt{s\_bad1}) &= \sigmoid(4\cdot0.05-2)=0.141851, \\
+ m_{sup}(\texttt{s\_bridge}) &= \sigmoid(4\cdot0.52-2)=0.519989.
+\end{align}
+
+Bridge scores from recorded run:
+\begin{align}
+\text{BridgeBonus}'(\texttt{s\_bridge}) &= 0.0189136, \\
+\text{BridgeBonus}'(\texttt{s\_bad1}) &= 0.0103967, \\
+\text{BridgeBonus}'(\texttt{s\_bad2}) &= 0.0099324, \\
+\text{BridgeBonus}'(\texttt{s\_bad3}) &= 0.0046006.
+\end{align}
+
+Connectivity outcomes at $k=3$:
+\begin{itemize}
+\item $\Conn(A)=0.0$ (anchors disconnected),
+\item rel-policy top-3 keeps anchors disconnected: $\text{RPI}_{rel}@3=0.0$,
+\item bridge-policy top-3 includes \texttt{s\_bridge}: $\Delta\Conn_{bridge}@3=1.0$.
+\end{itemize}
+With \texttt{esi\_geom}=0.2 and $\tau_{esi}=0.3$, recovery triggers and reruns with moved edges.
+
+\subsection{Example C: M3 abstention and salience numbers}
+For synthetic claim \texttt{synthetic\_m3\_0}, recorded post-recovery probabilities were:
+\[
+P(\text{SUPPORTED})=0.3444325990,\quad P(\text{REFUTED})=0.6555674010.
+\]
+Thus confidence is $0.6555674010$.
+With \texttt{esi\_geom}=0.2 and $\alpha=0.5$:
+\begin{align}
+\texttt{abstain\_score}
+&=0.5(1-0.6555674010)+0.5(1-0.2) \\
+&=0.5722162995.
+\end{align}
+
+Top rationale edge example:
+\begin{align}
+\texttt{attention\_max} &= 0.6899744811, \\
+\Rel(e) &= 0.75, \\
+\text{salience}_{attn-pv} &= 0.6899744811\cdot0.75=0.5174808608.
+\end{align}
+
+Leave-one-out faithfulness sample:
+removing one top edge changed confidence from $0.6555674010$ to $0.6379624966$,
+a drop of $0.0176049045$.
+

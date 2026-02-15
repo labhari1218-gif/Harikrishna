@@ -1,0 +1,51 @@
+{
+  "component2_config": {
+    "abstain_alpha": 0.5,
+    "anchor_fallback_degree_k": 2,
+    "anchor_max_k": 5,
+    "hidden_dim": 256,
+    "mask_ref_bias": -2.0,
+    "mask_ref_scale": 4.0,
+    "mask_sup_bias": -2.0,
+    "mask_sup_scale": 4.0,
+    "message_passing_layers": 1,
+    "neutral_cap_gamma": 2.0,
+    "num_heads": 4,
+    "ppr_alpha": 0.15,
+    "ppr_epsilon": 0.001,
+    "ppr_max_iters": 64,
+    "ppr_tolerance": 1e-09,
+    "random_seed": 13,
+    "recovery_tau_esi": 0.3,
+    "recovery_tau_rpi_legacy": 0.15,
+    "recovery_top_k": 3,
+    "rel_emb_dim": 64,
+    "smoke_max_claims": 5
+  },
+  "runtime": {
+    "bridge_rescue": {
+      "class": "BridgeRescuePPR",
+      "formula": "BridgeBonus=e_ppr_u*(epsilon+rel)*e_ppr_v",
+      "graph_pools": [
+        "A",
+        "S",
+        "C"
+      ],
+      "neutral_cap": "BridgeBonus' = BridgeBonus*(1-p_neu)^gamma"
+    },
+    "input_jsonl": null,
+    "mask_formulas": {
+      "refute": "sigmoid(4*p_con-2)",
+      "support": "sigmoid(4*p_ent-2)"
+    },
+    "max_claims": 5,
+    "num_claims": 5,
+    "output_dir": "logs/component2/m2/20260210_075756",
+    "reasoner": "HybridMaskedDualStreamReasoner",
+    "recovery_policy": {
+      "class": "BridgeRecoveryPolicy",
+      "recovery_top_k": 3,
+      "trigger": "esi_geom<tau_esi and delta_conn_bridge_at_k>0"
+    }
+  }
+}

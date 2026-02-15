@@ -1,0 +1,104 @@
+\section{Input Contract and Data Sources}
+\label{sec:c1_inputs}
+
+\subsection{Primary data sources in repository code}
+Component 1 reads claims and retrieved subgraphs through:
+\begin{itemize}
+\item \texttt{datasets.get\_df(split)}: claim dataframe.
+\item \texttt{datasets.get\_subgraphs(split, subgraph\_type="direct\_filled")}: retrieved evidence dataframe.
+\end{itemize}
+The runner aligns these two tables by positional index after:
+\begin{lstlisting}[style=jsonstyle]
+claims_df = claims_df.reset_index(drop=True)
+subgraphs_df = subgraphs_df.reset_index(drop=True)
+\end{lstlisting}
+This avoids index misalignment errors and guarantees that claim $i$ uses subgraph row $i$.
+
+\subsection{Claim-level input schema (from \texttt{get\_df})}
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.24\linewidth}p{0.16\linewidth}p{0.54\linewidth}@{}}
+\toprule
+Field & Type & Semantics \\
+\midrule
+\texttt{Sentence} & string & Claim text consumed as NLI hypothesis. \\
+\texttt{Label} & list[bool] & Ground truth list, converted to \texttt{"TRUE"}/\texttt{"FALSE"} in runner logs. \\
+\texttt{Entity\_set} & list[string] & Claim entities used in coverage/connectivity metrics. \\
+\texttt{Evidence} & object (optional) & Dataset-provided provenance, not required by Component 1 core logic. \\
+\texttt{types} & list[string] (optional) & Claim category metadata. \\
+\bottomrule
+\end{tabular}
+\caption{Claim schema relevant to Component 1.}
+\label{tab:c1_claim_schema}
+\end{table}
+
+\subsection{Subgraph-level input schema (from \texttt{get\_subgraphs})}
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.24\linewidth}p{0.16\linewidth}p{0.54\linewidth}@{}}
+\toprule
+Field & Type & Semantics \\
+\midrule
+\texttt{subgraph} & object & Direct retrieval structure (not directly consumed by Component 1 scoring loop). \\
+\texttt{walked} & dict & Contains \texttt{connected} and \texttt{walkable} triple lists. \\
+\texttt{walked["walkable"]} & list[list[str,str,str]] & Canonical evidence triples consumed by \texttt{create\_evidence\_pool}. \\
+\bottomrule
+\end{tabular}
+\caption{Subgraph schema and canonical triple source for Component 1.}
+\label{tab:c1_subgraph_schema}
+\end{table}
+
+Each triple is a 3-tuple/list $(s,r,o)$ such as:
+\begin{lstlisting}[style=jsonstyle]
+["John_E._Beck", "~successor", "Edward_E._Willard"]
+["John_E._Beck", "birthDate", "\"1869-05-10\""]
+\end{lstlisting}
+
+\subsection{Evidence pool construction}
+For each claim index $i$ in split \texttt{split}:
+\begin{align}
+\texttt{claim\_id} &= \texttt{f"\{split\}\_\{i\}"}, \\
+\Pool &= \{e_0, e_1, \dots, e_{n-1}\}, \quad n = |\texttt{walked["walkable"]}|.
+\end{align}
+Each evidence item receives a stable id:
+\begin{equation}
+\texttt{evidence\_id}(e_j) = \texttt{f"\{claim\_id\}\_triple\_\{j\}"}.
+\end{equation}
+Malformed triples (length not equal to 3) are skipped.
+
+\subsection{Runner configuration surface (CLI)}
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.23\linewidth}p{0.18\linewidth}p{0.53\linewidth}@{}}
+\toprule
+Argument & Default & Meaning \\
+\midrule
+\texttt{--split} & required & \texttt{train/val/test}. \\
+\texttt{--limit\_claims} & \texttt{None} & Optional cap for smoke runs. \\
+\texttt{--out\_dir} & \texttt{logs/component1} & Root for output artifacts. \\
+\texttt{--model\_name} & \texttt{microsoft/deberta-v3-base-mnli} & NLI checkpoint for PV. \\
+\texttt{--device} & \texttt{auto} & \texttt{auto/cuda/cpu}. \\
+\texttt{--batch\_size} & 8 & PV batch size. \\
+\texttt{--max\_length} & 256 & Tokenizer max sequence length. \\
+\texttt{--min\_A} & 5 & Minimum Active evidence target. \\
+\texttt{--max\_A} & 20 & Maximum Active evidence cap. \\
+\texttt{--max\_C} & 5 & Maximum Counter evidence cap. \\
+\texttt{--contra\_tau} & 0.6 & Counter contradiction threshold. \\
+\texttt{--cache\_dir} & \texttt{cache/pv\_sqlite} & SQLite cache directory. \\
+\texttt{--pair\_log\_mode} & \texttt{none} & \texttt{none/all/A\_only/A\_and\_C/sample}. \\
+\texttt{--pair\_log\_sample\_rate} & 0.1 & Sampling rate when mode is \texttt{sample}. \\
+\texttt{--cache\_only} & \texttt{False} & Enforce cache-only inference and fail on misses. \\
+\bottomrule
+\end{tabular}
+\caption{Component 1 runner arguments and defaults.}
+\label{tab:c1_cli_args}
+\end{table}
+
+\subsection{Input validity assumptions}
+Component 1 assumes:
+\begin{itemize}
+\item every claim has text (non-empty \texttt{Sentence}),
+\item subgraph rows are aligned one-to-one with claim rows,
+\item each scored evidence item will eventually have \texttt{pv} populated before ESM partitioning.
+\end{itemize}
+If an evidence item reaches ESM without PV score, a \texttt{ValueError} is raised.

@@ -1,0 +1,13 @@
+{
+  "anchor_source_counts": {
+    "heuristic": 0,
+    "pickle": 0,
+    "provided": 5
+  },
+  "claims_missing_pickle_mapping": 0,
+  "loss": 0.7406039595139029,
+  "num_claims": 5,
+  "num_perf_guardrail_warnings": 0,
+  "perf_guardrail_claim_ids": [],
+  "relation_vocab_size": 2
+}

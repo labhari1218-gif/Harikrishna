@@ -59,7 +59,11 @@ def seed_everything(seed=57):
     torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.benchmark = False
     os.environ["PYTHONHASHSEED"] = str(seed)
-    torch.mps.manual_seed(seed)
+    try:
+        if hasattr(torch, "mps") and hasattr(torch.mps, "manual_seed"):
+            torch.mps.manual_seed(seed)
+    except Exception:
+        pass
 
 
 def count_parameters(model):

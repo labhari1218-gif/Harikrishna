@@ -1,0 +1,9 @@
+/home/bs_thesis/miniconda/envs/fact_check_env/lib/python3.10/site-packages/transformers/utils/hub.py:110: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.
+  warnings.warn(
+Traceback (most recent call last):
+  File "/home/bs_thesis/shift (Copy)/Fact-or-Fiction/src/component3/run_train.py", line 860, in <module>
+    run_dir, run_results = run_training(cfg)
+  File "/home/bs_thesis/shift (Copy)/Fact-or-Fiction/src/component3/run_train.py", line 630, in run_training
+    from evaluate import evaluate_on_test_set
+ModuleNotFoundError: No module named 'evaluate'
+ERROR conda.cli.main_run:execute(127): `conda run python src/component3/run_train.py --run-id t33_full_seed57_rerun_20260215_1239 --train-subset-size 0 --val-subset-size 0 --subset-sampling stratified --use-component1-pairs --component1-logs-root logs/component1 --missing-pv-policy hybrid_fallback --gradient-accumulation-steps 4 --stage1-epochs 5 --stage2-epochs 5 --batch-size 8` failed. (See above for error)

@@ -50,10 +50,10 @@ def get_all_embeddings(subgraph_df, tokenizer, model, batch_size=32):
     n_text = len(all_text)
     logger.info(f"Begin calculating embeddings for {n_text} new words, out of {n_text_from_df} words found in graphs. ")
     for i in range(0, n_text, batch_size):
-        if (i % 1) == 0:
+        if i % 1000 == 0:
             logger.info(f"On idx {i}/{n_text}")
         batch_texts = all_text[i:i + batch_size]
-        embeddings = calculate_embeddings(batch_texts, tokenizer, model)
+        embeddings = calculate_embeddings(batch_texts, tokenizer, model, with_classifier=False)
         for text, embedding in zip(batch_texts, embeddings):
             embedding_dict[text] = embedding.cpu().numpy()  # Move embeddings to CPU and convert to numpy for storage
 
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset_type", choices=["train", "val", "test", "all"], default="all",
                         help="Dataset split to make subgraph for. ")
-    parser.add_argument("--subgraph_type", choices=["direct", "direct_filled", "one_hop", "relevant"], default="direct",
+    parser.add_argument("--subgraph_type", choices=["direct", "direct_filled", "one_hop", "relevant"], default="direct_filled",
                         help="The subgraph retrieval method to load. ")
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size to calculate embeddings. ")
 
@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 
+    model = get_bert_model("bert", include_classifier=False).to(device)
     for dataset_type in dataset_types:
         subgraph_df = get_subgraphs(dataset_type, args.subgraph_type)
-        model = get_bert_model("bert").to(device)
         embeddings = get_all_embeddings(subgraph_df, tokenizer, model, batch_size=args.batch_size)

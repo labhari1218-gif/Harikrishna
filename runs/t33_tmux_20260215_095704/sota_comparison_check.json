@@ -1,0 +1,14 @@
+{
+  "run_metrics": "runs/t33_tmux_20260215_095704/metrics.json",
+  "run_overall_accuracy_pct": 48.64506138701471,
+  "published_sota_overall_accuracy_pct": 86.82,
+  "internal_bert_baseline_accuracy_pct": 93.49,
+  "delta_vs_published_sota_pct_points": -38.17493861298529,
+  "delta_vs_internal_bert_baseline_pct_points": -44.84493861298529,
+  "beats_published_sota": false,
+  "beats_internal_bert_baseline": false,
+  "baseline_metrics": "runs/t33_smoke_post_review_20260215/metrics.json",
+  "baseline_overall_accuracy_pct": null,
+  "delta_vs_baseline_run_pct_points": null,
+  "no_collapse_gate": null
+}

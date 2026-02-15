@@ -1,0 +1,193 @@
+{
+  "run_id": "t33_full_seed57_rerun2_20260215_1321",
+  "stages": [
+    {
+      "stage": "stage1_freeze_bert",
+      "epochs": 5,
+      "learning_rate": 1e-05,
+      "unfreeze_pooler": false,
+      "best_epoch": 5,
+      "best_val_loss": 0.7178884609044273,
+      "best_val_accuracy": 58.261721694557515,
+      "last_loss_bce": 0.7967433333396912,
+      "last_loss_evidence": 0.3858911991119385,
+      "last_loss_starvation": 0.0,
+      "last_loss_counter": 0.0,
+      "last_loss_recovery": 0.0,
+      "last_loss_total": 0.835332453250885,
+      "trainable_summary": {
+        "total": 110014214,
+        "trainable": 531974,
+        "bert_total": 109482240,
+        "bert_trainable": 0,
+        "pooler_total": 590592,
+        "pooler_trainable": 0
+      },
+      "optimizer_id": 128300165540656,
+      "optimizer_state_size": 36
+    },
+    {
+      "stage": "stage2_unfreeze_pooler",
+      "epochs": 5,
+      "learning_rate": 2e-06,
+      "unfreeze_pooler": true,
+      "best_epoch": 4,
+      "best_val_loss": 0.7076393305653274,
+      "best_val_accuracy": 60.41760892507161,
+      "last_loss_bce": 0.8491010665893555,
+      "last_loss_evidence": 0.36143144965171814,
+      "last_loss_starvation": 0.0,
+      "last_loss_counter": 0.0,
+      "last_loss_recovery": 0.0,
+      "last_loss_total": 0.8852441906929016,
+      "trainable_summary": {
+        "total": 110014214,
+        "trainable": 1122566,
+        "bert_total": 109482240,
+        "bert_trainable": 590592,
+        "pooler_total": 590592,
+        "pooler_trainable": 590592
+      },
+      "optimizer_id": 128300165540656,
+      "optimizer_state_size": 36
+    }
+  ],
+  "data_contract": {
+    "component1_coverage": {
+      "train": {
+        "split": "train",
+        "logs_root": "logs/component1",
+        "pairs_file": "logs/component1/train/pairs.jsonl",
+        "pairs_file_exists": true,
+        "missing_policy": "hybrid_fallback",
+        "claims_total": 86367,
+        "claims_with_component1_pairs": 85241,
+        "claims_missing_component1_pairs": 1126,
+        "claims_using_fallback": 1126,
+        "claims_with_empty_evidence": 1126,
+        "claims_with_component1_pairs_pct": 0.9869626130350713,
+        "claims_missing_component1_pairs_pct": 0.013037386964928734,
+        "claims_using_fallback_pct": 0.013037386964928734,
+        "claims_with_empty_evidence_pct": 0.013037386964928734,
+        "pair_rows_total": 1751327,
+        "pair_rows_parsed": 1751327,
+        "pair_rows_dropped": 0,
+        "pair_rows_nonzero_pv": 1751327,
+        "pair_rows_nonzero_pv_pct": 1.0,
+        "fallback_edge_rows": 0,
+        "extra_claim_ids_in_pairs": 0,
+        "extra_claim_id_examples": []
+      },
+      "val": {
+        "split": "val",
+        "logs_root": "logs/component1",
+        "pairs_file": "logs/component1/val/pairs.jsonl",
+        "pairs_file_exists": true,
+        "missing_policy": "hybrid_fallback",
+        "claims_total": 13266,
+        "claims_with_component1_pairs": 13141,
+        "claims_missing_component1_pairs": 125,
+        "claims_using_fallback": 125,
+        "claims_with_empty_evidence": 125,
+        "claims_with_component1_pairs_pct": 0.9905774159505503,
+        "claims_missing_component1_pairs_pct": 0.009422584049449722,
+        "claims_using_fallback_pct": 0.009422584049449722,
+        "claims_with_empty_evidence_pct": 0.009422584049449722,
+        "pair_rows_total": 282730,
+        "pair_rows_parsed": 282730,
+        "pair_rows_dropped": 0,
+        "pair_rows_nonzero_pv": 282730,
+        "pair_rows_nonzero_pv_pct": 1.0,
+        "fallback_edge_rows": 0,
+        "extra_claim_ids_in_pairs": 0,
+        "extra_claim_id_examples": []
+      },
+      "test": {
+        "split": "test",
+        "logs_root": "logs/component1",
+        "pairs_file": "logs/component1/test/pairs.jsonl",
+        "pairs_file_exists": true,
+        "missing_policy": "hybrid_fallback",
+        "claims_total": 9041,
+        "claims_with_component1_pairs": 8933,
+        "claims_missing_component1_pairs": 108,
+        "claims_using_fallback": 108,
+        "claims_with_empty_evidence": 108,
+        "claims_with_component1_pairs_pct": 0.9880544187589868,
+        "claims_missing_component1_pairs_pct": 0.011945581241013163,
+        "claims_using_fallback_pct": 0.011945581241013163,
+        "claims_with_empty_evidence_pct": 0.011945581241013163,
+        "pair_rows_total": 168139,
+        "pair_rows_parsed": 168139,
+        "pair_rows_dropped": 0,
+        "pair_rows_nonzero_pv": 168139,
+        "pair_rows_nonzero_pv_pct": 1.0,
+        "fallback_edge_rows": 0,
+        "extra_claim_ids_in_pairs": 0,
+        "extra_claim_id_examples": []
+      }
+    },
+    "missing_pv_policy": "hybrid_fallback",
+    "use_component1_pairs": true
+  },
+  "test_metrics": {
+    "existence": {
+      "accuracy": 0.5465742879137798,
+      "precision": 0.5383386581469649,
+      "recall": 0.5290423861852434,
+      "f1": 0.5336500395882818
+    },
+    "substitution": {
+      "accuracy": 0.6591031874662344,
+      "precision": 0.045008183306055646,
+      "recall": 0.36666666666666664,
+      "f1": 0.08017492711370262
+    },
+    "multi hop": {
+      "accuracy": 0.602990834539315,
+      "precision": 0.6733966745843231,
+      "recall": 0.5085201793721973,
+      "f1": 0.5794583546244252
+    },
+    "multi claim": {
+      "accuracy": 0.6085636197995749,
+      "precision": 0.5379513633014001,
+      "recall": 0.5244252873563219,
+      "f1": 0.5311022189887231
+    },
+    "negation": {
+      "accuracy": 0.4048706240487062,
+      "precision": 0.3650075414781297,
+      "recall": 0.4013266998341625,
+      "f1": 0.382306477093207
+    },
+    "single hop": {
+      "accuracy": 0.6023249138920781,
+      "precision": 0.5731428571428572,
+      "recall": 0.6110265001522998,
+      "f1": 0.5914786967418546
+    },
+    "overall": {
+      "accuracy": 0.6024776020351731,
+      "loss": 0.6620933481805976,
+      "precision": 0.5925840626439429,
+      "recall": 0.5850386539336062,
+      "f1": 0.5887871853546911
+    }
+  },
+  "no_collapse_gate": {
+    "passed": false,
+    "checks": {
+      "recall_lt_0_99": true,
+      "precision_accuracy_gap_ge_0_02": false,
+      "best_val_accuracy_ge_55": true
+    },
+    "observed": {
+      "overall_recall": 0.5850386539336062,
+      "overall_precision": 0.5925840626439429,
+      "overall_accuracy": 0.6024776020351731,
+      "precision_accuracy_gap": 0.009893539391230166,
+      "best_val_accuracy": 60.41760892507161
+    }
+  }
+}

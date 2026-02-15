@@ -1,0 +1,80 @@
+{
+  "run_id": "t33_tmux_20260215_095704",
+  "stages": [
+    {
+      "stage": "stage1_freeze_bert",
+      "epochs": 5,
+      "learning_rate": 1e-05,
+      "unfreeze_pooler": false,
+      "best_epoch": 1,
+      "best_val_loss": 4.228612911641598,
+      "best_val_accuracy": 22.8,
+      "last_loss_bce": 6.596000671386719,
+      "last_loss_evidence": 0.3586023449897766,
+      "last_loss_starvation": 0.0,
+      "last_loss_counter": 0.0,
+      "last_loss_recovery": 0.0,
+      "last_loss_total": 6.631860733032227
+    },
+    {
+      "stage": "stage2_unfreeze_pooler",
+      "epochs": 5,
+      "learning_rate": 2e-06,
+      "unfreeze_pooler": true,
+      "best_epoch": 1,
+      "best_val_loss": 5.836045615851879,
+      "best_val_accuracy": 22.8,
+      "last_loss_bce": 8.008932113647461,
+      "last_loss_evidence": 0.31688976287841797,
+      "last_loss_starvation": 0.0,
+      "last_loss_counter": 0.0,
+      "last_loss_recovery": 0.0,
+      "last_loss_total": 8.040620803833008
+    }
+  ],
+  "test_metrics": {
+    "existence": {
+      "accuracy": 0.49037721324095457,
+      "precision": 0.49037721324095457,
+      "recall": 1.0,
+      "f1": 0.6580578512396694
+    },
+    "substitution": {
+      "accuracy": 0.04051863857374392,
+      "precision": 0.04051863857374392,
+      "recall": 1.0,
+      "f1": 0.0778816199376947
+    },
+    "multi hop": {
+      "accuracy": 0.537867824409069,
+      "precision": 0.537867824409069,
+      "recall": 1.0,
+      "f1": 0.6994981179422836
+    },
+    "multi claim": {
+      "accuracy": 0.4227148496811418,
+      "precision": 0.4227148496811418,
+      "recall": 1.0,
+      "f1": 0.5942369263607257
+    },
+    "negation": {
+      "accuracy": 0.4589041095890411,
+      "precision": 0.4589041095890411,
+      "recall": 1.0,
+      "f1": 0.6291079812206573
+    },
+    "single hop": {
+      "accuracy": 0.47115384615384615,
+      "precision": 0.47115384615384615,
+      "recall": 1.0,
+      "f1": 0.6405228758169934
+    },
+    "overall": {
+      "accuracy": 0.4864506138701471,
+      "loss": 4.10734966675947,
+      "precision": 0.4864506138701471,
+      "recall": 1.0,
+      "f1": 0.6545129845970682
+    }
+  }
+}

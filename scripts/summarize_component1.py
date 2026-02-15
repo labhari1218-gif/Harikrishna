@@ -46,18 +46,27 @@ def compute_summary_statistics(claims: list) -> dict:
     
     num_claims = len(claims)
     
-    # Set sizes
-    #Set sizes
-    A_sizes = [c["counts"]["A"] for c in claims]
-    S_sizes = [c["counts"]["S"] for c in claims]
-    C_sizes = [c["counts"]["C"] for c in claims]
+    # Set sizes (FIX 2: use .get() for robustness)
+    A_sizes = [c.get("counts", {}).get("A", 0) for c in claims]
+    S_sizes = [c.get("counts", {}).get("S", 0) for c in claims]
+    C_sizes = [c.get("counts", {}).get("C", 0) for c in claims]
     
-    # Sufficiency metrics (use ESI_geom as primary)
-    esi_geom_values = [c['sufficiency']['esi_geom'] for c in claims]
-    esi_prod_values = [c['sufficiency']['esi_prod'] for c in claims]
-    coverage_vals = [c["sufficiency"]["coverage_A"] for c in claims]
-    connectivity_vals = [c["sufficiency"]["connectivity_A"] for c in claims]
-    neutral_rate_vals = [c["sufficiency"]["neutral_rate_A"] for c in claims]
+    # Sufficiency metrics (use ESI_geom as primary, fallback to esi_prod for legacy logs)
+    # FIX 2: Robust extraction with .get() to handle missing fields
+    esi_geom_values = []
+    esi_prod_values = []
+    for c in claims:
+        suff = c.get("sufficiency", {})
+        # Try esi_geom first, fallback to esi_prod
+        esi_geom = suff.get("esi_geom")
+        if esi_geom is None:
+            esi_geom = suff.get("esi_prod", 0.0)
+        esi_geom_values.append(esi_geom)
+        esi_prod_values.append(suff.get("esi_prod", 0.0))
+    
+    coverage_vals = [c.get("sufficiency", {}).get("coverage_A", 0.0) for c in claims]
+    connectivity_vals = [c.get("sufficiency", {}).get("connectivity_A", 0.0) for c in claims]
+    neutral_rate_vals = [c.get("sufficiency", {}).get("neutral_rate_A", 0.0) for c in claims]
     
     # Compute percentiles for data-driven thresholds
     esi_geom_p10 = float(np.percentile(esi_geom_values, 10)) if esi_geom_values else 0.0
@@ -68,27 +77,27 @@ def compute_summary_statistics(claims: list) -> dict:
     starve_rate_fixed_03 = sum(1 for e in esi_geom_values if e < 0.3) / num_claims if esi_geom_values else 0.0
     starve_rate_p10 = sum(1 for e in esi_geom_values if e < esi_geom_p10) / num_claims if esi_geom_values else 0.0
     
-    # Counter retention
-    has_counter = [c["counter_retention"]["has_counter"] for c in claims]
-    cr_at_5_vals = [c["counter_retention"]["cr_at_5"] for c in claims]
-    cr_at_10_vals = [c["counter_retention"]["cr_at_10"] for c in claims]
-    counter_kept = [c["counter_retention"]["counter_kept"] for c in claims]
+    # Counter retention (FIX 2: use .get() for robustness)
+    has_counter = [c.get("counter_retention", {}).get("has_counter", False) for c in claims]
+    cr_at_5_vals = [c.get("counter_retention", {}).get("cr_at_5", 0.0) for c in claims]
+    cr_at_10_vals = [c.get("counter_retention", {}).get("cr_at_10", 0.0) for c in claims]
+    counter_kept = [c.get("counter_retention", {}).get("counter_kept", 0) for c in claims]
     max_contra_C = [
-        c["counter_retention"]["max_contra_C"]
-        for c in claims if c["counter_retention"]["has_counter"]
+        c.get("counter_retention", {}).get("max_contra_C", 0.0)
+        for c in claims if c.get("counter_retention", {}).get("has_counter", False)
     ]
     
-    # Recovery potential
-    bridge_count_vals = [c["recovery"]["bridge_count_S"] for c in claims]
-    bridge_rel_mass_vals = [c["recovery"]["bridge_rel_mass_S"] for c in claims]
-    rpi_at_1_vals = [c["recovery"]["rpi_at_1"] for c in claims]
-    rpi_at_3_vals = [c["recovery"]["rpi_at_3"] for c in claims]
-    rpi_at_5_vals = [c["recovery"]["rpi_at_5"] for c in claims]
+    # Recovery potential (FIX 2: use .get() for robustness)
+    bridge_count_vals = [c.get("recovery", {}).get("bridge_count_S", 0) for c in claims]
+    bridge_rel_mass_vals = [c.get("recovery", {}).get("bridge_rel_mass_S", 0.0) for c in claims]
+    rpi_at_1_vals = [c.get("recovery", {}).get("rpi_at_1", 0.0) for c in claims]
+    rpi_at_3_vals = [c.get("recovery", {}).get("rpi_at_3", 0.0) for c in claims]
+    rpi_at_5_vals = [c.get("recovery", {}).get("rpi_at_5", 0.0) for c in claims]
     
-    # Legacy metrics
-    starved_A_vals = [c["starvation"]["starved_A"] for c in claims]
-    active_shortfall_vals = [c["starvation"]["active_shortfall"] for c in claims]
-    weak_A_mass_vals = [c["starvation"]["weak_A_mass"] for c in claims]
+    # Legacy metrics (FIX 2: use .get() for robustness)
+    starved_A_vals = [c.get("starvation", {}).get("starved_A", 0) for c in claims]
+    active_shortfall_vals = [c.get("starvation", {}).get("active_shortfall", 0) for c in claims]
+    weak_A_mass_vals = [c.get("starvation", {}).get("weak_A_mass", 0.0) for c in claims]
     
     # Construct summary
     summary = {
@@ -169,7 +178,7 @@ def save_examples(claims: list, examples_dir: Path, top_n: int = 10):
     # 2. Lowest ESI_geom (evidence starvation)
     claims_by_esi = sorted(
         claims,
-        key=lambda c: c["sufficiency"]["esi_geom"]
+        key=lambda c: c.get("sufficiency", {}).get("esi_geom", c.get("sufficiency", {}).get("esi_prod", 0.0))
     )
     
     lowest_esi_file = examples_dir / "lowest_esi.json"

@@ -1,0 +1,30 @@
+run_id: t7_smoke_20260214_v2
+output_root: Fact-or-Fiction/runs
+split: test
+seeds:
+- 42
+- 1337
+- 2026
+batch_size: 8
+max_seq_len: 256
+use_synthetic_metrics: true
+enable_hover_stress: true
+vitaminc_target_flip_rate: 0.7
+compare_against_coling_2025_main_311: true
+task: T7
+claim_types:
+- existence
+- substitution
+- multi hop
+- multi claim
+- negation
+- single hop
+ablation_variants:
+- no_pv_masks
+- no_dual_stream
+- no_claim_conditioned_triples
+- no_bridge_rescue
+- no_multi_task_loss
+- no_warmup
+- no_model_routing
+- full_pipeline

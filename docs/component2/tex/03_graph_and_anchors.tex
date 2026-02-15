@@ -1,0 +1,88 @@
+\section{Graph Construction and Anchor Selection}
+\label{sec:graph-anchors}
+
+\subsection{Graph object built by \texttt{GraphBuilder}}
+Component 2 reasoning operates on \texttt{EvidenceGraph} with fields:
+\begin{itemize}
+\item \texttt{nodes}: entity strings.
+\item \texttt{node\_to\_idx}: mapping from entity to node index.
+\item \texttt{edges}: list of typed graph edges with PV features.
+\item \texttt{anchors}: selected anchor entities.
+\item \texttt{anchor\_indices}: anchor node indices that exist in graph.
+\end{itemize}
+
+\subsection{Pool-dependent graph views}
+Two graph views are used in milestone runners:
+\begin{itemize}
+\item Active reasoning graph: \texttt{include\_pools=("A","C")}.
+\item Full bridge graph: \texttt{include\_pools=("A","S","C")}.
+\end{itemize}
+This split ensures the base reasoner does not directly consume Suspended edges, while bridge scoring can still inspect them.
+
+\subsection{Edge feature set}
+For each edge $e$, \texttt{GraphEdge} stores:
+\[
+\{\texttt{relation\_id},\texttt{pool\_id},p_{\text{ent}},p_{\text{con}},p_{\text{neu}},\Rel(e),\Pol(e)\}.
+\]
+
+Relation ids come from a mutable per-run vocabulary:
+\[
+\texttt{relation\_to\_id}: r \mapsto 0,1,2,\dots
+\]
+allocated on first appearance.
+
+\subsection{Anchor selection policy in \texttt{AnchorSelector}}
+\label{subsec:anchor-policy}
+Anchor selection now receives seed entities from a source-priority adapter:
+\[
+\texttt{provided} \rightarrow \texttt{pickle} \rightarrow \texttt{heuristic}
+\]
+where \texttt{pickle} means FactKG \texttt{Entity\_set} injection from
+\texttt{data/factkg/factkg\_\{train|dev|test\}.pickle} when upstream records omit \texttt{entity\_set}.
+The adapter lazy-loads these mappings once per run. If configured pickle paths are missing/invalid,
+or no mappings can be extracted, code emits a \texttt{RuntimeWarning} and continues with
+\texttt{heuristic} fallback so data-path issues are visible without breaking execution.
+
+Given that seed input, anchor selection follows a robust fallback hierarchy and enforces practical connectivity diagnostics:
+\begin{enumerate}
+\item Match seed entities (from \texttt{entity\_set}) to graph entities using normalized forms.
+\item If fewer than required anchors are found, use claim-text substring matches.
+\item If still insufficient, add degree-based fallback entities.
+\end{enumerate}
+
+Important implementation guards:
+\begin{itemize}
+\item Blank entities are discarded.
+\item If the graph has at least two entities, selector attempts to return at least two anchors (bounded by \texttt{anchor\_max\_k}).
+\item Degree fallback uses deterministic tie-break by first appearance in graph entities.
+\end{itemize}
+
+\begin{algorithm}[H]
+\caption{Anchor Selection (code-aligned)}
+\begin{algorithmic}[1]
+\Require claim text $c$, triples $T$, seed entities $E_{seed}$, max anchors $K$
+\State $V \leftarrow$ unique valid graph entities from $T$
+\If{$|V|=0$} \State return $[\ ]$ \EndIf
+\State $K_{min} \leftarrow \min(2, |V|, K)$
+\State $A \leftarrow$ seed matches between $E_{seed}$ and $V$
+\If{$|A| \ge K_{min}$} \State return first $K$ anchors \EndIf
+\State extend $A$ with text-match entities ($\text{normalize}(v) \subseteq \text{normalize}(c)$)
+\If{$|A| \ge K_{min}$} \State return first $K$ anchors \EndIf
+\State extend $A$ with top-degree entities in $V$ (deterministic ties)
+\State return first $K$ anchors
+\end{algorithmic}
+\label{alg:anchor-selection}
+\end{algorithm}
+
+\subsection{Connectivity semantics used downstream}
+Recovery and bridge diagnostics use undirected connectivity over Active edges.
+For anchor pair $(a_i,a_j)$:
+\begin{itemize}
+\item if either anchor is missing from Active nodes, pair is treated as disconnected,
+\item otherwise BFS/graph traversal is used to test connectivity.
+\end{itemize}
+The pairwise connectivity score is:
+\[
+\Conn(A)=\frac{\#\text{connected anchor pairs}}{\#\text{anchor pairs}}.
+\]
+When fewer than two unique anchors exist, implementation returns $1.0$ (degenerate no-pair case).

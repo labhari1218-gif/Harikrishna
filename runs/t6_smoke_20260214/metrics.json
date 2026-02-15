@@ -1,0 +1,192 @@
+{
+  "task": "T6",
+  "run_id": "t6_smoke_20260214",
+  "t61_router_classifier": {
+    "backend": "naive_bayes",
+    "dev_accuracy": 1.0,
+    "target_accuracy": 0.8,
+    "meets_target": true,
+    "n_train": 12,
+    "n_dev": 6
+  },
+  "t62_difficulty_features": {
+    "fields": [
+      "claim_type",
+      "prediction_margin",
+      "graph_connectivity",
+      "evidence_count"
+    ],
+    "hard_threshold": 0.55
+  },
+  "t63_threshold_tuning": {
+    "best_threshold": 0.9,
+    "best_accuracy": 1.0,
+    "best_pv_route_rate": 0.5,
+    "sweep": [
+      {
+        "threshold": 0.35,
+        "accuracy": 1.0,
+        "pv_route_rate": 0.5
+      },
+      {
+        "threshold": 0.4,
+        "accuracy": 1.0,
+        "pv_route_rate": 0.5
+      },
+      {
+        "threshold": 0.45,
+        "accuracy": 1.0,
+        "pv_route_rate": 0.5
+      },
+      {
+        "threshold": 0.5,
+        "accuracy": 1.0,
+        "pv_route_rate": 0.5
+      },
+      {
+        "threshold": 0.55,
+        "accuracy": 1.0,
+        "pv_route_rate": 0.5
+      },
+      {
+        "threshold": 0.6,
+        "accuracy": 1.0,
+        "pv_route_rate": 0.5
+      },
+      {
+        "threshold": 0.65,
+        "accuracy": 1.0,
+        "pv_route_rate": 0.5
+      },
+      {
+        "threshold": 0.7,
+        "accuracy": 1.0,
+        "pv_route_rate": 0.5
+      },
+      {
+        "threshold": 0.75,
+        "accuracy": 1.0,
+        "pv_route_rate": 0.5
+      },
+      {
+        "threshold": 0.8,
+        "accuracy": 1.0,
+        "pv_route_rate": 0.5
+      },
+      {
+        "threshold": 0.85,
+        "accuracy": 1.0,
+        "pv_route_rate": 0.5
+      },
+      {
+        "threshold": 0.9,
+        "accuracy": 1.0,
+        "pv_route_rate": 0.5
+      }
+    ],
+    "routed_accuracy_at_best": 1.0
+  },
+  "t64_budget_mapping": {
+    "existence": {
+      "max_active": 16,
+      "backtrack_rounds": 0,
+      "mask_alpha": 3.2,
+      "gnn_layers": 1
+    },
+    "substitution": {
+      "max_active": 18,
+      "backtrack_rounds": 0,
+      "mask_alpha": 3.4,
+      "gnn_layers": 1
+    },
+    "multi hop": {
+      "max_active": 32,
+      "backtrack_rounds": 2,
+      "mask_alpha": 5.1,
+      "gnn_layers": 2
+    },
+    "multi claim": {
+      "max_active": 30,
+      "backtrack_rounds": 2,
+      "mask_alpha": 4.8999999999999995,
+      "gnn_layers": 2
+    },
+    "negation": {
+      "max_active": 28,
+      "backtrack_rounds": 2,
+      "mask_alpha": 5.0,
+      "gnn_layers": 2
+    },
+    "single hop": {
+      "max_active": 20,
+      "backtrack_rounds": 0,
+      "mask_alpha": 3.8,
+      "gnn_layers": 1
+    }
+  },
+  "routing_decisions": [
+    {
+      "claim_id": "r_1",
+      "claim_type": "existence",
+      "selected_model": "bert_baseline",
+      "reason": "easy_profile",
+      "hard_score": 0.0,
+      "budget": null
+    },
+    {
+      "claim_id": "r_2",
+      "claim_type": "substitution",
+      "selected_model": "bert_baseline",
+      "reason": "easy_profile",
+      "hard_score": 0.0,
+      "budget": null
+    },
+    {
+      "claim_id": "r_3",
+      "claim_type": "single hop",
+      "selected_model": "bert_baseline",
+      "reason": "easy_profile",
+      "hard_score": 0.0,
+      "budget": null
+    },
+    {
+      "claim_id": "r_4",
+      "claim_type": "multi hop",
+      "selected_model": "pv_qagnn_backtracking",
+      "reason": "hard_profile",
+      "hard_score": 0.7180392156862746,
+      "budget": {
+        "max_active": 28,
+        "backtrack_rounds": 2,
+        "mask_alpha": 4.8,
+        "gnn_layers": 2
+      }
+    },
+    {
+      "claim_id": "r_5",
+      "claim_type": "multi claim",
+      "selected_model": "pv_qagnn_backtracking",
+      "reason": "hard_profile",
+      "hard_score": 0.5768627450980393,
+      "budget": {
+        "max_active": 26,
+        "backtrack_rounds": 2,
+        "mask_alpha": 4.6,
+        "gnn_layers": 2
+      }
+    },
+    {
+      "claim_id": "r_6",
+      "claim_type": "negation",
+      "selected_model": "pv_qagnn_backtracking",
+      "reason": "hard_profile",
+      "hard_score": 0.6925490196078432,
+      "budget": {
+        "max_active": 24,
+        "backtrack_rounds": 2,
+        "mask_alpha": 4.7,
+        "gnn_layers": 2
+      }
+    }
+  ]
+}

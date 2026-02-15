@@ -1,0 +1,56 @@
+{
+  "component2_config": {
+    "abstain_alpha": 0.5,
+    "anchor_fallback_degree_k": 2,
+    "anchor_max_k": 5,
+    "faithfulness_subset_size": 3,
+    "faithfulness_top_k_edges": 10,
+    "hidden_dim": 256,
+    "mask_ref_bias": -2.0,
+    "mask_ref_scale": 4.0,
+    "mask_sup_bias": -2.0,
+    "mask_sup_scale": 4.0,
+    "message_passing_layers": 1,
+    "neutral_cap_gamma": 2.0,
+    "num_heads": 4,
+    "ppr_alpha": 0.15,
+    "ppr_epsilon": 0.001,
+    "ppr_max_iters": 100,
+    "ppr_tolerance": 1e-06,
+    "random_seed": 13,
+    "rationale_top_n": 10,
+    "recovery_tau_esi": 0.3,
+    "recovery_tau_rpi_legacy": 0.15,
+    "recovery_top_k": 3,
+    "rel_emb_dim": 64,
+    "smoke_max_claims": 5
+  },
+  "runtime": {
+    "input_jsonl": "logs/component1_m3_compat/train/claims.jsonl",
+    "input_source": "component1_logs",
+    "mask_formulas": {
+      "refute": "sigmoid(4*p_con-2)",
+      "support": "sigmoid(4*p_ent-2)"
+    },
+    "max_claims": 100,
+    "num_claims": 100,
+    "output_dir": "logs/component2/m3/20260210_094823_375261",
+    "reasoner": "HybridMaskedDualStreamReasoner",
+    "recovery_policy": {
+      "recovery_top_k": 3,
+      "trigger": "esi_geom<tau_esi and delta_conn_bridge_at_k>0"
+    },
+    "salience": {
+      "faithfulness_drop_mode": "grouped_top_k_removal",
+      "faithfulness_subset_size": 3,
+      "faithfulness_top_k_edges": 10,
+      "formula": "attention_for_predicted_class * (p_ent+p_con)",
+      "top_n": 10
+    },
+    "selective_prediction": {
+      "abstain_formula": "alpha*(1-max_prob)+(1-alpha)*(1-esi_geom)",
+      "alpha": 0.5,
+      "metric": "AURC"
+    }
+  }
+}

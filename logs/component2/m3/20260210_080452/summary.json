@@ -1,0 +1,9 @@
+{
+  "aurc": 0.22666666666666668,
+  "num_claims": 5,
+  "num_faithful_claims": 3,
+  "num_labeled_claims": 5,
+  "num_recovered": 3,
+  "relation_vocab_size_active": 6,
+  "relation_vocab_size_full": 7
+}

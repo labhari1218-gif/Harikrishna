@@ -178,7 +178,7 @@ docs/              # Documentation artifacts
   ```
 
 **SQLite Cache**:
-- Path: `cache/pv_sqlite/pv_cache.db`
+- Path: `cache/pv_sqlite/pv_cache_v2.db` (legacy read fallback: `pv_cache.db`)
 - Schema: 
   - Main table: `pv_scores(claim_id TEXT, evidence_hash TEXT, model_name TEXT, max_length INT, verbalizer_id TEXT, probs_json TEXT, rel REAL, pol REAL, PRIMARY KEY (claim_id, evidence_hash, model_name, max_length, verbalizer_id))`
   - Metadata table: `cache_metadata(key TEXT PRIMARY KEY, value TEXT)`
@@ -606,7 +606,7 @@ Starved A Rate (|A|==0): 0.00% ← **CRITICAL INVARIANT VERIFIED**
 - `logs/component1/train/claims.jsonl` (5 lines, comprehensive per-claim metrics)
 - `logs/component1/train/summary.json` (aggregate statistics)
 - `logs/component1/train/examples/` (highest_contradiction, lowest_esi, most_neutral JSONs)
-- `cache/pv_sqlite/pv_cache.db` (SQLite cache with versioned keys)
+- `cache/pv_sqlite/pv_cache_v2.db` (SQLite cache with versioned keys; legacy read fallback: `pv_cache.db`)
 
 **Next**: Write walkthrough.md
 
@@ -843,3 +843,223 @@ Mean CR@10: 0.0570
 **Status**: ✅ **PAPER-GRADE READY**
 
 ---
+
+### 2026-02-02 17:36 - Codex Post-v4 Review Fixes ✅
+
+**Summary**: Applied final paper-grade hardening via Codex systematic review. Focus: prevent API misuse, enhance robustness, add pool context metrics.
+
+**Fixes Applied**:
+
+**Fix A: CR@k Keyword-Only API** (ROBUSTNESS - PREVENT FUTURE BUGS)
+- **Problem**: `compute_cr_at_k(C, pool, [5,10])` allowed positional args → argument order bugs possible
+- **Solution**: Made keyword-only: `compute_cr_at_k(*, pool_items, counter_items, ks=[5,10])`
+- **Rationale**: Forces explicit naming, impossible to swap pool/counter accidentally
+- **Additional**: Fixed small-pool denominator: `denom = min(k, len(pool_sorted))` (was hardcoded k)
+- **Files**: `src/component1/sufficiency_metrics.py`, `src/component1/logging_utils.py`
+-**Tests**: Added `test_cr_at_k_rejects_positional()` and `test_cr_at_k_small_pool()`
+
+**Fix B: save_examples ESI_geom Robustness** (ALRE ADY CORRECT - VALIDATED)
+- **Status**: Already uses `.get("esi_geom", .get("esi_prod", 0.0))` fallback
+- **Test**: Added `test_save_examples_fallback_to_esi_prod()` to validate legacy support
+
+**Fix C: Claim/Subgraph Index Alignment** (CORRECTNESS)
+- **Problem**: iterrows() iterator used dataframe indices (non-sequential after head())
+- **Solution**:
+  - `claims_df = claims_df.reset_index(drop=True)` after loading
+  - `subgraphs_df = subgraphs_df.reset_index(drop=True)` after loading  
+  - Loop over `range(len(claims_df))` with `iloc[i]` for both dataframes
+  - Added alignment verification: raises error if len(claims) != len(subgraphs)
+- **Impact**: Guaranteed positional alignment regardless of original dataframe indices
+- **Files**: `scripts/run_component1_pv_esm.py`
+
+**Fix D: Enhanced Pool & Counter Metrics** (ANALYSIS DEPTH)
+- **New pool_stats fields**:
+  - `pool_size_total`: Total evidence pool size
+  - `pool_size_after_C`: Pool size after Counter selection
+  - `min_A_feasible`: min(min_A, pool_size_after_C) - actual minimum feasible
+- **New counter_retention fields**:
+  - `counter_in_A`: Count of items in A with p_contra >= contra_tau (leaked contradictions)
+  - `max_contra_A`: Maximum p_contra in Active set
+- **Rationale**: Provides context for Active shortfalls and tracks contradictions that ESM didn't select for Counter
+- **Files**: `src/component1/logging_utils.py`
+
+**Fix E: Documentation Cleanup** (NO CODE CHANGES)
+- **Status**: ESM docstring already updated in v4 to describe p_contra-based selection
+- **Verified**: S described as "remaining after A/C selection" (correct)
+
+---
+
+**Validation Results** (50-claim run):
+
+```bash
+# Tests: 5/5 passing
+PYTHONPATH=src pytest -q tests/component1/test_logging_utils.py
+# → ..... (100%) ✅
+
+# Runner: 50 claims, 788 evidence items, 69s total
+conda run -n fact_check_env python3 scripts/run_component1_pv_esm.py \
+  --split train --limit_claims 50 --device cpu --batch_size 4 \
+  --pair_log_mode sample --pair_log_sample_rate 0.05
+# → Processing complete! ✅
+
+# Summarize: all examples generated
+conda run -n fact_check_env python3 scripts/summarize_component1.py --split train
+# → summary.json + examples/*.json created ✅
+```
+
+**New Metrics Verification** (sampled from claims.jsonl):
+```json
+{
+  "pool_stats": {
+    "pool_size_total": 13,
+    "pool_size_after_C": 12,
+    "min_A_feasible": 5,
+    ...
+  },
+  "counter_retention": {
+    "counter_in_A": 0,
+    "max_contra_A": 0.0060,
+    ...
+  }
+}
+```
+
+**Test Enhancements**:
+- ✅ `test_cr_at_k_correctness`: Validates keyword-only CR@k computation
+- ✅ `test_cr_at_k_rejects_positional`: Ensures TypeError on positional args
+- ✅ `test_cr_at_k_small_pool`: Validates denominator fix for pools < k
+- ✅ `test_save_examples_uses_esi_geom`: Confirms esi_geom primary metric
+- ✅ `test_save_examples_fallback_to_esi_prod`: Validates legacy fallback
+
+**Files Changed**:
+1. `src/component1/sufficiency_metrics.py` - CR@k keyword-only + small-pool fix
+2. `src/component1/logging_utils.py` - Updated CR@k call + enhanced pool/counter metrics
+3. `scripts/run_component1_pv_esm.py` - Index alignment (reset_index + positional iteration)
+4. `tests/component1/test_logging_utils.py` - Added 2 CR@k tests + 1 fallback test
+5. `tests/conftest.py` - Created to add src/ to Python path for pytest
+6. `tests/component1/__init__.py` - **Removed** (caused import conflicts with component1 package)
+
+**Status**: ✅ **ALL CODEX POST-V4 FIXES COMPLETE & VALIDATED**
+
+**Reference Documents**:
+- `docs/CODEX_FIXES_POST_V4_REVIEW.md` - Comprehensive fix checklist
+- `docs/CODEX_REPORT_V4_HARDENING.md` - Initial v4 report (pre-Codex)
+
+
+### 2026-02-02 18:20 - Post-v4 Hardening: Codex Remaining Fixes ✅
+
+**Summary**: Applied 4 small but high-value fixes for correctness, robustness, and portability.
+
+**Fixes Applied**:
+
+**FIX 1: Counter Leakage Threshold Consistency** (CORRECTNESS)
+- **Problem**: `write_claim_log()` used hardcoded `contra_tau=0.5` for `counter_in_A` metric, but ESM uses configurable `contra_tau` (default 0.6)
+- **Solution**:
+  - Added `contra_tau: float` parameter to `write_claim_log(...)`
+  - Removed hardcoded threshold, now uses ESM's actual configuration
+  - Updated call site in `scripts/run_component1_pv_esm.py` to pass `esm_config.contra_tau`
+- **Impact**: `counter_in_A` metric now correctly reflects ESM's actual Counter selection threshold
+- **Files**: `src/component1/logging_utils.py`, `scripts/run_component1_pv_esm.py`
+
+**FIX 2: Summarize Script Legacy Compatibility** (ROBUSTNESS)
+- **Problem**: `scripts/summarize_component1.py` assumed all fields exist, would crash on old logs (esi_prod-only)
+- **Solution**:
+  - Replaced direct dict access `c["sufficiency"]["esi_geom"]` with `.get()` fallbacks
+  - `esi_geom = suff.get("esi_geom")` → fallback to `suff.get("esi_prod", 0.0)` if None
+  - Applied `.get()` pattern to all nested metric extractions (counts, counter_retention, recovery, starvation)
+- **Impact**: Can now summarize legacy logs without crashes, maintains forward/backward compatibility
+- **Files**: `scripts/summarize_component1.py`
+
+**FIX 3: Lightweight Package Import** (PORTABILITY - BEST PRACTICE)
+- **Problem**: `src/component1/__init__.py` imported `PVScorer`, `PVCache` → required `transformers` at import time
+- **Solution**:
+  - Removed heavy imports from `__init__.py` (only keep pure dataclasses: `EvidenceItem`, `PVResult`, `ESMConfig`)
+  - Updated `scripts/run_component1_pv_esm.py` to import directly from submodules:
+    - `from component1.pv import PVScorer, PVConfig`
+    - `from component1.cache import PVCache`
+- **Impact**: **Test import time: 2.5s → 0.06s** (42× faster!), enables minimal-dependency usage
+- **Files**: `src/component1/__init__.py`, `scripts/run_component1_pv_esm.py`
+
+**FIX 4: ESM Docstring Accuracy** (DOCUMENTATION)
+- **Problem**: ESM docstring described Suspended (S) as "Neutral-dominant evidence (p_neutral > 0.5)", but actual implementation = "remaining after C and A selection"
+- **Solution**: Updated docstring to match behavior:
+  - "Remaining evidence after selecting C then A"
+  - "Typically lower relevance items that didn't make top-max_A cut"
+- **Impact**: Documentation now accurately reflects deterministic policy (avoids future confusion)
+- **Files**: `src/component1/esm.py`
+
+---
+
+**Validation Results** (20-claim run):
+
+```bash
+$ conda run -n fact_check_env python3 scripts/run_component1_pv_esm.py \
+    --split train --limit_claims 20 --device cpu --batch_size 4 --pair_log_mode none \
+    --model_name "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli"
+
+Processing claims: 100%|██████████| 20/20 [00:00<00:00, 1432.73it/s]
+✅ Processing complete! (315 cache hits, 0 misses, 100% hit rate)
+
+$ conda run -n fact_check_env python3 scripts/summarize_component1.py --split train
+✅ Loaded 20 claims
+✅ Summary saved to logs/component1/train/summary.json
+```
+
+**Key Metrics (20 claims)**:
+- Mean ESI_geom: 0.4894
+- Has Counter Rate: 55.00%
+- Starved A Rate: 0.00% ← invariant maintained
+- Test suite: 5/5 passing in **0.06s** (was 2.5s before FIX 3)
+
+**Tests**:
+```bash
+$ python3 -m compileall src/component1 scripts/ ✅ All compiled
+$ PYTHONPATH=src pytest tests/component1 -q ✅ 5 passed in 0.06s
+```
+
+**Files Modified**:
+1. `src/component1/logging_utils.py` - Added contra_tau parameter
+2. `src/component1/esm.py` - Updated docstring for S
+3. `src/component1/__init__.py` - Removed heavy imports
+4. `scripts/run_component1_pv_esm.py` - Pass contra_tau, direct submodule imports
+5. `scripts/summarize_component1.py` - .get() fallbacks for legacy compatibility
+
+**Status**: ✅ **ALL CODEX REMAINING FIXES COMPLETE & VALIDATED**
+
+**Impact Summary**:
+- ✅ Correctness: `counter_in_A` metric now uses correct threshold
+- ✅ Robustness: Can summarize legacy logs without crashes
+- ✅ Portability: 42× faster import time (0.06s vs 2.5s)
+- ✅ Documentation: ESM docstring matches actual behavior
+
+---
+
+### 2026-02-03 - Cache Stability + Summarizer Robustness
+
+**Changes**:
+- **PV cache stability across reindexing**:
+  - Cache primary key now uses `claim_hash = stable_hash(claim_text)` instead of positional `claim_id`.
+  - Cache writes go to `cache/pv_sqlite/pv_cache_v2.db`.
+  - Backward-compatible reads: if a miss occurs and `claim_id` is provided, reads from legacy `pv_cache.db`.
+- **Runner update**:
+  - `scripts/run_component1_pv_esm.py` computes `claim_hash` and passes it to cache get/put.
+- **Summarizer robustness**:
+  - `scripts/summarize_component1.py` uses fallback `esi = suff.get("esi_geom", suff.get("esi_prod", 0.0))` when sorting lowest-ESI examples.
+  - Added unit test covering summarizer with `esi_prod`-only logs.
+
+**Why**:
+- **Cache stability**: avoid cache invalidation when claim ordering changes (e.g., reindexing or filtering).
+- **Summarizer robustness**: handle mixed/legacy logs where `esi_geom` may be missing.
+
+**Commands Run**:
+```bash
+rg -n "sufficiency\\]\\[\"esi\"|sufficiency\\]\\[\"esi_geom\"|compute_cr_at_k\\(" -S .
+conda run -n fact_check_env python3 -m compileall src/component1
+conda run -n fact_check_env pytest -q
+conda run -n fact_check_env python3 scripts/run_component1_pv_esm.py --split train --limit_claims 20 --pair_log_mode none
+conda run -n fact_check_env python3 scripts/summarize_component1.py --split train
+```
+
+**Known Issues**:
+- `scripts/run_component1_pv_esm.py` failed to initialize the PV model when the HuggingFace model weights were not available locally (no network access in this environment).
+- `scripts/summarize_component1.py` requires `logs/component1/train/claims.jsonl` (not present because the PV run failed).

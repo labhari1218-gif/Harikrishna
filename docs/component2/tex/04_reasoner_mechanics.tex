@@ -1,0 +1,97 @@
+\section{Reasoner Mechanics: Masked Dual-Stream Hybrid GAT}
+\label{sec:reasoner}
+
+\subsection{Implemented model}
+The active reasoner class is
+\texttt{HybridMaskedDualStreamReasoner} in \texttt{src/component2/reasoner.py}.
+It is a deterministic NumPy implementation that combines:
+\begin{itemize}
+\item relation-conditioned attention,
+\item separate support/refute message streams,
+\item fixed PV-based masking,
+\item hybrid graph pooling (mean + max + attention).
+\end{itemize}
+Conceptually, it follows graph-based evidence aggregation ideas from prior work such as GEAR and later graph FV variants \cite{zhou2019gear,lan2024cogat}, while adding explicit PV-conditioned masking and bridge-aware recovery interfaces.
+
+\subsection{Node initialization}
+For each node $v$, define basic structural features:
+\[
+\mathbf{x}_v = [\deg_{in}(v),\deg_{out}(v),\mathbb{1}[v\in \text{anchors}],1].
+\]
+Initial state is:
+\[
+\mathbf{h}^{(0)}_v = \tanh(\mathbf{x}_v \mathbf{W}_{init} + \mathbf{u}_{hash}(v)),
+\]
+where $\mathbf{u}_{hash}(v)$ is a deterministic hash-based random vector seeded by entity string and \texttt{random\_seed}.
+
+\subsection{PV masks (fixed coefficients)}
+For each edge $e$:
+\begin{align}
+ m_{sup}(e) &= \sigmoid(\texttt{mask\_sup\_scale}\cdot p_{ent}(e)+\texttt{mask\_sup\_bias}), \\
+ m_{ref}(e) &= \sigmoid(\texttt{mask\_ref\_scale}\cdot p_{con}(e)+\texttt{mask\_ref\_bias}).
+\end{align}
+With default values:
+\[
+m_{sup}(e)=\sigmoid(4p_{ent}(e)-2),\quad
+m_{ref}(e)=\sigmoid(4p_{con}(e)-2).
+\]
+
+\subsection{Relation-conditioned attention per head}
+Let edge $e=(u\rightarrow v)$ with relation embedding $\mathbf{r}_e$ and projected relation state
+$\tilde{\mathbf{r}}_e = \mathbf{r}_e \mathbf{W}_{rel}$.
+For head $h$:
+\begin{align}
+\mathbf{q}^{(h)}_e &= \mathbf{W}^{(h)}_q (\mathbf{h}_v + \tilde{\mathbf{r}}_e), \\
+\mathbf{k}^{(h)}_e &= \mathbf{W}^{(h)}_k (\mathbf{h}_u + \tilde{\mathbf{r}}_e), \\
+\mathbf{v}^{(h)}_e &= \mathbf{W}^{(h)}_v (\mathbf{h}_u + \tilde{\mathbf{r}}_e), \\
+\ell^{(h)}_e &= \frac{\langle \mathbf{q}^{(h)}_e, \mathbf{k}^{(h)}_e \rangle}{\sqrt{d_h}}.
+\end{align}
+Incoming-edge softmax at destination node gives base attention $\alpha^{(h)}_e$.
+Stream-specific weighted attention is:
+\[
+\hat{\alpha}^{(h)}_{sup,e}=\alpha^{(h)}_e\cdot m_{sup}(e),
+\quad
+\hat{\alpha}^{(h)}_{ref,e}=\alpha^{(h)}_e\cdot m_{ref}(e).
+\]
+Implementation status note: in the current NumPy path, $\mathbf{r}_e$ values are random-initialized feature vectors and are not optimized end-to-end; trainable relation embeddings are deferred to the planned PyTorch training milestone.
+
+Node update for each stream after multi-head concatenation:
+\[
+\mathbf{h}^{\prime}_v = \tanh(\text{concat}_h\,\mathbf{m}^{(h)}_v + 0.5\,\mathbf{h}_v).
+\]
+
+\subsection{Message passing depth}
+The update above is repeated \texttt{message\_passing\_layers} times (default $=1$).
+Support and refute streams evolve separately but share graph topology and relation features.
+
+\subsection{Hybrid pooling and classification}
+For stream state matrix $H\in\mathbb{R}^{|V|\times d}$:
+\begin{align}
+\text{mean}(H) &= \frac{1}{|V|}\sum_v H_v, \\
+\text{max}(H) &= \max_v H_v, \\
+\text{attn}(H) &= \sum_v \beta_v H_v,\quad \beta=\softmax(H\mathbf{w}_{pool}/\sqrt{d}).
+\end{align}
+Per stream pooled vector is
+\[
+\mathbf{g}_{stream} = [\text{mean}(H)\|\text{max}(H)\|\text{attn}(H)] \in \mathbb{R}^{3d}.
+\]
+Final representation:
+\[
+\mathbf{g}=[\mathbf{g}_{sup}\|\mathbf{g}_{ref}] \in \mathbb{R}^{6d}.
+\]
+Classifier:
+\[
+\text{logits}=\mathbf{W}_{cls}\mathbf{g}+\mathbf{b}_{cls},\quad
+\hat{\mathbf{p}}=\softmax(\text{logits}).
+\]
+Class index mapping in code is:
+\texttt{0 = SUPPORTED}, \texttt{1 = REFUTED}.
+
+\subsection{Salience produced directly by reasoner}
+For each edge, the reasoner outputs:
+\begin{itemize}
+\item \texttt{attention\_sup}, \texttt{attention\_ref} (masked stream attentions),
+\item \texttt{base\_attention\_sup}, \texttt{base\_attention\_ref} (pre-mask attentions),
+\item \texttt{salience = max(attention\_sup, attention\_ref)}.
+\end{itemize}
+M3 rationale ranking applies an additional class-specific weighting (Section~\ref{sec:selective-salience}).

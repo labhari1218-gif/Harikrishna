@@ -1,0 +1,98 @@
+\section{Evidence Abstraction and Verbalization Logic}
+\label{sec:c1_evidence}
+
+\subsection{Evidence dataclasses (code-level contract)}
+Component 1 defines two core dataclasses in \texttt{src/component1/evidence.py}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.24\linewidth}p{0.15\linewidth}p{0.55\linewidth}@{}}
+\toprule
+Field & Type & Meaning \\
+\midrule
+\multicolumn{3}{@{}l}{\textbf{EvidenceItem}} \\
+\texttt{evidence\_id} & string & Stable unique id (e.g., \texttt{train\_0\_triple\_7}). \\
+\texttt{kind} & string & \texttt{"kg\_triple"} or \texttt{"sentence"}. \\
+\texttt{content} & dict & Triple payload or sentence payload. \\
+\texttt{retrieval\_score} & float & Reserved retrieval score (default \num{0.0}). \\
+\texttt{pv} & \texttt{PVResult}/null & Populated after PV scoring. \\
+\texttt{meta} & dict & Optional extensible metadata. \\
+\midrule
+\multicolumn{3}{@{}l}{\textbf{PVResult}} \\
+\texttt{p\_entail} & float & Entailment probability $\Ent(e)$. \\
+\texttt{p\_contra} & float & Contradiction probability $\Con(e)$. \\
+\texttt{p\_neutral} & float & Neutral probability $\Neu(e)$. \\
+\texttt{rel} & float & $\Rel(e)=\Ent(e)+\Con(e)$. \\
+\texttt{pol} & float & $\Pol(e)=\Ent(e)-\Con(e)$. \\
+\bottomrule
+\end{tabular}
+\caption{Dataclass-level schema for evidence and PV outputs.}
+\label{tab:c1_dataclasses}
+\end{table}
+
+\subsection{Verbalizer versioning}
+\texttt{VERBALIZER\_VERSION = "v3"} is part of the cache key and log metadata.
+Any change to verbalization logic must update this identifier to prevent stale cache reuse.
+
+\subsection{Deterministic text normalization helpers}
+\texttt{normalize\_relation(rel)} performs:
+\begin{enumerate}
+\item URI prefix stripping (\texttt{http://}, \texttt{https://}),
+\item URI tail extraction after \texttt{/} or \texttt{\#},
+\item camelCase splitting (e.g., \texttt{birthPlace} $\rightarrow$ \texttt{birth place}),
+\item underscore and hyphen replacement by spaces,
+\item lowercasing and whitespace collapse.
+\end{enumerate}
+
+\texttt{extract\_entity\_name(entity)} performs:
+\begin{enumerate}
+\item quote stripping for literals,
+\item URI tail extraction,
+\item underscore replacement by spaces.
+\end{enumerate}
+
+\subsection{Triple-to-premise conversion}
+For \texttt{kg\_triple} evidence, \texttt{evidence\_to\_text} uses template:
+\begin{equation}
+\text{premise}(e) = \texttt{"\{subject\} has \{relation\} \{object\}."}
+\end{equation}
+
+Inverse relations are handled explicitly:
+\begin{equation}
+(s,\;\texttt{\textasciitilde r},\;o) \Rightarrow (o,\;r,\;s)
+\end{equation}
+before template rendering.
+
+\subsection{Real examples from current logs}
+From \texttt{logs/component1/train/pairs.jsonl}:
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.31\linewidth}p{0.61\linewidth}@{}}
+\toprule
+Raw triple & Premise text emitted by verbalizer \\
+\midrule
+\texttt{["John\_E.\_Beck", "\textasciitilde successor", "Edward\_E.\_Willard"]}
+& \texttt{Edward E. Willard has successor John E. Beck.} \\
+\texttt{["John\_E.\_Beck", "birthDate", "\"1869-05-10\""]}
+& \texttt{John E. Beck has birth date 1869-05-10.} \\
+\texttt{["John\_E.\_Beck", "birthPlace", "Boston"]}
+& \texttt{John E. Beck has birth place Boston.} \\
+\bottomrule
+\end{tabular}
+\caption{Code-generated premise text examples (verbalizer v3).}
+\label{tab:c1_real_verbalizer_examples}
+\end{table}
+
+\subsection{Hashing contract for deterministic identity}
+\texttt{stable\_hash(text)} uses full SHA-256 and returns a 64-character hex string.
+This is used for:
+\begin{itemize}
+\item claim keys (hash of claim text),
+\item evidence hash (hash of verbalized premise),
+\item persistent cache lookup keys.
+\end{itemize}
+
+\subsection{Important caveat for graph metrics}
+Coverage/connectivity metrics use raw triple subject/object strings as graph nodes.
+Therefore claim entity strings must be compatible with the same identifier style
+(e.g., DBpedia tail strings with underscores) for faithful overlap computation.

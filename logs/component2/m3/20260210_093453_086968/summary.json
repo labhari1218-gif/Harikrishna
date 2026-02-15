@@ -1,0 +1,12 @@
+{
+  "aurc": 0.9658405660258442,
+  "num_claims": 100,
+  "num_disconnected_anchor_graphs": 0,
+  "num_faithful_claims": 3,
+  "num_labeled_claims": 100,
+  "num_ppr_not_converged": 100,
+  "num_recovered": 0,
+  "num_salience_checked": 3,
+  "relation_vocab_size_active": 130,
+  "relation_vocab_size_full": 136
+}

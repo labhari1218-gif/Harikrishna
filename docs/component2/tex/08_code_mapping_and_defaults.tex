@@ -1,0 +1,97 @@
+\section{Code Mapping, Runtime Commands, and Locked Defaults}
+\label{sec:code-mapping}
+
+\subsection{Module-to-responsibility map}
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.34\linewidth}p{0.58\linewidth}@{}}
+\toprule
+Module & Responsibility \\
+\midrule
+\texttt{src/component2/types.py} & Input normalization, schema validation, label mapping. \\
+\texttt{src/component2/anchor\_adapter\_factkg.py} & Inject FactKG \texttt{Entity\_set} anchors by \texttt{claim\_id}/\texttt{claim\_text}; emits load-issue warnings and exposes load diagnostics. \\
+\texttt{src/component2/anchor\_selector.py} & Seed-first anchor selection with text and degree fallbacks. \\
+\texttt{src/component2/graph\_builder.py} & Build \texttt{EvidenceGraph} from selected pools and triples. \\
+\texttt{src/component2/reasoner.py} & Masked dual-stream relation-aware graph reasoner and salience output. \\
+\texttt{src/component2/bridge\_rescue.py} & Weighted PPR node scoring and bridge bonus computation. \\
+\texttt{src/component2/recovery.py} & Policy-aware recovery metrics, trigger gate, and S$\rightarrow$A move. \\
+\texttt{src/component2/selective.py} & Abstain score, risk-coverage points, and \AURC{} calculation. \\
+\texttt{src/component2/salience.py} & Top rationale extraction and faithfulness diagnostics. \\
+\texttt{src/component2/run\_m1.py} & M1 smoke runner. \\
+\texttt{src/component2/run\_m2.py} & M2 smoke runner with recovery diagnostics. \\
+\texttt{src/component2/run\_m3.py} & M3 smoke runner with selective prediction and rationale checks. \\
+\bottomrule
+\end{tabular}
+\caption{Direct code map for implementation traceability.}
+\label{tab:module-map}
+\end{table}
+
+\subsection{Default configuration values (\texttt{Component2Config})}
+The table below mirrors \texttt{src/component2/config.py} exactly.
+
+\begin{longtable}{@{}p{0.35\linewidth}p{0.18\linewidth}p{0.40\linewidth}@{}}
+\toprule
+Key & Default & Used for \\
+\midrule
+\endfirsthead
+\toprule
+Key & Default & Used for \\
+\midrule
+\endhead
+\texttt{anchor\_max\_k} & 5 & Maximum anchors selected per claim. \\
+\texttt{anchor\_fallback\_degree\_k} & 2 & Degree fallback candidates for anchors. \\
+\texttt{factkg\_data\_dir} & data/factkg & Base folder for FactKG anchor pickles. \\
+\texttt{factkg\_train\_pickle} & factkg\_train.pickle & Train split anchor source. \\
+\texttt{factkg\_val\_pickle} & factkg\_dev.pickle & Dev/val split anchor source. \\
+\texttt{factkg\_test\_pickle} & factkg\_test.pickle & Test split anchor source. \\
+\texttt{hidden\_dim} & 256 & Node hidden dimension in reasoner. \\
+\texttt{num\_heads} & 4 & Attention heads in reasoner. \\
+\texttt{rel\_emb\_dim} & 64 & Relation embedding dimension. \\
+\texttt{random\_seed} & 13 & Deterministic initialization and hashing. \\
+\texttt{message\_passing\_layers} & 1 & Stream update depth. \\
+\texttt{mask\_sup\_scale} & 4.0 & Support mask coefficient. \\
+\texttt{mask\_sup\_bias} & -2.0 & Support mask bias. \\
+\texttt{mask\_ref\_scale} & 4.0 & Refute mask coefficient. \\
+\texttt{mask\_ref\_bias} & -2.0 & Refute mask bias. \\
+\texttt{ppr\_epsilon} & 0.001 & Edge weight floor for diffusion. \\
+\texttt{neutral\_cap\_gamma} & 2.0 & Neutrality penalty exponent in bridge score. \\
+\texttt{ppr\_alpha} & 0.15 & Restart mixing factor in PPR iteration. \\
+\texttt{ppr\_max\_iters} & 100 & Maximum PPR iterations. \\
+\texttt{ppr\_tolerance} & 1e-6 & PPR convergence threshold ($L_1$ residual). \\
+\texttt{recovery\_tau\_esi} & 0.3 & Insufficiency threshold for recovery gate. \\
+\texttt{recovery\_tau\_rpi\_legacy} & 0.15 & Legacy reference only (not trigger gate). \\
+\texttt{recovery\_top\_k} & 3 & Number of Suspended edges considered for move. \\
+\texttt{abstain\_alpha} & 0.5 & Confidence-vs-sufficiency blend in abstain score. \\
+\texttt{tau\_abstain} & None & Optional fixed abstention operating point. \\
+\texttt{compute\_risk\_coverage\_sweep} & True & Enable risk-coverage curve and \AURC{}. \\
+\texttt{rationale\_top\_n} & 10 & Number of rationale edges returned. \\
+\texttt{faithfulness\_subset\_size} & 3 & Number of claims for expensive faithfulness checks. \\
+\texttt{faithfulness\_top\_k\_edges} & 10 & Maximum rationale edges removed in checks. \\
+\texttt{smoke\_max\_claims} & 5 & Default smoke-run batch size. \\
+\texttt{numpy\_edge\_warn\_threshold} & 5000 & Emit numpy-mode performance warning above this edge count. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Recommended run commands}
+\begin{verbatim}
+# M1
+PYTHONPATH=src python3 -m component2.run_m1 --max-claims 5 --output-root logs/component2
+
+# M2
+PYTHONPATH=src python3 -m component2.run_m2 --max-claims 5 --output-root logs/component2
+
+# M3 (Component 1 logs mode by default path)
+PYTHONPATH=src python3 -m component2.run_m3 --max-claims 5 --output-root logs/component2
+
+# M3 with fixed abstention operating point only (disable sweep)
+PYTHONPATH=src python3 -m component2.run_m3 --max-claims 5 --tau-abstain 0.55 --no-risk-coverage-sweep
+\end{verbatim}
+
+\subsection{Run-level summary metrics to monitor}
+\begin{itemize}
+\item M1: \texttt{loss}, \texttt{relation\_vocab\_size}.
+\item M2: \texttt{num\_recovered}, \texttt{avg\_delta\_conn\_bridge\_at\_k}, \texttt{num\_ppr\_not\_converged}.
+\item M3: \texttt{aurc} (if sweep enabled), fixed-point selective metrics at \texttt{tau\_abstain} (if set), \texttt{num\_faithful\_claims}, \texttt{num\_salience\_checked}, plus PPR diagnostics counters.
+\item All runners: \texttt{anchor\_source\_counts}, \texttt{claims\_missing\_pickle\_mapping}, and numpy perf warning counters.
+\item Runtime logs: watch for \texttt{FactKGAnchorAdapter} load warnings indicating missing/invalid anchor pickles or zero extracted mappings.
+\end{itemize}

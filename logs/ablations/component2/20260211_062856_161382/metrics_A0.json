@@ -1,0 +1,39 @@
+{
+  "ablation_id": "A0",
+  "accuracy": 0.5315,
+  "bridge_correlation": {
+    "spearman_delta_conn_bridge_at_k_vs_correctness": null,
+    "spearman_max_bridgebonus_vs_confidence": null,
+    "spearman_max_bridgebonus_vs_correctness": null,
+    "top_bridge_connects_different_anchor_components_fraction": null,
+    "top_bridge_connects_different_anchor_components_hits": 0,
+    "top_bridge_connects_different_anchor_components_total": 0
+  },
+  "description": "Baseline (pre-Component2 heuristic verifier over Component1 A/C masses)",
+  "macro_f1": 0.4371086004939868,
+  "num_claims": 2000,
+  "num_labeled_claims": 2000,
+  "recovery": {
+    "mean_delta_conn": 0.0,
+    "mean_esi_after": 0.3789035497410314,
+    "mean_esi_before": 0.3789035497410314,
+    "mean_esi_before_after": "0.3789/0.3789",
+    "recovery_trigger_rate": 0.0
+  },
+  "selective_prediction": {
+    "s1_sweep": {
+      "aurc": 0.4673918654042223,
+      "num_points": 2000
+    },
+    "s2_fixed_tau": {
+      "abstain_rate": 0.03049999999999997,
+      "accuracy_on_answered": 0.5327488396080454,
+      "answered": 1939,
+      "coverage": 0.9695,
+      "errors": 906,
+      "risk": 0.46725116039195463,
+      "tau_abstain": 0.6,
+      "total": 2000
+    }
+  }
+}

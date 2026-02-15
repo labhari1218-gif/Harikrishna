@@ -1,0 +1,35 @@
+{
+  "run_id": "t33_smoke_fix_20260215",
+  "stages": [
+    {
+      "stage": "stage1_freeze_bert",
+      "epochs": 1,
+      "learning_rate": 1e-05,
+      "unfreeze_pooler": false,
+      "best_epoch": 1,
+      "best_val_loss": 0.662209267616272,
+      "best_val_accuracy": 87.0,
+      "last_loss_bce": 0.6029021739959717,
+      "last_loss_evidence": 0.45301541686058044,
+      "last_loss_starvation": 0.0,
+      "last_loss_counter": 0.0,
+      "last_loss_recovery": 0.0,
+      "last_loss_total": 0.6482037305831909
+    },
+    {
+      "stage": "stage2_unfreeze_pooler",
+      "epochs": 1,
+      "learning_rate": 2e-06,
+      "unfreeze_pooler": true,
+      "best_epoch": 1,
+      "best_val_loss": 0.6497392535209656,
+      "best_val_accuracy": 87.0,
+      "last_loss_bce": 0.5941119194030762,
+      "last_loss_evidence": 0.45264923572540283,
+      "last_loss_starvation": 0.0,
+      "last_loss_counter": 0.0,
+      "last_loss_recovery": 0.0,
+      "last_loss_total": 0.6393768191337585
+    }
+  ]
+}

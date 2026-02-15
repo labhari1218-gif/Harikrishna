@@ -1,0 +1,706 @@
+{
+  "aurc": 0.9661587310543188,
+  "num_examples": 100,
+  "points": [
+    {
+      "abstain_threshold": 0.30053913602051113,
+      "answered": 1,
+      "coverage": 0.01,
+      "errors": 1,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.3073399596350159,
+      "answered": 2,
+      "coverage": 0.02,
+      "errors": 2,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.30917477729142934,
+      "answered": 3,
+      "coverage": 0.03,
+      "errors": 3,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.3311994289721641,
+      "answered": 4,
+      "coverage": 0.04,
+      "errors": 4,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.3438334425148646,
+      "answered": 5,
+      "coverage": 0.05,
+      "errors": 5,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.3463783799805637,
+      "answered": 6,
+      "coverage": 0.06,
+      "errors": 6,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.37209191166295497,
+      "answered": 7,
+      "coverage": 0.07,
+      "errors": 7,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.37651119986823123,
+      "answered": 8,
+      "coverage": 0.08,
+      "errors": 8,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.3787121646179487,
+      "answered": 9,
+      "coverage": 0.09,
+      "errors": 9,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.38626326126723565,
+      "answered": 10,
+      "coverage": 0.1,
+      "errors": 10,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.3877790444638258,
+      "answered": 11,
+      "coverage": 0.11,
+      "errors": 11,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.3893905459249906,
+      "answered": 12,
+      "coverage": 0.12,
+      "errors": 12,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.393966481160837,
+      "answered": 13,
+      "coverage": 0.13,
+      "errors": 13,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.3967980691564412,
+      "answered": 14,
+      "coverage": 0.14,
+      "errors": 14,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.3991866145284931,
+      "answered": 15,
+      "coverage": 0.15,
+      "errors": 15,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.4011300594688759,
+      "answered": 16,
+      "coverage": 0.16,
+      "errors": 16,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.4033834296624647,
+      "answered": 17,
+      "coverage": 0.17,
+      "errors": 17,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.4041372454753311,
+      "answered": 18,
+      "coverage": 0.18,
+      "errors": 18,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.4048439773437748,
+      "answered": 19,
+      "coverage": 0.19,
+      "errors": 19,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.4104707370107448,
+      "answered": 20,
+      "coverage": 0.2,
+      "errors": 20,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.41291252763552166,
+      "answered": 21,
+      "coverage": 0.21,
+      "errors": 21,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.4162878428690876,
+      "answered": 22,
+      "coverage": 0.22,
+      "errors": 22,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.4172890900064253,
+      "answered": 23,
+      "coverage": 0.23,
+      "errors": 23,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.41831321475908856,
+      "answered": 24,
+      "coverage": 0.24,
+      "errors": 24,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.42040416826635923,
+      "answered": 25,
+      "coverage": 0.25,
+      "errors": 25,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.42186573094945623,
+      "answered": 26,
+      "coverage": 0.26,
+      "errors": 26,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.4236755028197473,
+      "answered": 27,
+      "coverage": 0.27,
+      "errors": 27,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.4265379561111322,
+      "answered": 28,
+      "coverage": 0.28,
+      "errors": 28,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.42907524967458194,
+      "answered": 29,
+      "coverage": 0.29,
+      "errors": 29,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.4342386869337584,
+      "answered": 30,
+      "coverage": 0.3,
+      "errors": 30,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.43743387517291416,
+      "answered": 31,
+      "coverage": 0.31,
+      "errors": 31,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.43965939261055204,
+      "answered": 32,
+      "coverage": 0.32,
+      "errors": 32,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.442059987203437,
+      "answered": 33,
+      "coverage": 0.33,
+      "errors": 33,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.4425134030234301,
+      "answered": 34,
+      "coverage": 0.34,
+      "errors": 34,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.44274760702069366,
+      "answered": 35,
+      "coverage": 0.35,
+      "errors": 35,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.44458574573850784,
+      "answered": 36,
+      "coverage": 0.36,
+      "errors": 36,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.44833679828633705,
+      "answered": 37,
+      "coverage": 0.37,
+      "errors": 36,
+      "risk": 0.972972972972973
+    },
+    {
+      "abstain_threshold": 0.4492866727192795,
+      "answered": 38,
+      "coverage": 0.38,
+      "errors": 37,
+      "risk": 0.9736842105263158
+    },
+    {
+      "abstain_threshold": 0.452941043764319,
+      "answered": 39,
+      "coverage": 0.39,
+      "errors": 38,
+      "risk": 0.9743589743589743
+    },
+    {
+      "abstain_threshold": 0.4562388626867206,
+      "answered": 40,
+      "coverage": 0.4,
+      "errors": 39,
+      "risk": 0.975
+    },
+    {
+      "abstain_threshold": 0.4571861003741334,
+      "answered": 41,
+      "coverage": 0.41,
+      "errors": 40,
+      "risk": 0.975609756097561
+    },
+    {
+      "abstain_threshold": 0.4585081658722848,
+      "answered": 42,
+      "coverage": 0.42,
+      "errors": 41,
+      "risk": 0.9761904761904762
+    },
+    {
+      "abstain_threshold": 0.45904621044423577,
+      "answered": 43,
+      "coverage": 0.43,
+      "errors": 42,
+      "risk": 0.9767441860465116
+    },
+    {
+      "abstain_threshold": 0.45945431717365265,
+      "answered": 44,
+      "coverage": 0.44,
+      "errors": 43,
+      "risk": 0.9772727272727273
+    },
+    {
+      "abstain_threshold": 0.45947511992548223,
+      "answered": 45,
+      "coverage": 0.45,
+      "errors": 44,
+      "risk": 0.9777777777777777
+    },
+    {
+      "abstain_threshold": 0.4598195732830465,
+      "answered": 46,
+      "coverage": 0.46,
+      "errors": 45,
+      "risk": 0.9782608695652174
+    },
+    {
+      "abstain_threshold": 0.45986805640417877,
+      "answered": 47,
+      "coverage": 0.47,
+      "errors": 46,
+      "risk": 0.9787234042553191
+    },
+    {
+      "abstain_threshold": 0.46408788951900265,
+      "answered": 48,
+      "coverage": 0.48,
+      "errors": 47,
+      "risk": 0.9791666666666666
+    },
+    {
+      "abstain_threshold": 0.4648968607220732,
+      "answered": 49,
+      "coverage": 0.49,
+      "errors": 48,
+      "risk": 0.9795918367346939
+    },
+    {
+      "abstain_threshold": 0.4649037361889656,
+      "answered": 50,
+      "coverage": 0.5,
+      "errors": 49,
+      "risk": 0.98
+    },
+    {
+      "abstain_threshold": 0.4653369999366927,
+      "answered": 51,
+      "coverage": 0.51,
+      "errors": 50,
+      "risk": 0.9803921568627451
+    },
+    {
+      "abstain_threshold": 0.4657176486982943,
+      "answered": 52,
+      "coverage": 0.52,
+      "errors": 51,
+      "risk": 0.9807692307692307
+    },
+    {
+      "abstain_threshold": 0.46619430503997167,
+      "answered": 53,
+      "coverage": 0.53,
+      "errors": 52,
+      "risk": 0.9811320754716981
+    },
+    {
+      "abstain_threshold": 0.46758155280972324,
+      "answered": 54,
+      "coverage": 0.54,
+      "errors": 53,
+      "risk": 0.9814814814814815
+    },
+    {
+      "abstain_threshold": 0.4677542776819842,
+      "answered": 55,
+      "coverage": 0.55,
+      "errors": 54,
+      "risk": 0.9818181818181818
+    },
+    {
+      "abstain_threshold": 0.4687608871743859,
+      "answered": 56,
+      "coverage": 0.56,
+      "errors": 55,
+      "risk": 0.9821428571428571
+    },
+    {
+      "abstain_threshold": 0.4712117883281675,
+      "answered": 57,
+      "coverage": 0.57,
+      "errors": 56,
+      "risk": 0.9824561403508771
+    },
+    {
+      "abstain_threshold": 0.47726512265198545,
+      "answered": 58,
+      "coverage": 0.58,
+      "errors": 57,
+      "risk": 0.9827586206896551
+    },
+    {
+      "abstain_threshold": 0.47943399654490393,
+      "answered": 59,
+      "coverage": 0.59,
+      "errors": 58,
+      "risk": 0.9830508474576272
+    },
+    {
+      "abstain_threshold": 0.4802014270570008,
+      "answered": 60,
+      "coverage": 0.6,
+      "errors": 59,
+      "risk": 0.9833333333333333
+    },
+    {
+      "abstain_threshold": 0.4813498248327195,
+      "answered": 61,
+      "coverage": 0.61,
+      "errors": 60,
+      "risk": 0.9836065573770492
+    },
+    {
+      "abstain_threshold": 0.48275378088524634,
+      "answered": 62,
+      "coverage": 0.62,
+      "errors": 61,
+      "risk": 0.9838709677419355
+    },
+    {
+      "abstain_threshold": 0.486195094569437,
+      "answered": 63,
+      "coverage": 0.63,
+      "errors": 61,
+      "risk": 0.9682539682539683
+    },
+    {
+      "abstain_threshold": 0.486838006762095,
+      "answered": 64,
+      "coverage": 0.64,
+      "errors": 62,
+      "risk": 0.96875
+    },
+    {
+      "abstain_threshold": 0.48833697983964747,
+      "answered": 65,
+      "coverage": 0.65,
+      "errors": 62,
+      "risk": 0.9538461538461539
+    },
+    {
+      "abstain_threshold": 0.49057996425619094,
+      "answered": 66,
+      "coverage": 0.66,
+      "errors": 62,
+      "risk": 0.9393939393939394
+    },
+    {
+      "abstain_threshold": 0.49212300005896037,
+      "answered": 67,
+      "coverage": 0.67,
+      "errors": 63,
+      "risk": 0.9402985074626866
+    },
+    {
+      "abstain_threshold": 0.4925972505756651,
+      "answered": 68,
+      "coverage": 0.68,
+      "errors": 64,
+      "risk": 0.9411764705882353
+    },
+    {
+      "abstain_threshold": 0.4939288828987937,
+      "answered": 69,
+      "coverage": 0.69,
+      "errors": 65,
+      "risk": 0.9420289855072463
+    },
+    {
+      "abstain_threshold": 0.4956081456830778,
+      "answered": 70,
+      "coverage": 0.7,
+      "errors": 66,
+      "risk": 0.9428571428571428
+    },
+    {
+      "abstain_threshold": 0.49587610279289757,
+      "answered": 71,
+      "coverage": 0.71,
+      "errors": 67,
+      "risk": 0.9436619718309859
+    },
+    {
+      "abstain_threshold": 0.49669790941717085,
+      "answered": 72,
+      "coverage": 0.72,
+      "errors": 68,
+      "risk": 0.9444444444444444
+    },
+    {
+      "abstain_threshold": 0.49696058285697325,
+      "answered": 73,
+      "coverage": 0.73,
+      "errors": 69,
+      "risk": 0.9452054794520548
+    },
+    {
+      "abstain_threshold": 0.49854801208298566,
+      "answered": 74,
+      "coverage": 0.74,
+      "errors": 69,
+      "risk": 0.9324324324324325
+    },
+    {
+      "abstain_threshold": 0.5016969059971672,
+      "answered": 75,
+      "coverage": 0.75,
+      "errors": 70,
+      "risk": 0.9333333333333333
+    },
+    {
+      "abstain_threshold": 0.504106164575415,
+      "answered": 76,
+      "coverage": 0.76,
+      "errors": 71,
+      "risk": 0.9342105263157895
+    },
+    {
+      "abstain_threshold": 0.5061852568071783,
+      "answered": 77,
+      "coverage": 0.77,
+      "errors": 72,
+      "risk": 0.935064935064935
+    },
+    {
+      "abstain_threshold": 0.5071253436977505,
+      "answered": 78,
+      "coverage": 0.78,
+      "errors": 73,
+      "risk": 0.9358974358974359
+    },
+    {
+      "abstain_threshold": 0.5076166694159638,
+      "answered": 79,
+      "coverage": 0.79,
+      "errors": 74,
+      "risk": 0.9367088607594937
+    },
+    {
+      "abstain_threshold": 0.5076491273082814,
+      "answered": 80,
+      "coverage": 0.8,
+      "errors": 75,
+      "risk": 0.9375
+    },
+    {
+      "abstain_threshold": 0.5084376839019166,
+      "answered": 81,
+      "coverage": 0.81,
+      "errors": 76,
+      "risk": 0.9382716049382716
+    },
+    {
+      "abstain_threshold": 0.5100912789611878,
+      "answered": 82,
+      "coverage": 0.82,
+      "errors": 77,
+      "risk": 0.9390243902439024
+    },
+    {
+      "abstain_threshold": 0.5111369857246721,
+      "answered": 83,
+      "coverage": 0.83,
+      "errors": 78,
+      "risk": 0.9397590361445783
+    },
+    {
+      "abstain_threshold": 0.5116586300006167,
+      "answered": 84,
+      "coverage": 0.84,
+      "errors": 78,
+      "risk": 0.9285714285714286
+    },
+    {
+      "abstain_threshold": 0.5126189545454715,
+      "answered": 85,
+      "coverage": 0.85,
+      "errors": 79,
+      "risk": 0.9294117647058824
+    },
+    {
+      "abstain_threshold": 0.5131288349025963,
+      "answered": 86,
+      "coverage": 0.86,
+      "errors": 80,
+      "risk": 0.9302325581395349
+    },
+    {
+      "abstain_threshold": 0.5133614854157168,
+      "answered": 87,
+      "coverage": 0.87,
+      "errors": 81,
+      "risk": 0.9310344827586207
+    },
+    {
+      "abstain_threshold": 0.5149852336972871,
+      "answered": 88,
+      "coverage": 0.88,
+      "errors": 82,
+      "risk": 0.9318181818181818
+    },
+    {
+      "abstain_threshold": 0.5215069579898624,
+      "answered": 89,
+      "coverage": 0.89,
+      "errors": 83,
+      "risk": 0.9325842696629213
+    },
+    {
+      "abstain_threshold": 0.5225822045002085,
+      "answered": 90,
+      "coverage": 0.9,
+      "errors": 84,
+      "risk": 0.9333333333333333
+    },
+    {
+      "abstain_threshold": 0.52366430292916,
+      "answered": 91,
+      "coverage": 0.91,
+      "errors": 85,
+      "risk": 0.9340659340659341
+    },
+    {
+      "abstain_threshold": 0.5262806987849671,
+      "answered": 92,
+      "coverage": 0.92,
+      "errors": 86,
+      "risk": 0.9347826086956522
+    },
+    {
+      "abstain_threshold": 0.5273255529201685,
+      "answered": 93,
+      "coverage": 0.93,
+      "errors": 87,
+      "risk": 0.9354838709677419
+    },
+    {
+      "abstain_threshold": 0.533767835036266,
+      "answered": 94,
+      "coverage": 0.94,
+      "errors": 88,
+      "risk": 0.9361702127659575
+    },
+    {
+      "abstain_threshold": 0.5358647206259797,
+      "answered": 95,
+      "coverage": 0.95,
+      "errors": 88,
+      "risk": 0.9263157894736842
+    },
+    {
+      "abstain_threshold": 0.5442496029625525,
+      "answered": 96,
+      "coverage": 0.96,
+      "errors": 89,
+      "risk": 0.9270833333333334
+    },
+    {
+      "abstain_threshold": 0.546657492600517,
+      "answered": 97,
+      "coverage": 0.97,
+      "errors": 90,
+      "risk": 0.9278350515463918
+    },
+    {
+      "abstain_threshold": 0.5522972998825595,
+      "answered": 98,
+      "coverage": 0.98,
+      "errors": 91,
+      "risk": 0.9285714285714286
+    },
+    {
+      "abstain_threshold": 0.5790550643349337,
+      "answered": 99,
+      "coverage": 0.99,
+      "errors": 92,
+      "risk": 0.9292929292929293
+    },
+    {
+      "abstain_threshold": 0.588186840823739,
+      "answered": 100,
+      "coverage": 1.0,
+      "errors": 93,
+      "risk": 0.93
+    }
+  ]
+}

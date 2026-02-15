@@ -1,0 +1,15 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.19, pytest-9.0.2, pluggy-1.6.0 -- /home/bs_thesis/miniconda/envs/fact_check_env/bin/python3.10
+cachedir: .pytest_cache
+rootdir: /home/bs_thesis/shift (Copy)/Fact-or-Fiction
+plugins: anyio-4.12.1
+collecting ... collected 5 items
+
+tests/component1/test_logging_utils.py::test_cr_at_k_correctness PASSED  [ 20%]
+tests/component1/test_logging_utils.py::test_cr_at_k_rejects_positional PASSED [ 40%]
+tests/component1/test_logging_utils.py::test_cr_at_k_small_pool PASSED   [ 60%]
+tests/component1/test_logging_utils.py::test_save_examples_uses_esi_geom PASSED [ 80%]
+tests/component1/test_logging_utils.py::test_save_examples_fallback_to_esi_prod PASSED [100%]
+
+============================== 5 passed in 0.09s ===============================
+

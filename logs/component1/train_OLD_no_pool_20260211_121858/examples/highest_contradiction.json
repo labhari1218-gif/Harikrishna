@@ -1,0 +1,694 @@
+[
+  {
+    "claim_id": "train_3632",
+    "claim_text": "Yes, Jared McGriff-Culver's club is Chicago Blitz.",
+    "label": "FALSE",
+    "counts": {
+      "A": 1,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.6923537676048866,
+      "starve_score_geom": 0.30764623239511335,
+      "esi_prod": 0.33188236756986583,
+      "starve_score_prod": 0.6681176324301341,
+      "mass_A": 1.0000987648963928,
+      "mass_A_normalized": 0.6321568906092683,
+      "coverage_A": 0.5,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.00013554096221923828
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 1.0,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 1,
+      "max_contra_A": 1.0
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 1,
+      "pool_size_after_C": 1,
+      "min_A_feasible": 1,
+      "mean_rel": 1.0000987648963928,
+      "mean_pol": -0.9999012351036072,
+      "p25_rel": 1.0000987648963928,
+      "p50_rel": 1.0000987648963928,
+      "p75_rel": 1.0000987648963928
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_3632_triple_0"
+      ],
+      "by_contra": [
+        "train_3632_triple_0"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 4,
+      "weak_A_mass": 1.0000987648963928
+    }
+  },
+  {
+    "claim_id": "train_4639",
+    "claim_text": "Yes. Amsterdam's leader is called Bracken Village Council.",
+    "label": "FALSE",
+    "counts": {
+      "A": 20,
+      "S": 53,
+      "C": 5
+    },
+    "sufficiency": {
+      "esi_geom": 0.3161274725346753,
+      "starve_score_geom": 0.6838725274653247,
+      "esi_prod": 0.03159269809862519,
+      "starve_score_prod": 0.9684073019013748,
+      "mass_A": 19.985511541366577,
+      "mass_A_normalized": 0.6318539619725037,
+      "coverage_A": 1.0,
+      "connectivity_A": 0.0,
+      "neutral_rate_A": 0.0007711291313171387
+    },
+    "counter_retention": {
+      "has_counter": true,
+      "counter_kept": 5,
+      "cr_at_5": 1.0,
+      "cr_at_10": 0.5,
+      "max_contra_all": 1.0,
+      "max_contra_C": 1.0,
+      "contra_mass_C": 4.998046875,
+      "counter_in_A": 20,
+      "max_contra_A": 0.99951171875
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 78,
+      "pool_size_after_C": 73,
+      "min_A_feasible": 5,
+      "mean_rel": 0.8810461018330011,
+      "mean_pol": -0.8793619573116302,
+      "p25_rel": 0.90152907371521,
+      "p50_rel": 0.9966654777526855,
+      "p75_rel": 0.9991836547851562
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_4639_triple_11",
+        "train_4639_triple_64",
+        "train_4639_triple_59",
+        "train_4639_triple_68",
+        "train_4639_triple_67"
+      ],
+      "by_contra": [
+        "train_4639_triple_11",
+        "train_4639_triple_4",
+        "train_4639_triple_12",
+        "train_4639_triple_55",
+        "train_4639_triple_59"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 19.985511541366577
+    }
+  },
+  {
+    "claim_id": "train_4640",
+    "claim_text": "Juan Agust\u00edn Gonz\u00e1lez Checa is the name of the leader of Amsterdam.",
+    "label": "FALSE",
+    "counts": {
+      "A": 20,
+      "S": 52,
+      "C": 5
+    },
+    "sufficiency": {
+      "esi_geom": 0.30740629105718037,
+      "starve_score_geom": 0.6925937089428196,
+      "esi_prod": 0.029049472676313737,
+      "starve_score_prod": 0.9709505273236863,
+      "mass_A": 17.397183775901794,
+      "mass_A_normalized": 0.5809894535262747,
+      "coverage_A": 1.0,
+      "connectivity_A": 0.0,
+      "neutral_rate_A": 0.13013619184494019
+    },
+    "counter_retention": {
+      "has_counter": true,
+      "counter_kept": 5,
+      "cr_at_5": 1.0,
+      "cr_at_10": 0.5,
+      "max_contra_all": 1.0,
+      "max_contra_C": 1.0,
+      "contra_mass_C": 4.998046875,
+      "counter_in_A": 17,
+      "max_contra_A": 0.99951171875
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 77,
+      "pool_size_after_C": 72,
+      "min_A_feasible": 5,
+      "mean_rel": 0.3207573743609639,
+      "mean_pol": -0.3196504603732716,
+      "p25_rel": 0.006096363067626953,
+      "p50_rel": 0.034865379333496094,
+      "p75_rel": 0.8216934204101562
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_4640_triple_11",
+        "train_4640_triple_58",
+        "train_4640_triple_35",
+        "train_4640_triple_59",
+        "train_4640_triple_66"
+      ],
+      "by_contra": [
+        "train_4640_triple_11",
+        "train_4640_triple_35",
+        "train_4640_triple_39",
+        "train_4640_triple_55",
+        "train_4640_triple_58"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 17.397183775901794
+    }
+  },
+  {
+    "claim_id": "train_4802",
+    "claim_text": "I know that the leader of Belgium is Shirin Sharmin Chaudhury.",
+    "label": "FALSE",
+    "counts": {
+      "A": 20,
+      "S": 79,
+      "C": 5
+    },
+    "sufficiency": {
+      "esi_geom": 0.3160263428578109,
+      "starve_score_geom": 0.683973657142189,
+      "esi_prod": 0.03156238813510792,
+      "starve_score_prod": 0.9684376118648921,
+      "mass_A": 19.952606081962585,
+      "mass_A_normalized": 0.6312477627021584,
+      "coverage_A": 1.0,
+      "connectivity_A": 0.0,
+      "neutral_rate_A": 0.002318406105041504
+    },
+    "counter_retention": {
+      "has_counter": true,
+      "counter_kept": 5,
+      "cr_at_5": 1.0,
+      "cr_at_10": 0.5,
+      "max_contra_all": 1.0,
+      "max_contra_C": 1.0,
+      "contra_mass_C": 4.998046875,
+      "counter_in_A": 20,
+      "max_contra_A": 0.9990234375
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 104,
+      "pool_size_after_C": 99,
+      "min_A_feasible": 5,
+      "mean_rel": 0.47003050263111407,
+      "mean_pol": -0.46606390980573803,
+      "p25_rel": 0.023365020751953125,
+      "p50_rel": 0.41797733306884766,
+      "p75_rel": 0.9892688989639282
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_4802_triple_16",
+        "train_4802_triple_67",
+        "train_4802_triple_57",
+        "train_4802_triple_58",
+        "train_4802_triple_82"
+      ],
+      "by_contra": [
+        "train_4802_triple_16",
+        "train_4802_triple_57",
+        "train_4802_triple_58",
+        "train_4802_triple_67",
+        "train_4802_triple_82"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 19.952606081962585
+    }
+  },
+  {
+    "claim_id": "train_4832",
+    "claim_text": "Yes, the leader of Greece is called Abdul Ghafoor Haideri.",
+    "label": "FALSE",
+    "counts": {
+      "A": 20,
+      "S": 54,
+      "C": 5
+    },
+    "sufficiency": {
+      "esi_geom": 0.3161450921895326,
+      "starve_score_geom": 0.6838549078104674,
+      "esi_prod": 0.03159798093714113,
+      "starve_score_prod": 0.9684020190628588,
+      "mass_A": 19.991252303123474,
+      "mass_A_normalized": 0.6319596187428226,
+      "coverage_A": 1.0,
+      "connectivity_A": 0.0,
+      "neutral_rate_A": 0.0003739893436431885
+    },
+    "counter_retention": {
+      "has_counter": true,
+      "counter_kept": 5,
+      "cr_at_5": 1.0,
+      "cr_at_10": 0.5,
+      "max_contra_all": 1.0,
+      "max_contra_C": 1.0,
+      "contra_mass_C": 4.998046875,
+      "counter_in_A": 20,
+      "max_contra_A": 0.99951171875
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 79,
+      "pool_size_after_C": 74,
+      "min_A_feasible": 5,
+      "mean_rel": 0.8241471014445341,
+      "mean_pol": -0.8230441031576712,
+      "p25_rel": 0.8634889125823975,
+      "p50_rel": 0.9926090240478516,
+      "p75_rel": 0.9996031224727631
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_4832_triple_23",
+        "train_4832_triple_69",
+        "train_4832_triple_38",
+        "train_4832_triple_71",
+        "train_4832_triple_39"
+      ],
+      "by_contra": [
+        "train_4832_triple_23",
+        "train_4832_triple_4",
+        "train_4832_triple_5",
+        "train_4832_triple_6",
+        "train_4832_triple_18"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 19.991252303123474
+    }
+  },
+  {
+    "claim_id": "train_4833",
+    "claim_text": "In Greece the leader is named Joe Main.",
+    "label": "FALSE",
+    "counts": {
+      "A": 20,
+      "S": 58,
+      "C": 5
+    },
+    "sufficiency": {
+      "esi_geom": 0.6922274626403332,
+      "starve_score_geom": 0.3077725373596668,
+      "esi_prod": 0.33170076643185903,
+      "starve_score_prod": 0.668299233568141,
+      "mass_A": 19.983176827430725,
+      "mass_A_normalized": 0.6318109836797314,
+      "coverage_A": 0.5,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.0008139252662658691
+    },
+    "counter_retention": {
+      "has_counter": true,
+      "counter_kept": 5,
+      "cr_at_5": 1.0,
+      "cr_at_10": 0.5,
+      "max_contra_all": 1.0,
+      "max_contra_C": 1.0,
+      "contra_mass_C": 4.998046875,
+      "counter_in_A": 20,
+      "max_contra_A": 0.99951171875
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 83,
+      "pool_size_after_C": 78,
+      "min_A_feasible": 5,
+      "mean_rel": 0.5260174267263298,
+      "mean_pol": -0.5252573497324105,
+      "p25_rel": 0.007453322410583496,
+      "p50_rel": 0.7674870491027832,
+      "p75_rel": 0.9989626407623291
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_4833_triple_18",
+        "train_4833_triple_4",
+        "train_4833_triple_59",
+        "train_4833_triple_67",
+        "train_4833_triple_55"
+      ],
+      "by_contra": [
+        "train_4833_triple_18",
+        "train_4833_triple_4",
+        "train_4833_triple_23",
+        "train_4833_triple_40",
+        "train_4833_triple_55"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 19.983176827430725
+    }
+  },
+  {
+    "claim_id": "train_4834",
+    "claim_text": "Well the leader of Greece is Eduardo Aquevedo!",
+    "label": "FALSE",
+    "counts": {
+      "A": 20,
+      "S": 53,
+      "C": 5
+    },
+    "sufficiency": {
+      "esi_geom": 0.6922171298420168,
+      "starve_score_geom": 0.3077828701579832,
+      "esi_prod": 0.33168591287802374,
+      "starve_score_prod": 0.6683140871219763,
+      "mass_A": 19.98164004087448,
+      "mass_A_normalized": 0.6317826911962356,
+      "coverage_A": 0.5,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.0008464217185974121
+    },
+    "counter_retention": {
+      "has_counter": true,
+      "counter_kept": 5,
+      "cr_at_5": 1.0,
+      "cr_at_10": 0.5,
+      "max_contra_all": 1.0,
+      "max_contra_C": 1.0,
+      "contra_mass_C": 4.998046875,
+      "counter_in_A": 20,
+      "max_contra_A": 0.99951171875
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 78,
+      "pool_size_after_C": 73,
+      "min_A_feasible": 5,
+      "mean_rel": 0.8266987189268454,
+      "mean_pol": -0.8244252082629081,
+      "p25_rel": 0.8161799907684326,
+      "p50_rel": 0.989020586013794,
+      "p75_rel": 0.9987559020519257
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_4834_triple_18",
+        "train_4834_triple_38",
+        "train_4834_triple_39",
+        "train_4834_triple_37",
+        "train_4834_triple_4"
+      ],
+      "by_contra": [
+        "train_4834_triple_18",
+        "train_4834_triple_4",
+        "train_4834_triple_37",
+        "train_4834_triple_38",
+        "train_4834_triple_39"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 19.98164004087448
+    }
+  },
+  {
+    "claim_id": "train_4855",
+    "claim_text": "Francisco R\u00eago Costa is the leader of Pakistan!",
+    "label": "FALSE",
+    "counts": {
+      "A": 20,
+      "S": 63,
+      "C": 5
+    },
+    "sufficiency": {
+      "esi_geom": 0.3161402488288665,
+      "starve_score_geom": 0.6838597511711335,
+      "esi_prod": 0.031596528710832364,
+      "starve_score_prod": 0.9684034712891676,
+      "mass_A": 19.989674031734467,
+      "mass_A_normalized": 0.6319305742166472,
+      "coverage_A": 1.0,
+      "connectivity_A": 0.0,
+      "neutral_rate_A": 0.0005447208881378174
+    },
+    "counter_retention": {
+      "has_counter": true,
+      "counter_kept": 5,
+      "cr_at_5": 1.0,
+      "cr_at_10": 0.5,
+      "max_contra_all": 1.0,
+      "max_contra_C": 1.0,
+      "contra_mass_C": 4.998046875,
+      "counter_in_A": 20,
+      "max_contra_A": 0.99951171875
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 88,
+      "pool_size_after_C": 83,
+      "min_A_feasible": 5,
+      "mean_rel": 0.6737633543935689,
+      "mean_pol": -0.6727218485691331,
+      "p25_rel": 0.12464141845703125,
+      "p50_rel": 0.9734499454498291,
+      "p75_rel": 0.9991724193096161
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_4855_triple_19",
+        "train_4855_triple_50",
+        "train_4855_triple_87",
+        "train_4855_triple_74",
+        "train_4855_triple_64"
+      ],
+      "by_contra": [
+        "train_4855_triple_19",
+        "train_4855_triple_0",
+        "train_4855_triple_4",
+        "train_4855_triple_27",
+        "train_4855_triple_48"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 19.989674031734467
+    }
+  },
+  {
+    "claim_id": "train_4874",
+    "claim_text": "Yes, Mohammed Waheed Hassan is head of the South Jersey Transportation Authority.",
+    "label": "FALSE",
+    "counts": {
+      "A": 20,
+      "S": 0,
+      "C": 4
+    },
+    "sufficiency": {
+      "esi_geom": 0.10475669151219631,
+      "starve_score_geom": 0.8952433084878036,
+      "esi_prod": 0.0011495962050536435,
+      "starve_score_prod": 0.9988504037949464,
+      "mass_A": 0.46520721912384033,
+      "mass_A_normalized": 0.02299192410107287,
+      "coverage_A": 1.0,
+      "connectivity_A": 0.0,
+      "neutral_rate_A": 0.9767333984375
+    },
+    "counter_retention": {
+      "has_counter": true,
+      "counter_kept": 4,
+      "cr_at_5": 0.8,
+      "cr_at_10": 0.4,
+      "max_contra_all": 1.0,
+      "max_contra_C": 1.0,
+      "contra_mass_C": 3.78125,
+      "counter_in_A": 0,
+      "max_contra_A": 0.2464599609375
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 24,
+      "pool_size_after_C": 20,
+      "min_A_feasible": 5,
+      "mean_rel": 0.17711404959360758,
+      "mean_pol": -0.17276208599408469,
+      "p25_rel": 0.002168416976928711,
+      "p50_rel": 0.006252765655517578,
+      "p75_rel": 0.04110527038574219
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_4874_triple_8",
+        "train_4874_triple_3",
+        "train_4874_triple_11",
+        "train_4874_triple_22",
+        "train_4874_triple_13"
+      ],
+      "by_contra": [
+        "train_4874_triple_8",
+        "train_4874_triple_3",
+        "train_4874_triple_11",
+        "train_4874_triple_22",
+        "train_4874_triple_13"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 0.46520721912384033
+    }
+  },
+  {
+    "claim_id": "train_4985",
+    "claim_text": "Ahmet Ertegun? He was born in 1552.",
+    "label": "FALSE",
+    "counts": {
+      "A": 20,
+      "S": 28,
+      "C": 5
+    },
+    "sufficiency": {
+      "esi_geom": 0.315559723702664,
+      "starve_score_geom": 0.6844402762973361,
+      "esi_prod": 0.03142278698818572,
+      "starve_score_prod": 0.9685772130118143,
+      "mass_A": 19.801745653152466,
+      "mass_A_normalized": 0.6284557397637144,
+      "coverage_A": 1.0,
+      "connectivity_A": 0.0,
+      "neutral_rate_A": 0.009946966171264648
+    },
+    "counter_retention": {
+      "has_counter": true,
+      "counter_kept": 5,
+      "cr_at_5": 1.0,
+      "cr_at_10": 0.5,
+      "max_contra_all": 1.0,
+      "max_contra_C": 1.0,
+      "contra_mass_C": 4.9970703125,
+      "counter_in_A": 20,
+      "max_contra_A": 0.99853515625
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 53,
+      "pool_size_after_C": 48,
+      "min_A_feasible": 5,
+      "mean_rel": 0.7488142668076281,
+      "mean_pol": -0.7441305585627286,
+      "p25_rel": 0.66741943359375,
+      "p50_rel": 0.943425178527832,
+      "p75_rel": 0.9931364059448242
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_4985_triple_10",
+        "train_4985_triple_11",
+        "train_4985_triple_9",
+        "train_4985_triple_8",
+        "train_4985_triple_45"
+      ],
+      "by_contra": [
+        "train_4985_triple_10",
+        "train_4985_triple_8",
+        "train_4985_triple_9",
+        "train_4985_triple_11",
+        "train_4985_triple_20"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 19.801745653152466
+    }
+  }
+]

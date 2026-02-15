@@ -1,0 +1,51 @@
+2026-02-11 14:17:35,815 [INFO] __main__: Loading claims from logs/component1/val/claims.jsonl
+2026-02-11 14:17:36,036 [INFO] __main__: Loaded 12491 claims
+2026-02-11 14:17:36,036 [INFO] __main__: Computing summary statistics...
+2026-02-11 14:17:36,125 [INFO] __main__: Saved summary to logs/component1/val/summary.json
+2026-02-11 14:17:36,125 [INFO] __main__: 
+============================================================
+2026-02-11 14:17:36,125 [INFO] __main__: COMPONENT 1 SUMMARY STATISTICS
+2026-02-11 14:17:36,125 [INFO] __main__: ============================================================
+2026-02-11 14:17:36,125 [INFO] __main__: Split: val
+2026-02-11 14:17:36,125 [INFO] __main__: Claims: 12491
+2026-02-11 14:17:36,125 [INFO] __main__: 
+2026-02-11 14:17:36,125 [INFO] __main__: Set Sizes:
+2026-02-11 14:17:36,125 [INFO] __main__:   Mean Active (A): 9.21
+2026-02-11 14:17:36,125 [INFO] __main__:   Mean Suspended (S): 10.81
+2026-02-11 14:17:36,125 [INFO] __main__:   Mean Counter (C): 1.82
+2026-02-11 14:17:36,125 [INFO] __main__: 
+2026-02-11 14:17:36,125 [INFO] __main__: Sufficiency Metrics:
+2026-02-11 14:17:36,125 [INFO] __main__:   Mean ESI_geom (PRIMARY): 0.3760
+2026-02-11 14:17:36,125 [INFO] __main__:   ESI_geom p10/p25/median: 0.177 / 0.237 / 0.291
+2026-02-11 14:17:36,125 [INFO] __main__:   Starvation Rate (ESI_geom<0.3): 52.85%
+2026-02-11 14:17:36,125 [INFO] __main__:   Starvation Rate (ESI_geom<p10): 10.00%
+2026-02-11 14:17:36,125 [INFO] __main__:   Mean ESI_prod (legacy): 0.1024
+2026-02-11 14:17:36,125 [INFO] __main__:   Mean Coverage: 0.7729
+2026-02-11 14:17:36,125 [INFO] __main__:   Mean Connectivity: 0.4096
+2026-02-11 14:17:36,125 [INFO] __main__:   Mean Neutral Rate: 0.4800
+2026-02-11 14:17:36,125 [INFO] __main__: 
+2026-02-11 14:17:36,125 [INFO] __main__: Counter Retention:
+2026-02-11 14:17:36,125 [INFO] __main__:   Has Counter Rate: 46.45%
+2026-02-11 14:17:36,125 [INFO] __main__:   Mean CR@5: 0.3638
+2026-02-11 14:17:36,125 [INFO] __main__:   Mean CR@10: 0.1858
+2026-02-11 14:17:36,125 [INFO] __main__: 
+2026-02-11 14:17:36,125 [INFO] __main__: Recovery Potential:
+2026-02-11 14:17:36,125 [INFO] __main__:   Mean Bridge Count (S): 0.01
+2026-02-11 14:17:36,125 [INFO] __main__:   Mean RPI@1: 0.0082
+2026-02-11 14:17:36,125 [INFO] __main__:   Mean RPI@3: 0.0085
+2026-02-11 14:17:36,125 [INFO] __main__:   Mean RPI@5: 0.0085
+2026-02-11 14:17:36,125 [INFO] __main__: 
+2026-02-11 14:17:36,125 [INFO] __main__: Legacy Metrics:
+2026-02-11 14:17:36,125 [INFO] __main__:   Starved A Rate (|A|==0): 0.00%
+2026-02-11 14:17:36,125 [INFO] __main__:   Active Shortfall Mean: 1.20
+2026-02-11 14:17:36,125 [INFO] __main__: ============================================================
+2026-02-11 14:17:36,125 [INFO] __main__: 
+Generating examples...
+2026-02-11 14:17:36,133 [INFO] __main__: Saved top-10 highest contradiction examples to logs/component1/val/examples/highest_contradiction.json
+2026-02-11 14:17:36,140 [INFO] __main__: Saved top-10 lowest ESI examples to logs/component1/val/examples/lowest_esi.json
+2026-02-11 14:17:36,147 [INFO] __main__: Saved top-10 most neutral examples to logs/component1/val/examples/most_neutral.json
+2026-02-11 14:17:36,147 [INFO] __main__: 
+Summary complete!
+2026-02-11 14:17:36,147 [INFO] __main__: Summary JSON: logs/component1/val/summary.json
+2026-02-11 14:17:36,147 [INFO] __main__: Examples: logs/component1/val/examples
+

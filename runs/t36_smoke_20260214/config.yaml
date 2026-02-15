@@ -1,0 +1,21 @@
+run_id: t36_smoke_20260214
+output_root: Fact-or-Fiction/runs
+split: dev
+seeds:
+- 42
+- 1337
+- 2026
+model_keys:
+- bert_baseline
+- qagnn_baseline
+- pv_qagnn
+batch_size: 8
+max_seq_len: 256
+subgraph_type: relevant
+require_real_models: false
+use_synthetic_metrics: true
+task: T3.6
+model_order:
+- bert_baseline
+- qagnn_baseline
+- pv_qagnn

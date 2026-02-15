@@ -130,7 +130,8 @@ def get_precomputed_embeddings():
         dict: The dict of the subgraphs (as strings).
     """
     path = Path(DATA_PATH) / EMBEDDINGS_FILENAME
-    embedding_dict = pickle.load(open(path, "rb"))
+    with path.open("rb") as fp:
+        embedding_dict = pickle.load(fp)
     return embedding_dict
 
 
@@ -204,7 +205,7 @@ def get_dataloader(data_split, subgraph_type=None, subgraph_to_use="discovered",
         elif subgraph_to_use == "connected":
             evidence = []
             for i in range(len(subgraphs)):
-                if subgraphs["walked"][i]["connected"] == []:
+                if subgraphs["walked"][i]["connected"] != []:
                     evidence.append(subgraphs["walked"][i]["connected"])
                 else:
                     evidence.append(subgraphs["walked"][i]["walkable"])

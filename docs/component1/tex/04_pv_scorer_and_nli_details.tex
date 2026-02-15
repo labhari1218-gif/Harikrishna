@@ -1,0 +1,100 @@
+\section{Premise Validation (PV) Scorer and NLI Mechanics}
+\label{sec:c1_pv}
+
+\subsection{PV configuration and defaults}
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.25\linewidth}p{0.19\linewidth}p{0.50\linewidth}@{}}
+\toprule
+Parameter & Default & Effect \\
+\midrule
+\texttt{model\_name} & \texttt{microsoft/deberta-v3-base-mnli} & HuggingFace NLI checkpoint. \\
+\texttt{device} & \texttt{auto} & Chooses CUDA if available, else CPU. \\
+\texttt{batch\_size} & 8 & Number of premise-hypothesis pairs per forward pass. \\
+\texttt{max\_length} & 256 & Tokenizer truncation cap. \\
+\texttt{use\_fp16} & \texttt{True} & Enables autocast on CUDA for memory/perf efficiency, with FP32 fallback for known unstable cases. \\
+\bottomrule
+\end{tabular}
+\caption{\texttt{PVConfig} defaults in \texttt{src/component1/pv.py}.}
+\label{tab:c1_pv_defaults}
+\end{table}
+
+\subsection{Correct NLI pair ordering (critical for correctness)}
+For each evidence item $e$ and claim $\Claim$:
+\begin{itemize}
+\item \textbf{premise} $=$ verbalized evidence text,
+\item \textbf{hypothesis} $=$ claim text.
+\end{itemize}
+In tokenizer call order:
+\begin{lstlisting}[style=jsonstyle]
+tokenizer(evidence_texts, [claim_text] * len(evidence_texts), ...)
+\end{lstlisting}
+Swapping this order changes model behavior and invalidates score semantics.
+
+\subsection{Label mapping strategy}
+Different NLI checkpoints may index labels differently.
+\texttt{PVScorer} determines indices in two stages:
+\begin{enumerate}
+\item inspect \texttt{model.config.id2label} and detect labels containing
+\texttt{entail}, \texttt{neutral}, and \texttt{contra},
+\item if incomplete, fallback to MNLI standard ordering
+\([\texttt{contradiction},\texttt{neutral},\texttt{entailment}]\).
+\end{enumerate}
+Fallback map in code:
+\begin{equation}
+\texttt{entail}=2,\quad \texttt{neutral}=1,\quad \texttt{contra}=0.
+\end{equation}
+
+\subsection{Probability and derived signals}
+For logits vector $\mathbf{z}(e)$:
+\begin{equation}
+\Pr(y=i \mid e,\Claim)=\frac{\exp(z_i)}{\sum_j \exp(z_j)}.
+\end{equation}
+Then:
+\begin{align}
+\Ent(e) &= \Pr(y=\text{entail}), \\
+\Con(e) &= \Pr(y=\text{contra}), \\
+\Neu(e) &= \Pr(y=\text{neutral}), \\
+\Rel(e) &= \Ent(e)+\Con(e), \\
+\Pol(e) &= \Ent(e)-\Con(e).
+\end{align}
+
+Ranges:
+\begin{equation}
+\Rel(e)\in[0,1],\quad \Pol(e)\in[-1,1].
+\end{equation}
+Interpretation:
+\begin{itemize}
+\item high $\Rel(e)$ means decision-relevant (non-neutral),
+\item positive $\Pol(e)$ means support-leaning,
+\item negative $\Pol(e)$ means contradiction-leaning.
+\end{itemize}
+
+\subsection{Batched inference procedure}
+\begin{algorithm}[H]
+\caption{PV scoring with cache-aware batched inference}
+\begin{algorithmic}[1]
+\Require claim text $\Claim$, evidence list $\Pool$, PV model/cache configs
+\For{each evidence item $e \in \Pool$}
+  \State verbalize premise text $p_e$
+  \State compute \texttt{evidence\_hash} $=\texttt{sha256}(p_e)$
+  \State lookup cache by key tuple (claim hash, evidence hash, model, max length, verbalizer id)
+\EndFor
+\State collect uncached premises into batch list
+\If{uncached list non-empty}
+  \State score in mini-batches with tokenizer and NLI model
+  \State assign \texttt{PVResult} to each uncached evidence item
+  \State write new scores into cache
+\EndIf
+\State return fully scored evidence pool
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Operational safeguards}
+\begin{itemize}
+\item \texttt{torch.no\_grad()} and \texttt{model.eval()} avoid training-side effects.
+\item FP16 autocast is used only when \texttt{device.type == "cuda"} and \texttt{use\_fp16=True}; known unstable model families (e.g., DeBERTa-v3) are forced to FP32.
+\item If an FP16 overflow is detected at runtime, the batch is retried once in FP32.
+\item Initialization failures are wrapped as \texttt{ValueError} with model name context.
+\item Empty evidence list returns empty result list without model call.
+\end{itemize}

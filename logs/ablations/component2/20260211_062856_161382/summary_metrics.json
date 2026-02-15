@@ -1,0 +1,160 @@
+{
+  "modes": {
+    "A0": {
+      "ablation_id": "A0",
+      "accuracy": 0.5315,
+      "bridge_correlation": {
+        "spearman_delta_conn_bridge_at_k_vs_correctness": null,
+        "spearman_max_bridgebonus_vs_confidence": null,
+        "spearman_max_bridgebonus_vs_correctness": null,
+        "top_bridge_connects_different_anchor_components_fraction": null,
+        "top_bridge_connects_different_anchor_components_hits": 0,
+        "top_bridge_connects_different_anchor_components_total": 0
+      },
+      "description": "Baseline (pre-Component2 heuristic verifier over Component1 A/C masses)",
+      "macro_f1": 0.4371086004939868,
+      "num_claims": 2000,
+      "num_labeled_claims": 2000,
+      "recovery": {
+        "mean_delta_conn": 0.0,
+        "mean_esi_after": 0.3789035497410314,
+        "mean_esi_before": 0.3789035497410314,
+        "mean_esi_before_after": "0.3789/0.3789",
+        "recovery_trigger_rate": 0.0
+      },
+      "selective_prediction": {
+        "s1_sweep": {
+          "aurc": 0.4673918654042223,
+          "num_points": 2000
+        },
+        "s2_fixed_tau": {
+          "abstain_rate": 0.03049999999999997,
+          "accuracy_on_answered": 0.5327488396080454,
+          "answered": 1939,
+          "coverage": 0.9695,
+          "errors": 906,
+          "risk": 0.46725116039195463,
+          "tau_abstain": 0.6,
+          "total": 2000
+        }
+      }
+    },
+    "A1": {
+      "ablation_id": "A1",
+      "accuracy": 0.4945,
+      "bridge_correlation": {
+        "spearman_delta_conn_bridge_at_k_vs_correctness": null,
+        "spearman_max_bridgebonus_vs_confidence": null,
+        "spearman_max_bridgebonus_vs_correctness": null,
+        "top_bridge_connects_different_anchor_components_fraction": null,
+        "top_bridge_connects_different_anchor_components_hits": 0,
+        "top_bridge_connects_different_anchor_components_total": 0
+      },
+      "description": "Component2 without bridge scoring and without recovery",
+      "macro_f1": 0.33520934494448407,
+      "num_claims": 2000,
+      "num_labeled_claims": 2000,
+      "recovery": {
+        "mean_delta_conn": 0.0,
+        "mean_esi_after": 0.3789035497410314,
+        "mean_esi_before": 0.3789035497410314,
+        "mean_esi_before_after": "0.3789/0.3789",
+        "recovery_trigger_rate": 0.0
+      },
+      "selective_prediction": {
+        "s1_sweep": {
+          "aurc": 0.520366002760677,
+          "num_points": 2000
+        },
+        "s2_fixed_tau": {
+          "abstain_rate": 0.22550000000000003,
+          "accuracy_on_answered": 0.4977404777275662,
+          "answered": 1549,
+          "coverage": 0.7745,
+          "errors": 778,
+          "risk": 0.5022595222724339,
+          "tau_abstain": 0.6,
+          "total": 2000
+        }
+      }
+    },
+    "A2": {
+      "ablation_id": "A2",
+      "accuracy": 0.4945,
+      "bridge_correlation": {
+        "spearman_delta_conn_bridge_at_k_vs_correctness": null,
+        "spearman_max_bridgebonus_vs_confidence": 0.4660941224464017,
+        "spearman_max_bridgebonus_vs_correctness": 0.05148559101141212,
+        "top_bridge_connects_different_anchor_components_fraction": 0.9903846153846154,
+        "top_bridge_connects_different_anchor_components_hits": 515,
+        "top_bridge_connects_different_anchor_components_total": 520
+      },
+      "description": "Component2 with bridge scoring and without recovery",
+      "macro_f1": 0.33520934494448407,
+      "num_claims": 2000,
+      "num_labeled_claims": 2000,
+      "recovery": {
+        "mean_delta_conn": 0.0,
+        "mean_esi_after": 0.3789035497410314,
+        "mean_esi_before": 0.3789035497410314,
+        "mean_esi_before_after": "0.3789/0.3789",
+        "recovery_trigger_rate": 0.0
+      },
+      "selective_prediction": {
+        "s1_sweep": {
+          "aurc": 0.520366002760677,
+          "num_points": 2000
+        },
+        "s2_fixed_tau": {
+          "abstain_rate": 0.22550000000000003,
+          "accuracy_on_answered": 0.4977404777275662,
+          "answered": 1549,
+          "coverage": 0.7745,
+          "errors": 778,
+          "risk": 0.5022595222724339,
+          "tau_abstain": 0.6,
+          "total": 2000
+        }
+      }
+    },
+    "A3": {
+      "ablation_id": "A3",
+      "accuracy": 0.4945,
+      "bridge_correlation": {
+        "spearman_delta_conn_bridge_at_k_vs_correctness": -0.028234177769681786,
+        "spearman_max_bridgebonus_vs_confidence": 0.45889689510117093,
+        "spearman_max_bridgebonus_vs_correctness": 0.05148559101141212,
+        "top_bridge_connects_different_anchor_components_fraction": 0.9903846153846154,
+        "top_bridge_connects_different_anchor_components_hits": 515,
+        "top_bridge_connects_different_anchor_components_total": 520
+      },
+      "description": "Component2 full: bridge scoring plus one-step recovery",
+      "macro_f1": 0.33520934494448407,
+      "num_claims": 2000,
+      "num_labeled_claims": 2000,
+      "recovery": {
+        "mean_delta_conn": 0.006833333333333333,
+        "mean_esi_after": 0.38210396459308404,
+        "mean_esi_before": 0.3789035497410314,
+        "mean_esi_before_after": "0.3789/0.3821",
+        "recovery_trigger_rate": 0.0105
+      },
+      "selective_prediction": {
+        "s1_sweep": {
+          "aurc": 0.5225339905070175,
+          "num_points": 2000
+        },
+        "s2_fixed_tau": {
+          "abstain_rate": 0.22150000000000003,
+          "accuracy_on_answered": 0.49710982658959535,
+          "answered": 1557,
+          "coverage": 0.7785,
+          "errors": 783,
+          "risk": 0.5028901734104047,
+          "tau_abstain": 0.6,
+          "total": 2000
+        }
+      }
+    }
+  }
+}

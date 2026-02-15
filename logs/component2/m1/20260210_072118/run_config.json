@@ -1,0 +1,36 @@
+{
+  "component2_config": {
+    "abstain_alpha": 0.5,
+    "anchor_fallback_degree_k": 2,
+    "anchor_max_k": 5,
+    "hidden_dim": 256,
+    "mask_ref_bias": -2.0,
+    "mask_ref_scale": 4.0,
+    "mask_sup_bias": -2.0,
+    "mask_sup_scale": 4.0,
+    "neutral_cap_gamma": 2.0,
+    "num_heads": 4,
+    "ppr_epsilon": 0.001,
+    "random_seed": 13,
+    "recovery_tau_esi": 0.3,
+    "recovery_tau_rpi_legacy": 0.15,
+    "recovery_top_k": 3,
+    "rel_emb_dim": 64,
+    "smoke_max_claims": 5
+  },
+  "runtime": {
+    "include_pools": [
+      "A",
+      "C"
+    ],
+    "input_jsonl": null,
+    "mask_formulas": {
+      "refute": "sigmoid(4*p_con-2)",
+      "support": "sigmoid(4*p_ent-2)"
+    },
+    "max_claims": 5,
+    "num_graphs": 5,
+    "output_dir": "logs/component2/m1/20260210_072118",
+    "reasoner": "HybridMaskedDualStreamReasoner"
+  }
+}

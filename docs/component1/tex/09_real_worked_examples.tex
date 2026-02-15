@@ -1,0 +1,105 @@
+\section{Real Worked Examples from Repository Logs}
+\label{sec:c1_examples}
+
+\subsection{Claim-level example: \texttt{train\_0}}
+From \texttt{logs/component1/train/claims.jsonl}:
+\begin{itemize}
+\item claim text: \texttt{"He had a successor named John E. Beck as well."}
+\item label: \texttt{TRUE}
+\item counts: $|\Active|=12$, $|\Susp|=0$, $|\Counter|=1$
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.48\linewidth}p{0.24\linewidth}p{0.20\linewidth}@{}}
+\toprule
+Metric & Value & Comment \\
+\midrule
+\texttt{sufficiency.esi\_prod} & 0.0815043 & strict product score \\
+\texttt{sufficiency.esi\_geom} & 0.4335709 & primary score for analysis \\
+\texttt{sufficiency.mass\_A} & 1.0202162 & sum of $\Rel(e)$ over Active \\
+\texttt{sufficiency.mass\_A\_normalized} & 0.0815043 & saturation-normalized mass \\
+\texttt{sufficiency.coverage\_A} & 1.0 & all claim entities present \\
+\texttt{sufficiency.connectivity\_A} & 1.0 & present entities connected \\
+\texttt{sufficiency.neutral\_rate\_A} & 0.9149820 & highly neutral Active pool \\
+\texttt{counter\_retention.cr\_at\_5} & 0.2 & 1 of top-5 contradictions retained \\
+\texttt{counter\_retention.max\_contra\_C} & 0.9944630 & strong contradiction preserved \\
+\bottomrule
+\end{tabular}
+\caption{Real metrics for claim \texttt{train\_0}.}
+\label{tab:c1_train0_metrics}
+\end{table}
+
+\subsection{Recomputing ESI from logged numbers}
+Using $|\Active|=12$, $M_{\Active}=1.0202161853$:
+\begin{align}
+\hat{M}_{\Active}
+&= 1 - \exp\left(-\frac{1.0202161853}{12}\right) \\
+&= 1 - \exp(-0.0850180154) \\
+&\approx 0.0815042629.
+\end{align}
+Because raw coverage and connectivity are both 1.0, smoothed values are also 1.0.
+Therefore:
+\begin{align}
+\ESIprod &= 0.0815042629, \\
+\ESIgeom &= (0.0815042629)^{1/3} \approx 0.4335708821.
+\end{align}
+These match logged values exactly (up to floating-point precision).
+
+\subsection{Pair-level examples: one support-like and one counter-like}
+From \texttt{logs/component1/train/pairs.jsonl}, claim \texttt{train\_0}:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.17\linewidth}p{0.36\linewidth}p{0.19\linewidth}p{0.20\linewidth}@{}}
+\toprule
+Evidence id & Premise text & Probabilities $(\Ent,\Con,\Neu)$ & Derived $(\Rel,\Pol)$ \\
+\midrule
+\texttt{train\_0\_triple\_0}
+& \texttt{Edward E. Willard has successor John E. Beck.}
+& $(0.987870,\;0.000343,\;0.011787)$
+& $(0.988213,\;+0.987527)$ \\
+\texttt{train\_0\_triple\_7}
+& \texttt{John E. Beck has successor Edgar H. Whitney.}
+& $(0.000858,\;0.994463,\;0.004679)$
+& $(0.995321,\;-0.993605)$ \\
+\bottomrule
+\end{tabular}
+\caption{Real pair-level PV outputs showing opposite polarity behavior.}
+\label{tab:c1_pair_examples}
+\end{table}
+
+Interpretation:
+\begin{itemize}
+\item \texttt{train\_0\_triple\_0} is highly support-leaning (large positive polarity).
+\item \texttt{train\_0\_triple\_7} is highly contradiction-leaning and becomes Counter evidence.
+\end{itemize}
+
+\subsection{Corpus-level real example (train summary)}
+From \texttt{logs/component1/train/summary.json}:
+\begin{itemize}
+\item \texttt{num\_claims}: 82,083
+\item \texttt{mean\_A}: 9.0882
+\item \texttt{mean\_S}: 9.7826
+\item \texttt{mean\_C}: 1.6005
+\item \texttt{mean\_esi\_geom}: 0.3151
+\item \texttt{has\_counter\_rate}: 0.4425
+\item \texttt{mean\_rpi\_at\_1}: 0.0099
+\end{itemize}
+
+A useful interpretation for presentations:
+\begin{itemize}
+\item many claims retain some Counter evidence (safety signal preserved),
+\item mean ESI suggests moderate sufficiency on average,
+\item low but non-zero RPI indicates sparse but measurable bridge-recovery opportunity.
+\end{itemize}
+
+\subsection{Second claim example with non-empty Suspended set}
+From \texttt{train\_2} in \texttt{claims.jsonl}:
+\begin{itemize}
+\item counts: $|\Active|=20$, $|\Susp|=2$, $|\Counter|=0$,
+\item $\texttt{esi\_geom}=0.5707510$,
+\item $\texttt{neutral\_rate\_A}=0.7942960$,
+\item $\texttt{max\_contra\_all}=0.5498447$ (below default \texttt{contra\_tau=0.6}, hence no Counter item).
+\end{itemize}
+This example shows how moderate contradiction evidence can remain in Active when it does not exceed Counter threshold.

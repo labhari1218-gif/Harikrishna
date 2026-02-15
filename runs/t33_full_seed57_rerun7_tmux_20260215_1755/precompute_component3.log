@@ -1,0 +1,6 @@
+/home/bs_thesis/miniconda/envs/fact_check_env/lib/python3.10/site-packages/transformers/utils/hub.py:110: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.
+  warnings.warn(
+{
+  "manifest_path": "runs/t33_full_seed57_rerun7_tmux_20260215_1755/precompute_component3_manifest.json",
+  "fingerprint": "0b981cd4ca5b460c82157827e641bba7c641cd9a03916492b30bc0d4f01f3257"
+}

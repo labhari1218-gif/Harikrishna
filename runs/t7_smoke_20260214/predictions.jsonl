@@ -1,0 +1,216 @@
+{"claim_id": "full_pipeline_42_existence_0", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -2.3309773703734975, "confidence": 0.9114102829105897, "seed": 42}
+{"claim_id": "full_pipeline_42_existence_1", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -1.5905559513603258, "confidence": 0.8306943071500597, "seed": 42}
+{"claim_id": "full_pipeline_42_existence_2", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -1.7500427754175298, "confidence": 0.8519581971173562, "seed": 42}
+{"claim_id": "full_pipeline_42_existence_3", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -1.146223780696397, "confidence": 0.7588204993030512, "seed": 42}
+{"claim_id": "full_pipeline_42_existence_4", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -1.6535368773832948, "confidence": 0.8393684967303428, "seed": 42}
+{"claim_id": "full_pipeline_42_existence_5", "claim_type": "existence", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.0961701190276005, "confidence": 0.7495418136779491, "seed": 42}
+{"claim_id": "full_pipeline_42_existence_6", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -1.4082553694040383, "confidence": 0.8034906237515733, "seed": 42}
+{"claim_id": "full_pipeline_42_existence_7", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -1.7776987014442727, "confidence": 0.8554124694917685, "seed": 42}
+{"claim_id": "full_pipeline_42_existence_8", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -2.389770267058998, "confidence": 0.916043901611353, "seed": 42}
+{"claim_id": "full_pipeline_42_existence_9", "claim_type": "existence", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.2658325048411556, "confidence": 0.7800285068409821, "seed": 42}
+{"claim_id": "full_pipeline_42_existence_10", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -1.2143349106625867, "confidence": 0.7710650626704015, "seed": 42}
+{"claim_id": "full_pipeline_42_existence_11", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -1.2465725257089415, "confidence": 0.7767059851065303, "seed": 42}
+{"claim_id": "full_pipeline_42_substitution_0", "claim_type": "substitution", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.3795896245563675, "confidence": 0.7989250840681568, "seed": 42}
+{"claim_id": "full_pipeline_42_substitution_1", "claim_type": "substitution", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.050095454497611, "confidence": 0.7407932286444423, "seed": 42}
+{"claim_id": "full_pipeline_42_substitution_2", "claim_type": "substitution", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.348599801944805, "confidence": 0.7939006186751046, "seed": 42}
+{"claim_id": "full_pipeline_42_substitution_3", "claim_type": "substitution", "label": "REFUTED", "pred": "SUPPORTED", "logit": 0.4804359831878267, "confidence": 0.6178508205637959, "seed": 42}
+{"claim_id": "full_pipeline_42_substitution_4", "claim_type": "substitution", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.4687286104620902, "confidence": 0.812864064166744, "seed": 42}
+{"claim_id": "full_pipeline_42_substitution_5", "claim_type": "substitution", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.8741729497420447, "confidence": 0.9465548461944071, "seed": 42}
+{"claim_id": "full_pipeline_42_substitution_6", "claim_type": "substitution", "label": "REFUTED", "pred": "REFUTED", "logit": -1.2454966283994533, "confidence": 0.7765193326003017, "seed": 42}
+{"claim_id": "full_pipeline_42_substitution_7", "claim_type": "substitution", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.0692988297077723, "confidence": 0.7444635497587545, "seed": 42}
+{"claim_id": "full_pipeline_42_substitution_8", "claim_type": "substitution", "label": "REFUTED", "pred": "REFUTED", "logit": -2.057101277458003, "confidence": 0.886663199079701, "seed": 42}
+{"claim_id": "full_pipeline_42_substitution_9", "claim_type": "substitution", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.2422853859292404, "confidence": 0.7759615682281851, "seed": 42}
+{"claim_id": "full_pipeline_42_substitution_10", "claim_type": "substitution", "label": "REFUTED", "pred": "REFUTED", "logit": -1.906994132859315, "confidence": 0.8706810775622595, "seed": 42}
+{"claim_id": "full_pipeline_42_substitution_11", "claim_type": "substitution", "label": "REFUTED", "pred": "REFUTED", "logit": -1.5256134805574861, "confidence": 0.8213636072877224, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_hop_0", "claim_type": "multi hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.552331334432054, "confidence": 0.9277299797216358, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_hop_1", "claim_type": "multi hop", "label": "REFUTED", "pred": "REFUTED", "logit": -1.8674817453461283, "confidence": 0.866166625431413, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_hop_2", "claim_type": "multi hop", "label": "REFUTED", "pred": "REFUTED", "logit": -2.029291261068839, "confidence": 0.883838332819977, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_hop_3", "claim_type": "multi hop", "label": "REFUTED", "pred": "REFUTED", "logit": -1.4539594516018244, "confidence": 0.8106070496061316, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_hop_4", "claim_type": "multi hop", "label": "REFUTED", "pred": "REFUTED", "logit": -1.4912246563506313, "confidence": 0.8162620156469045, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_hop_5", "claim_type": "multi hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 3.165327382162025, "confidence": 0.9595084333111784, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_hop_6", "claim_type": "multi hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.8521267439377238, "confidence": 0.8643766137700433, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_hop_7", "claim_type": "multi hop", "label": "REFUTED", "pred": "SUPPORTED", "logit": 0.028669502219800403, "confidence": 0.507166884665696, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_hop_8", "claim_type": "multi hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.4430290097810885, "confidence": 0.920050178942053, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_hop_9", "claim_type": "multi hop", "label": "REFUTED", "pred": "REFUTED", "logit": -1.3101040658245489, "confidence": 0.7875305693345188, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_hop_10", "claim_type": "multi hop", "label": "REFUTED", "pred": "REFUTED", "logit": -2.5978234963865896, "confidence": 0.9307213721586574, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_hop_11", "claim_type": "multi hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 3.0364262675809837, "confidence": 0.9541928788560472, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_claim_0", "claim_type": "multi claim", "label": "REFUTED", "pred": "REFUTED", "logit": -2.6348411479603393, "confidence": 0.9330705133555331, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_claim_1", "claim_type": "multi claim", "label": "REFUTED", "pred": "REFUTED", "logit": -1.9061165461007998, "confidence": 0.8705822330601481, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_claim_2", "claim_type": "multi claim", "label": "REFUTED", "pred": "REFUTED", "logit": -1.4290759594191151, "confidence": 0.8067572987102475, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_claim_3", "claim_type": "multi claim", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.895741986607715, "confidence": 0.9476355462866837, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_claim_4", "claim_type": "multi claim", "label": "SUPPORTED", "pred": "REFUTED", "logit": -0.3959361358154094, "confidence": 0.5977108826773966, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_claim_5", "claim_type": "multi claim", "label": "REFUTED", "pred": "REFUTED", "logit": -1.390314954449631, "confidence": 0.8006425190748508, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_claim_6", "claim_type": "multi claim", "label": "SUPPORTED", "pred": "REFUTED", "logit": -0.7347910434340095, "confidence": 0.6758557522998098, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_claim_7", "claim_type": "multi claim", "label": "REFUTED", "pred": "REFUTED", "logit": -1.0837649415392605, "confidence": 0.7472058021370278, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_claim_8", "claim_type": "multi claim", "label": "REFUTED", "pred": "REFUTED", "logit": -1.3919228123238832, "confidence": 0.800899031772298, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_claim_9", "claim_type": "multi claim", "label": "SUPPORTED", "pred": "REFUTED", "logit": -0.023728585683879835, "confidence": 0.5059318680974741, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_claim_10", "claim_type": "multi claim", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.5360279709956939, "confidence": 0.8228865670303374, "seed": 42}
+{"claim_id": "full_pipeline_42_multi_claim_11", "claim_type": "multi claim", "label": "REFUTED", "pred": "REFUTED", "logit": -1.2418556334419968, "confidence": 0.7758868489553677, "seed": 42}
+{"claim_id": "full_pipeline_42_negation_0", "claim_type": "negation", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.1447306998632878, "confidence": 0.7585471420841986, "seed": 42}
+{"claim_id": "full_pipeline_42_negation_1", "claim_type": "negation", "label": "SUPPORTED", "pred": "REFUTED", "logit": -0.12895337000524876, "confidence": 0.5321937424582097, "seed": 42}
+{"claim_id": "full_pipeline_42_negation_2", "claim_type": "negation", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.834809080475982, "confidence": 0.8623336290808199, "seed": 42}
+{"claim_id": "full_pipeline_42_negation_3", "claim_type": "negation", "label": "REFUTED", "pred": "REFUTED", "logit": -3.0540395569194683, "confidence": 0.9549566056750997, "seed": 42}
+{"claim_id": "full_pipeline_42_negation_4", "claim_type": "negation", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.773337522649642, "confidence": 0.941217912973732, "seed": 42}
+{"claim_id": "full_pipeline_42_negation_5", "claim_type": "negation", "label": "REFUTED", "pred": "REFUTED", "logit": -1.7274482403048506, "confidence": 0.8490857311162334, "seed": 42}
+{"claim_id": "full_pipeline_42_negation_6", "claim_type": "negation", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.1175015415559133, "confidence": 0.7535249840277418, "seed": 42}
+{"claim_id": "full_pipeline_42_negation_7", "claim_type": "negation", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.797621110606884, "confidence": 0.8578591076677365, "seed": 42}
+{"claim_id": "full_pipeline_42_negation_8", "claim_type": "negation", "label": "REFUTED", "pred": "REFUTED", "logit": -1.5347789477149485, "confidence": 0.8227044556299795, "seed": 42}
+{"claim_id": "full_pipeline_42_negation_9", "claim_type": "negation", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.7274393483122241, "confidence": 0.8490845917002989, "seed": 42}
+{"claim_id": "full_pipeline_42_negation_10", "claim_type": "negation", "label": "REFUTED", "pred": "REFUTED", "logit": -3.0860928386523705, "confidence": 0.9563154292826606, "seed": 42}
+{"claim_id": "full_pipeline_42_negation_11", "claim_type": "negation", "label": "REFUTED", "pred": "REFUTED", "logit": -1.1555814990359816, "confidence": 0.7605289233584527, "seed": 42}
+{"claim_id": "full_pipeline_42_single_hop_0", "claim_type": "single hop", "label": "REFUTED", "pred": "REFUTED", "logit": -1.2663145301465326, "confidence": 0.7801112035239548, "seed": 42}
+{"claim_id": "full_pipeline_42_single_hop_1", "claim_type": "single hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.2559359013865192, "confidence": 0.7783257025475279, "seed": 42}
+{"claim_id": "full_pipeline_42_single_hop_2", "claim_type": "single hop", "label": "REFUTED", "pred": "REFUTED", "logit": -1.2557742212413374, "confidence": 0.7782978058401974, "seed": 42}
+{"claim_id": "full_pipeline_42_single_hop_3", "claim_type": "single hop", "label": "REFUTED", "pred": "REFUTED", "logit": -1.0934555850890653, "confidence": 0.7490318721371628, "seed": 42}
+{"claim_id": "full_pipeline_42_single_hop_4", "claim_type": "single hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.0564630262812524, "confidence": 0.7420140450338651, "seed": 42}
+{"claim_id": "full_pipeline_42_single_hop_5", "claim_type": "single hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.0557275079310715, "confidence": 0.886525073473784, "seed": 42}
+{"claim_id": "full_pipeline_42_single_hop_6", "claim_type": "single hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.635282027139158, "confidence": 0.8368919392994874, "seed": 42}
+{"claim_id": "full_pipeline_42_single_hop_7", "claim_type": "single hop", "label": "REFUTED", "pred": "REFUTED", "logit": -1.9412084520987178, "confidence": 0.8744848445550769, "seed": 42}
+{"claim_id": "full_pipeline_42_single_hop_8", "claim_type": "single hop", "label": "REFUTED", "pred": "REFUTED", "logit": -2.9600796026517395, "confidence": 0.9507377222801952, "seed": 42}
+{"claim_id": "full_pipeline_42_single_hop_9", "claim_type": "single hop", "label": "REFUTED", "pred": "SUPPORTED", "logit": 0.1887231075352957, "confidence": 0.547041239681218, "seed": 42}
+{"claim_id": "full_pipeline_42_single_hop_10", "claim_type": "single hop", "label": "REFUTED", "pred": "REFUTED", "logit": -1.5974743520068717, "confidence": 0.8316650949255258, "seed": 42}
+{"claim_id": "full_pipeline_42_single_hop_11", "claim_type": "single hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.1389589006098628, "confidence": 0.757488440627023, "seed": 42}
+{"claim_id": "full_pipeline_1337_existence_0", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -1.1817928113887828, "confidence": 0.7652700028912924, "seed": 1337}
+{"claim_id": "full_pipeline_1337_existence_1", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -1.3466683409880027, "confidence": 0.7935844089464236, "seed": 1337}
+{"claim_id": "full_pipeline_1337_existence_2", "claim_type": "existence", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 3.0207577761454534, "confidence": 0.9535031329689885, "seed": 1337}
+{"claim_id": "full_pipeline_1337_existence_3", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -1.0869099807399594, "confidence": 0.7477994043646764, "seed": 1337}
+{"claim_id": "full_pipeline_1337_existence_4", "claim_type": "existence", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.579912356280545, "confidence": 0.8291921051315922, "seed": 1337}
+{"claim_id": "full_pipeline_1337_existence_5", "claim_type": "existence", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.6410456249699923, "confidence": 0.837677165572321, "seed": 1337}
+{"claim_id": "full_pipeline_1337_existence_6", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -2.059145107817751, "confidence": 0.8868684245465543, "seed": 1337}
+{"claim_id": "full_pipeline_1337_existence_7", "claim_type": "existence", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.107622396163762, "confidence": 0.8916418308713845, "seed": 1337}
+{"claim_id": "full_pipeline_1337_existence_8", "claim_type": "existence", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.508761776300729, "confidence": 0.8188776296599093, "seed": 1337}
+{"claim_id": "full_pipeline_1337_existence_9", "claim_type": "existence", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.8701146685865377, "confidence": 0.9463491702922477, "seed": 1337}
+{"claim_id": "full_pipeline_1337_existence_10", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -1.8967406652006178, "confidence": 0.8695221883331783, "seed": 1337}
+{"claim_id": "full_pipeline_1337_existence_11", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -1.448152854843363, "confidence": 0.8097139937585951, "seed": 1337}
+{"claim_id": "full_pipeline_1337_substitution_0", "claim_type": "substitution", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 3.083960769515032, "confidence": 0.9562262727678912, "seed": 1337}
+{"claim_id": "full_pipeline_1337_substitution_1", "claim_type": "substitution", "label": "REFUTED", "pred": "REFUTED", "logit": -1.3313550619447088, "confidence": 0.7910646895850398, "seed": 1337}
+{"claim_id": "full_pipeline_1337_substitution_2", "claim_type": "substitution", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.5863170406531089, "confidence": 0.8300973053692586, "seed": 1337}
+{"claim_id": "full_pipeline_1337_substitution_3", "claim_type": "substitution", "label": "REFUTED", "pred": "REFUTED", "logit": -1.1562133609982919, "confidence": 0.760643982071602, "seed": 1337}
+{"claim_id": "full_pipeline_1337_substitution_4", "claim_type": "substitution", "label": "REFUTED", "pred": "REFUTED", "logit": -1.5956021325386573, "confidence": 0.8314028246685691, "seed": 1337}
+{"claim_id": "full_pipeline_1337_substitution_5", "claim_type": "substitution", "label": "REFUTED", "pred": "REFUTED", "logit": -1.4429878832067666, "confidence": 0.8089169158886549, "seed": 1337}
+{"claim_id": "full_pipeline_1337_substitution_6", "claim_type": "substitution", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.525129986615545, "confidence": 0.9258848552563932, "seed": 1337}
+{"claim_id": "full_pipeline_1337_substitution_7", "claim_type": "substitution", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.2896796961393755, "confidence": 0.908018701549784, "seed": 1337}
+{"claim_id": "full_pipeline_1337_substitution_8", "claim_type": "substitution", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.528691361989464, "confidence": 0.926128873908302, "seed": 1337}
+{"claim_id": "full_pipeline_1337_substitution_9", "claim_type": "substitution", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.1820263380237144, "confidence": 0.765311949108385, "seed": 1337}
+{"claim_id": "full_pipeline_1337_substitution_10", "claim_type": "substitution", "label": "REFUTED", "pred": "SUPPORTED", "logit": 0.7152145882650213, "confidence": 0.6715523676552275, "seed": 1337}
+{"claim_id": "full_pipeline_1337_substitution_11", "claim_type": "substitution", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.8232939460476896, "confidence": 0.9439216818272328, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_hop_0", "claim_type": "multi hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.925453445297121, "confidence": 0.9490904436763036, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_hop_1", "claim_type": "multi hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.1075527130891003, "confidence": 0.8916350981405766, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_hop_2", "claim_type": "multi hop", "label": "REFUTED", "pred": "REFUTED", "logit": -1.4364620665698664, "confidence": 0.8079061842157632, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_hop_3", "claim_type": "multi hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.6924571058443845, "confidence": 0.9365800850735537, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_hop_4", "claim_type": "multi hop", "label": "REFUTED", "pred": "REFUTED", "logit": -2.552874401522071, "confidence": 0.9277663823191082, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_hop_5", "claim_type": "multi hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.5872144333318876, "confidence": 0.9300341755918934, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_hop_6", "claim_type": "multi hop", "label": "SUPPORTED", "pred": "REFUTED", "logit": -0.48051516486791634, "confidence": 0.6178695160695711, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_hop_7", "claim_type": "multi hop", "label": "REFUTED", "pred": "REFUTED", "logit": -2.496482238723416, "confidence": 0.9238948435979485, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_hop_8", "claim_type": "multi hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.666654466285719, "confidence": 0.8411292647789024, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_hop_9", "claim_type": "multi hop", "label": "REFUTED", "pred": "SUPPORTED", "logit": 0.0634543481826338, "confidence": 0.5158582663539732, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_hop_10", "claim_type": "multi hop", "label": "REFUTED", "pred": "REFUTED", "logit": -1.1644483462266022, "confidence": 0.7621400626658936, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_hop_11", "claim_type": "multi hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.143770623553515, "confidence": 0.8950852287806808, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_claim_0", "claim_type": "multi claim", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.587073984868483, "confidence": 0.9300250359730154, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_claim_1", "claim_type": "multi claim", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.25612942246369, "confidence": 0.7783590898701037, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_claim_2", "claim_type": "multi claim", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.2761364038517018, "confidence": 0.7817913892208163, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_claim_3", "claim_type": "multi claim", "label": "SUPPORTED", "pred": "REFUTED", "logit": -0.3669185850953103, "confidence": 0.5907141906466591, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_claim_4", "claim_type": "multi claim", "label": "REFUTED", "pred": "REFUTED", "logit": -1.8747652381611568, "confidence": 0.8670086930099166, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_claim_5", "claim_type": "multi claim", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.14206725990729, "confidence": 0.8949251622012144, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_claim_6", "claim_type": "multi claim", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.2807044563799432, "confidence": 0.907266332717211, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_claim_7", "claim_type": "multi claim", "label": "REFUTED", "pred": "REFUTED", "logit": -2.271716382762387, "confidence": 0.9065073557691649, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_claim_8", "claim_type": "multi claim", "label": "REFUTED", "pred": "REFUTED", "logit": -1.571285823796698, "confidence": 0.8279668353639305, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_claim_9", "claim_type": "multi claim", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.841844090271902, "confidence": 0.9448955590148206, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_claim_10", "claim_type": "multi claim", "label": "REFUTED", "pred": "SUPPORTED", "logit": 0.5975500488269397, "confidence": 0.6450955961981282, "seed": 1337}
+{"claim_id": "full_pipeline_1337_multi_claim_11", "claim_type": "multi claim", "label": "REFUTED", "pred": "REFUTED", "logit": -1.3170417548865283, "confidence": 0.7886891105834299, "seed": 1337}
+{"claim_id": "full_pipeline_1337_negation_0", "claim_type": "negation", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.9950403827568954, "confidence": 0.8802753657409379, "seed": 1337}
+{"claim_id": "full_pipeline_1337_negation_1", "claim_type": "negation", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.000645161471322, "confidence": 0.880864799154131, "seed": 1337}
+{"claim_id": "full_pipeline_1337_negation_2", "claim_type": "negation", "label": "REFUTED", "pred": "REFUTED", "logit": -1.071889039665891, "confidence": 0.744955992918128, "seed": 1337}
+{"claim_id": "full_pipeline_1337_negation_3", "claim_type": "negation", "label": "REFUTED", "pred": "REFUTED", "logit": -1.8661566559848668, "confidence": 0.8660129438749278, "seed": 1337}
+{"claim_id": "full_pipeline_1337_negation_4", "claim_type": "negation", "label": "REFUTED", "pred": "REFUTED", "logit": -1.4834257657244796, "confidence": 0.8150894648517305, "seed": 1337}
+{"claim_id": "full_pipeline_1337_negation_5", "claim_type": "negation", "label": "REFUTED", "pred": "REFUTED", "logit": -1.7475609362381372, "confidence": 0.8516449005850648, "seed": 1337}
+{"claim_id": "full_pipeline_1337_negation_6", "claim_type": "negation", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.0790102079303012, "confidence": 0.8888462808782918, "seed": 1337}
+{"claim_id": "full_pipeline_1337_negation_7", "claim_type": "negation", "label": "REFUTED", "pred": "REFUTED", "logit": -1.1834648990412135, "confidence": 0.7655702298117947, "seed": 1337}
+{"claim_id": "full_pipeline_1337_negation_8", "claim_type": "negation", "label": "REFUTED", "pred": "REFUTED", "logit": -2.094482334638975, "confidence": 0.8903657331098915, "seed": 1337}
+{"claim_id": "full_pipeline_1337_negation_9", "claim_type": "negation", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.5628472625682908, "confidence": 0.8267615370550255, "seed": 1337}
+{"claim_id": "full_pipeline_1337_negation_10", "claim_type": "negation", "label": "REFUTED", "pred": "REFUTED", "logit": -1.5205511991465268, "confidence": 0.8206196331283183, "seed": 1337}
+{"claim_id": "full_pipeline_1337_negation_11", "claim_type": "negation", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.5800323572089285, "confidence": 0.8292091004986374, "seed": 1337}
+{"claim_id": "full_pipeline_1337_single_hop_0", "claim_type": "single hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.2267965578174007, "confidence": 0.7732574052078944, "seed": 1337}
+{"claim_id": "full_pipeline_1337_single_hop_1", "claim_type": "single hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.16624466703899, "confidence": 0.7624655509948678, "seed": 1337}
+{"claim_id": "full_pipeline_1337_single_hop_2", "claim_type": "single hop", "label": "REFUTED", "pred": "REFUTED", "logit": -2.4017276225648905, "confidence": 0.9169589485301338, "seed": 1337}
+{"claim_id": "full_pipeline_1337_single_hop_3", "claim_type": "single hop", "label": "SUPPORTED", "pred": "REFUTED", "logit": -0.21944535461095363, "confidence": 0.554642233961201, "seed": 1337}
+{"claim_id": "full_pipeline_1337_single_hop_4", "claim_type": "single hop", "label": "REFUTED", "pred": "REFUTED", "logit": -3.138747338898885, "confidence": 0.9584630388336112, "seed": 1337}
+{"claim_id": "full_pipeline_1337_single_hop_5", "claim_type": "single hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.806570426093954, "confidence": 0.8589468681737233, "seed": 1337}
+{"claim_id": "full_pipeline_1337_single_hop_6", "claim_type": "single hop", "label": "REFUTED", "pred": "REFUTED", "logit": -1.9447578223949973, "confidence": 0.8748739097990679, "seed": 1337}
+{"claim_id": "full_pipeline_1337_single_hop_7", "claim_type": "single hop", "label": "REFUTED", "pred": "REFUTED", "logit": -3.161232018304814, "confidence": 0.9593490204668321, "seed": 1337}
+{"claim_id": "full_pipeline_1337_single_hop_8", "claim_type": "single hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.2501797607101588, "confidence": 0.777330977062996, "seed": 1337}
+{"claim_id": "full_pipeline_1337_single_hop_9", "claim_type": "single hop", "label": "REFUTED", "pred": "REFUTED", "logit": -1.3498746150333392, "confidence": 0.7941091285354989, "seed": 1337}
+{"claim_id": "full_pipeline_1337_single_hop_10", "claim_type": "single hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.3231320562365356, "confidence": 0.9107747919802, "seed": 1337}
+{"claim_id": "full_pipeline_1337_single_hop_11", "claim_type": "single hop", "label": "REFUTED", "pred": "REFUTED", "logit": -1.4511486706144594, "confidence": 0.8101751525610696, "seed": 1337}
+{"claim_id": "full_pipeline_2026_existence_0", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -2.5613266721040637, "confidence": 0.9283307750496494, "seed": 2026}
+{"claim_id": "full_pipeline_2026_existence_1", "claim_type": "existence", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.310065610563083, "confidence": 0.9097072446918738, "seed": 2026}
+{"claim_id": "full_pipeline_2026_existence_2", "claim_type": "existence", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.0718669365081546, "confidence": 0.888138573133596, "seed": 2026}
+{"claim_id": "full_pipeline_2026_existence_3", "claim_type": "existence", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.1271380199344754, "confidence": 0.7553103441614444, "seed": 2026}
+{"claim_id": "full_pipeline_2026_existence_4", "claim_type": "existence", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.0577968627526098, "confidence": 0.7422692978499037, "seed": 2026}
+{"claim_id": "full_pipeline_2026_existence_5", "claim_type": "existence", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.3464472846968247, "confidence": 0.7935481957643711, "seed": 2026}
+{"claim_id": "full_pipeline_2026_existence_6", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -1.1788956018961136, "confidence": 0.7647491719445317, "seed": 2026}
+{"claim_id": "full_pipeline_2026_existence_7", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -1.4864410536116286, "confidence": 0.8155434931988168, "seed": 2026}
+{"claim_id": "full_pipeline_2026_existence_8", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -1.5050612191595016, "confidence": 0.8183281261135618, "seed": 2026}
+{"claim_id": "full_pipeline_2026_existence_9", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -2.212382823281766, "confidence": 0.901355994372543, "seed": 2026}
+{"claim_id": "full_pipeline_2026_existence_10", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -1.4979743757243158, "confidence": 0.81727216715172, "seed": 2026}
+{"claim_id": "full_pipeline_2026_existence_11", "claim_type": "existence", "label": "REFUTED", "pred": "REFUTED", "logit": -1.060747894137962, "confidence": 0.7428334429005782, "seed": 2026}
+{"claim_id": "full_pipeline_2026_substitution_0", "claim_type": "substitution", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.16023766217738, "confidence": 0.8966215798398669, "seed": 2026}
+{"claim_id": "full_pipeline_2026_substitution_1", "claim_type": "substitution", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.0750299047739833, "confidence": 0.7455522872255247, "seed": 2026}
+{"claim_id": "full_pipeline_2026_substitution_2", "claim_type": "substitution", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.4712928526079674, "confidence": 0.8132538137296169, "seed": 2026}
+{"claim_id": "full_pipeline_2026_substitution_3", "claim_type": "substitution", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.6829378232804657, "confidence": 0.8432931555626467, "seed": 2026}
+{"claim_id": "full_pipeline_2026_substitution_4", "claim_type": "substitution", "label": "REFUTED", "pred": "REFUTED", "logit": -1.7960178166505836, "confidence": 0.8576634948469491, "seed": 2026}
+{"claim_id": "full_pipeline_2026_substitution_5", "claim_type": "substitution", "label": "REFUTED", "pred": "REFUTED", "logit": -1.410743352114298, "confidence": 0.8038831633025533, "seed": 2026}
+{"claim_id": "full_pipeline_2026_substitution_6", "claim_type": "substitution", "label": "REFUTED", "pred": "REFUTED", "logit": -1.475822048061688, "confidence": 0.8139406962051542, "seed": 2026}
+{"claim_id": "full_pipeline_2026_substitution_7", "claim_type": "substitution", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.1905492947541647, "confidence": 0.7668392907638765, "seed": 2026}
+{"claim_id": "full_pipeline_2026_substitution_8", "claim_type": "substitution", "label": "REFUTED", "pred": "REFUTED", "logit": -1.2305175241415287, "confidence": 0.7739091402623532, "seed": 2026}
+{"claim_id": "full_pipeline_2026_substitution_9", "claim_type": "substitution", "label": "REFUTED", "pred": "REFUTED", "logit": -1.2455929533620276, "confidence": 0.7765360481057437, "seed": 2026}
+{"claim_id": "full_pipeline_2026_substitution_10", "claim_type": "substitution", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.4131246528074113, "confidence": 0.8042583156667621, "seed": 2026}
+{"claim_id": "full_pipeline_2026_substitution_11", "claim_type": "substitution", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.5162338438934728, "confidence": 0.8199832253179274, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_hop_0", "claim_type": "multi hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.5171708662798638, "confidence": 0.8201214984128378, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_hop_1", "claim_type": "multi hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 3.159141936287698, "confidence": 0.959267432149155, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_hop_2", "claim_type": "multi hop", "label": "REFUTED", "pred": "REFUTED", "logit": -1.6028049116317364, "confidence": 0.8324100452167545, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_hop_3", "claim_type": "multi hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.7641679907968322, "confidence": 0.8537309034872642, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_hop_4", "claim_type": "multi hop", "label": "REFUTED", "pred": "REFUTED", "logit": -2.079126687060142, "confidence": 0.8888577883285231, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_hop_5", "claim_type": "multi hop", "label": "REFUTED", "pred": "REFUTED", "logit": -1.175653305609935, "confidence": 0.7641653566736558, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_hop_6", "claim_type": "multi hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.8200736654890048, "confidence": 0.860574966077938, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_hop_7", "claim_type": "multi hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.9433481998620536, "confidence": 0.8747195174921759, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_hop_8", "claim_type": "multi hop", "label": "REFUTED", "pred": "REFUTED", "logit": -1.9738491280432273, "confidence": 0.8780239468793863, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_hop_9", "claim_type": "multi hop", "label": "REFUTED", "pred": "REFUTED", "logit": -1.5755893958261844, "confidence": 0.8285789615844773, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_hop_10", "claim_type": "multi hop", "label": "REFUTED", "pred": "REFUTED", "logit": -2.938798019940114, "confidence": 0.9497313732584438, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_hop_11", "claim_type": "multi hop", "label": "SUPPORTED", "pred": "REFUTED", "logit": -0.11178513154267705, "confidence": 0.5279172180049235, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_claim_0", "claim_type": "multi claim", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.138157397077086, "confidence": 0.894556933591391, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_claim_1", "claim_type": "multi claim", "label": "REFUTED", "pred": "REFUTED", "logit": -1.7598196195883242, "confidence": 0.8531870673868985, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_claim_2", "claim_type": "multi claim", "label": "REFUTED", "pred": "REFUTED", "logit": -2.292898428000188, "confidence": 0.9082871795892886, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_claim_3", "claim_type": "multi claim", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.1737504325903336, "confidence": 0.7638222548808898, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_claim_4", "claim_type": "multi claim", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.008630088406426, "confidence": 0.8817002083282064, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_claim_5", "claim_type": "multi claim", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.274377684561521, "confidence": 0.9067326619284486, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_claim_6", "claim_type": "multi claim", "label": "REFUTED", "pred": "REFUTED", "logit": -1.3782494055919992, "confidence": 0.7987096999527395, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_claim_7", "claim_type": "multi claim", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.8574121603906097, "confidence": 0.9457005645202528, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_claim_8", "claim_type": "multi claim", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.1025967430779233, "confidence": 0.7507463407742418, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_claim_9", "claim_type": "multi claim", "label": "REFUTED", "pred": "REFUTED", "logit": -1.1759243781889075, "confidence": 0.7642142049714032, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_claim_10", "claim_type": "multi claim", "label": "REFUTED", "pred": "REFUTED", "logit": -1.538384711665579, "confidence": 0.8232297871310728, "seed": 2026}
+{"claim_id": "full_pipeline_2026_multi_claim_11", "claim_type": "multi claim", "label": "REFUTED", "pred": "REFUTED", "logit": -2.0278466180216173, "confidence": 0.883689931749674, "seed": 2026}
+{"claim_id": "full_pipeline_2026_negation_0", "claim_type": "negation", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.304713056314775, "confidence": 0.7866271141118489, "seed": 2026}
+{"claim_id": "full_pipeline_2026_negation_1", "claim_type": "negation", "label": "REFUTED", "pred": "REFUTED", "logit": -2.757112953039416, "confidence": 0.940313807946896, "seed": 2026}
+{"claim_id": "full_pipeline_2026_negation_2", "claim_type": "negation", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.33937216690928, "confidence": 0.9120857551899824, "seed": 2026}
+{"claim_id": "full_pipeline_2026_negation_3", "claim_type": "negation", "label": "REFUTED", "pred": "REFUTED", "logit": -1.6209653496800376, "confidence": 0.8349282203034208, "seed": 2026}
+{"claim_id": "full_pipeline_2026_negation_4", "claim_type": "negation", "label": "REFUTED", "pred": "REFUTED", "logit": -1.8795114109700963, "confidence": 0.8675549960350994, "seed": 2026}
+{"claim_id": "full_pipeline_2026_negation_5", "claim_type": "negation", "label": "REFUTED", "pred": "REFUTED", "logit": -2.0247579314003166, "confidence": 0.883372093832939, "seed": 2026}
+{"claim_id": "full_pipeline_2026_negation_6", "claim_type": "negation", "label": "REFUTED", "pred": "REFUTED", "logit": -1.7110188048418213, "confidence": 0.846968381212173, "seed": 2026}
+{"claim_id": "full_pipeline_2026_negation_7", "claim_type": "negation", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.8904457220169206, "confidence": 0.8688063431474728, "seed": 2026}
+{"claim_id": "full_pipeline_2026_negation_8", "claim_type": "negation", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.5764550562944946, "confidence": 0.9293308087658004, "seed": 2026}
+{"claim_id": "full_pipeline_2026_negation_9", "claim_type": "negation", "label": "REFUTED", "pred": "REFUTED", "logit": -2.214747523301123, "confidence": 0.9015660483530422, "seed": 2026}
+{"claim_id": "full_pipeline_2026_negation_10", "claim_type": "negation", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.233133236519857, "confidence": 0.9031856796305159, "seed": 2026}
+{"claim_id": "full_pipeline_2026_negation_11", "claim_type": "negation", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.551392565681496, "confidence": 0.9276670127536131, "seed": 2026}
+{"claim_id": "full_pipeline_2026_single_hop_0", "claim_type": "single hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.465233008089384, "confidence": 0.9216682989059126, "seed": 2026}
+{"claim_id": "full_pipeline_2026_single_hop_1", "claim_type": "single hop", "label": "REFUTED", "pred": "REFUTED", "logit": -1.291485573040178, "confidence": 0.7843985316839052, "seed": 2026}
+{"claim_id": "full_pipeline_2026_single_hop_2", "claim_type": "single hop", "label": "REFUTED", "pred": "REFUTED", "logit": -2.714139359507685, "confidence": 0.9378558375721344, "seed": 2026}
+{"claim_id": "full_pipeline_2026_single_hop_3", "claim_type": "single hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 2.386956274591604, "confidence": 0.9158272310417693, "seed": 2026}
+{"claim_id": "full_pipeline_2026_single_hop_4", "claim_type": "single hop", "label": "REFUTED", "pred": "REFUTED", "logit": -1.9550127416347494, "confidence": 0.8759922023572797, "seed": 2026}
+{"claim_id": "full_pipeline_2026_single_hop_5", "claim_type": "single hop", "label": "REFUTED", "pred": "REFUTED", "logit": -3.135562902785888, "confidence": 0.9583360759513395, "seed": 2026}
+{"claim_id": "full_pipeline_2026_single_hop_6", "claim_type": "single hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.8556497034182657, "confidence": 0.8647890792923467, "seed": 2026}
+{"claim_id": "full_pipeline_2026_single_hop_7", "claim_type": "single hop", "label": "REFUTED", "pred": "REFUTED", "logit": -2.2139804329279587, "confidence": 0.9014979521684088, "seed": 2026}
+{"claim_id": "full_pipeline_2026_single_hop_8", "claim_type": "single hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.750599247826468, "confidence": 0.8520283686925489, "seed": 2026}
+{"claim_id": "full_pipeline_2026_single_hop_9", "claim_type": "single hop", "label": "REFUTED", "pred": "REFUTED", "logit": -1.1503548925908686, "confidence": 0.759575733560016, "seed": 2026}
+{"claim_id": "full_pipeline_2026_single_hop_10", "claim_type": "single hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.777962543838125, "confidence": 0.8554450989805822, "seed": 2026}
+{"claim_id": "full_pipeline_2026_single_hop_11", "claim_type": "single hop", "label": "SUPPORTED", "pred": "SUPPORTED", "logit": 1.7176974030362373, "confidence": 0.847832009512048, "seed": 2026}

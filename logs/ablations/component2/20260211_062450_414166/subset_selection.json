@@ -1,0 +1,19 @@
+{
+  "n_claims_requested": 10,
+  "n_claims_selected": 10,
+  "seed": 13,
+  "selected_claim_ids_file": "selected_claim_ids.txt",
+  "selected_indices": [
+    5957,
+    8846,
+    2997,
+    10215,
+    11271,
+    5657,
+    4353,
+    2891,
+    819,
+    8496
+  ],
+  "split": "val"
+}

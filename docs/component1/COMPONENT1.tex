@@ -1,0 +1,102 @@
+\documentclass[11pt]{article}
+
+% ---------- Packages ----------
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{booktabs,longtable,tabularx,array}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{listings}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,shapes.geometric}
+\usepackage{adjustbox}
+\usepackage{siunitx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+
+% ---------- Hyperref ----------
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue,
+  pdftitle={Component 1: Technical Documentation},
+  pdfauthor={Fact-or-Fiction Project},
+}
+
+% ---------- List spacing ----------
+\setlist[itemize]{leftmargin=*,topsep=2pt,itemsep=2pt}
+\setlist[enumerate]{leftmargin=*,topsep=2pt,itemsep=2pt}
+
+% ---------- Listings ----------
+\lstdefinestyle{jsonstyle}{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{black!20},
+  backgroundcolor=\color{black!2},
+  showstringspaces=false,
+  columns=fullflexible
+}
+
+% ---------- Notation helpers ----------
+\newcommand{\Claim}{c}
+\newcommand{\Pool}{P}
+\newcommand{\Active}{A}
+\newcommand{\Susp}{S}
+\newcommand{\Counter}{C}
+\newcommand{\Ent}{p_{\mathrm{ent}}}
+\newcommand{\Con}{p_{\mathrm{con}}}
+\newcommand{\Neu}{p_{\mathrm{neu}}}
+\newcommand{\Rel}{\operatorname{Rel}}
+\newcommand{\Pol}{\operatorname{Pol}}
+\newcommand{\ESIprod}{\operatorname{ESI}_{\mathrm{prod}}}
+\newcommand{\ESIgeom}{\operatorname{ESI}_{\mathrm{geom}}}
+\newcommand{\CR}{\operatorname{CR}}
+\newcommand{\RPI}{\operatorname{RPI}}
+\newcommand{\Conn}{\operatorname{Conn}}
+\newcommand{\Cov}{\operatorname{Cov}}
+
+\title{\textbf{Component 1 Documentation (Academic, Code-Aligned)}\\
+Premise Validation, Evidence State Manager (A/S/C), Sufficiency Metrics, and Logging Contracts}
+\author{Fact-or-Fiction Project}
+\date{Code-aligned revision date: February 10, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This document is a code-aligned technical specification for \texttt{src/component1/} and
+\texttt{scripts/run\_component1\_pv\_esm.py} in the Fact-or-Fiction repository.
+It is written for two goals at once: (i) conceptual clarity for explanation and teaching,
+and (ii) exact implementation traceability for development, debugging, and reproducibility.
+The document is modularized into multiple \LaTeX{} files to keep each concept focused,
+including mathematical definitions, parameter defaults, edge-case behavior,
+and real examples extracted from actual Component 1 outputs.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\input{docs/component1/tex/01_scope_and_pipeline}
+\input{docs/component1/tex/02_input_contract_and_data_sources}
+\input{docs/component1/tex/03_evidence_model_and_verbalization}
+\input{docs/component1/tex/04_pv_scorer_and_nli_details}
+\input{docs/component1/tex/05_cache_and_reproducibility}
+\input{docs/component1/tex/06_esm_policy_and_invariants}
+\input{docs/component1/tex/07_metrics_esi_cr_rpi}
+\input{docs/component1/tex/08_logging_and_output_artifacts}
+\input{docs/component1/tex/09_real_worked_examples}
+\input{docs/component1/tex/10_code_mapping_and_explainer_checklist}
+
+\end{document}

@@ -1,0 +1,7 @@
+{
+  "avg_delta_conn_bridge_at_k": 1.0,
+  "num_claims": 5,
+  "num_recovered": 5,
+  "relation_vocab_size_active": 6,
+  "relation_vocab_size_full": 7
+}

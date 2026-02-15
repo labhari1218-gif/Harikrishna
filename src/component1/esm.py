@@ -58,12 +58,13 @@ class EvidenceStateManager:
            - Limited to top max_C items by p_contra (default: max_C=2)
            - Ensures min_A guarantee: won't starve A below min_A
         
-        2. **Suspended (S)**: Neutral-dominant evidence (p_neutral > 0.5)
-           - Rationale: NLI neutral signals uninformative evidence
+        2. **Suspended (S)**: Remaining evidence after selecting C then A
+           - FIX 4: Evidence not selected for Counter or Active
+           - Typically lower relevance items that didn't make top-max_A cut
            - Can be recovered later via backtracking (future work)
         
-        3. **Active (A)**: Remaining evidence
-           - Supports or contradicts (not neutral-dominant or in C)
+        3. **Active (A)**: Top-ranked evidence by relevance
+           - Selected after C: top-max_A items by rel from remaining pool
            - Drives sufficiency metrics (ESI, coverage, connectivity)
         
         Min_A Guarantee:

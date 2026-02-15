@@ -1,0 +1,118 @@
+\section{Logging Contracts and Output Artifacts}
+\label{sec:c1_outputs}
+
+\subsection{Output directory layout}
+For run split \texttt{split}, Component 1 writes under:
+\begin{equation}
+\texttt{<out\_dir>/<split>/}
+\end{equation}
+with default \texttt{out\_dir = logs/component1}.
+
+Typical files:
+\begin{itemize}
+\item \texttt{claims.jsonl} (always),
+\item \texttt{pairs.jsonl} (when pair logging mode is not \texttt{none}),
+\item \texttt{summary.json} (after summarizer script),
+\item \texttt{examples/highest\_contradiction.json},
+\item \texttt{examples/lowest\_esi.json},
+\item \texttt{examples/most\_neutral.json}.
+\end{itemize}
+
+\subsection{Claim-level JSONL contract}
+Each line in \texttt{claims.jsonl} is one full claim record.
+Top-level fields:
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.24\linewidth}p{0.16\linewidth}p{0.54\linewidth}@{}}
+\toprule
+Field & Type & Meaning \\
+\midrule
+\texttt{claim\_id} & string & Stable id \texttt{<split>\_<index>}. \\
+\texttt{claim\_text} & string & Original claim sentence. \\
+\texttt{label} & string & \texttt{"TRUE"} or \texttt{"FALSE"}. \\
+\texttt{entity\_set} & list[string] & Canonical claim entities for downstream use. \\
+\texttt{Entity\_set} & list[string] & Backward-compatible alias. \\
+\texttt{counts} & object & Cardinalities of \texttt{A/S/C}. \\
+\texttt{sufficiency} & object & ESI and related metrics. \\
+\texttt{counter\_retention} & object & CR metrics and contradiction leakage checks. \\
+\texttt{recovery} & object & Bridge and RPI diagnostics. \\
+\texttt{pool\_stats} & object & Distributional stats over full pool. \\
+\texttt{top\_evidence} & object & Top ids by relevance and contradiction. \\
+\texttt{starvation} & object & Legacy starvation indicators. \\
+\bottomrule
+\end{tabular}
+\caption{Claim log schema emitted by \texttt{write\_claim\_log}.}
+\label{tab:c1_claim_log_schema}
+\end{table}
+
+\subsection{Pair-level JSONL contract}
+Each line in \texttt{pairs.jsonl} describes one claim-evidence pair that passed pair-log filter.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.24\linewidth}p{0.16\linewidth}p{0.54\linewidth}@{}}
+\toprule
+Field & Type & Meaning \\
+\midrule
+\texttt{claim\_id} & string & Parent claim id. \\
+\texttt{evidence\_id} & string & Unique evidence id. \\
+\texttt{pool} & string & A/S/C assignment used by Component 2 compatibility loader. \\
+\texttt{evidence\_assignment} & string & Duplicate assignment alias. \\
+\texttt{raw\_triple} & list or null & Triple payload for KG evidence. \\
+\texttt{premise\_text} & string & Verbalized premise used in NLI. \\
+\texttt{hypothesis\_text} & string & Claim text used in NLI. \\
+\texttt{model\_name} & string & PV model identifier. \\
+\texttt{verbalizer\_id} & string & Verbalizer version string. \\
+\texttt{probs} & object & Entail/contra/neutral probabilities. \\
+\texttt{derived} & object & \texttt{rel} and \texttt{pol}. \\
+\bottomrule
+\end{tabular}
+\caption{Pair log schema emitted by \texttt{write\_pair\_log}.}
+\label{tab:c1_pair_log_schema}
+\end{table}
+
+\subsection{Pair logging modes}
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.19\linewidth}p{0.73\linewidth}@{}}
+\toprule
+Mode & Behavior \\
+\midrule
+\texttt{none} & Disable pair-level logging. \\
+\texttt{all} & Log all evidence items from full pool. \\
+\texttt{A\_only} & Log only Active evidence. \\
+\texttt{A\_and\_C} & Log Active and Counter only. \\
+\texttt{sample} & Bernoulli sample with probability \texttt{sample\_rate}. \\
+\bottomrule
+\end{tabular}
+\caption{\texttt{PairLogConfig.mode} options and effects.}
+\label{tab:c1_pair_modes}
+\end{table}
+
+\subsection{Summary artifact contract}
+\texttt{scripts/summarize\_component1.py} reads \texttt{claims.jsonl} and writes:
+\begin{itemize}
+\item aggregate means and percentiles,
+\item starvation rates (fixed threshold and percentile threshold),
+\item CR and RPI means,
+\item example dumps sorted by contradiction, ESI, and neutral rate.
+\end{itemize}
+It uses \texttt{esi\_geom} as primary metric and falls back to \texttt{esi\_prod} for legacy logs.
+
+\subsection{Real claim log snippet}
+\begin{lstlisting}[style=jsonstyle,caption={Abbreviated real row from train claims.jsonl}]
+{"claim_id":"train_0","label":"TRUE","counts":{"A":12,"S":0,"C":1},
+ "sufficiency":{"esi_geom":0.43357,"esi_prod":0.08150,
+                 "coverage_A":1.0,"connectivity_A":1.0,"neutral_rate_A":0.91498},
+ "counter_retention":{"has_counter":true,"cr_at_5":0.2,"counter_in_A":0},
+ "recovery":{"bridge_count_S":0,"rpi_at_1":0.0},
+ "pool_stats":{"pool_size_total":13,"pool_size_after_C":12}}
+\end{lstlisting}
+
+\subsection{Compatibility guarantees for Component 2}
+Component 1 logs include explicit compatibility fields consumed by Component 2 loaders:
+\begin{itemize}
+\item \texttt{entity\_set} (and alias \texttt{Entity\_set}) in claim rows,
+\item \texttt{pool} (and alias \texttt{evidence\_assignment}) in pair rows,
+\item \texttt{raw\_triple} and \texttt{probs} fields for triple reconstruction and PV signal reuse.
+\end{itemize}

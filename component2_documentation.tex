@@ -1,0 +1,77 @@
+\documentclass[11pt]{article}
+
+% ---------- Packages ----------
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{booktabs,longtable,tabularx,array}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,shapes.geometric}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{adjustbox}
+\usepackage{siunitx}
+\usepackage{float}
+
+% ---------- Hyperref ----------
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue,
+  pdftitle={Component 2: Technical Documentation},
+  pdfauthor={Fact-or-Fiction Project},
+}
+
+% ---------- List spacing ----------
+\setlist[itemize]{leftmargin=*,topsep=2pt,itemsep=2pt}
+\setlist[enumerate]{leftmargin=*,topsep=2pt,itemsep=2pt}
+
+% ---------- Notation helpers ----------
+\newcommand{\sigmoid}{\operatorname{sigmoid}}
+\newcommand{\softmax}{\operatorname{softmax}}
+\newcommand{\PPR}{\operatorname{PPR}}
+\newcommand{\Rel}{\operatorname{Rel}}
+\newcommand{\Pol}{\operatorname{Pol}}
+\newcommand{\Conn}{\operatorname{Conn}}
+\newcommand{\AURC}{\operatorname{AURC}}
+
+\title{\textbf{Component 2 Documentation (Academic Version)}\\
+PV-Aware Graph Reasoning, Bridge Rescue, Recovery, and Reliability Metrics}
+\author{Fact-or-Fiction Project}
+\date{Code-aligned revision date: February 10, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This document is a code-aligned technical specification for \texttt{src/component2/} in the Fact-or-Fiction repository.
+It is written to support two goals simultaneously: (i) concept-level understanding for explanation and teaching, and (ii) exact implementation-level traceability for development and review.
+Every major equation, default value, trigger condition, input schema, and output schema is mapped to the current code and milestone runners (M1, M2, M3).
+The document is split into multiple \LaTeX{} files for maintainability.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\input{docs/component2/tex/01_scope_and_pipeline}
+\input{docs/component2/tex/02_input_output_contract}
+\input{docs/component2/tex/03_graph_and_anchors}
+\input{docs/component2/tex/04_reasoner_mechanics}
+\input{docs/component2/tex/05_bridge_and_recovery}
+\input{docs/component2/tex/06_selective_and_salience}
+\input{docs/component2/tex/07_worked_examples}
+\input{docs/component2/tex/08_code_mapping_and_defaults}
+\input{docs/component2/tex/09_glossary_and_explainer_checklist}
+
+\bibliographystyle{plain}
+\bibliography{component2_refs}
+
+\end{document}

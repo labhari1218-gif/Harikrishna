@@ -1,0 +1,95 @@
+\section{Evidence State Manager (ESM): Policy and Invariants}
+\label{sec:c1_esm}
+
+\subsection{ESM objective}
+Given a fully PV-scored evidence pool $\Pool$, ESM constructs a disjoint partition:
+\begin{equation}
+\Pool = \Active\;\dot\cup\;\Susp\;\dot\cup\;\Counter.
+\end{equation}
+
+Semantics:
+\begin{itemize}
+\item $\Active$: evidence consumed by downstream reasoner.
+\item $\Susp$: retained low-priority evidence for potential recovery.
+\item $\Counter$: contradiction-leaning evidence protected for safety diagnostics.
+\end{itemize}
+
+\subsection{Configuration defaults}
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.24\linewidth}p{0.16\linewidth}p{0.54\linewidth}@{}}
+\toprule
+Field & Default & Description \\
+\midrule
+\texttt{min\_A} & 5 & Minimum Active size target (when feasible). \\
+\texttt{max\_A} & 20 & Maximum Active size cap. \\
+\texttt{max\_C} & 5 & Maximum Counter size cap. \\
+\texttt{contra\_tau} & 0.6 & Minimum contradiction probability for Counter candidacy. \\
+\bottomrule
+\end{tabular}
+\caption{\texttt{ESMConfig} defaults in \texttt{src/component1/esm.py}.}
+\label{tab:c1_esm_defaults}
+\end{table}
+
+\subsection{Deterministic selection policy}
+Let each item $e\in\Pool$ have PV fields available.
+
+\paragraph{Step 1: Counter candidates.}
+\begin{equation}
+\Counter_{\text{cand}} = \{e\in\Pool \mid \Con(e)\ge\tau\}, \quad \tau=\texttt{contra\_tau}.
+\end{equation}
+Sort $\Counter_{\text{cand}}$ by $\Con(e)$ descending.
+
+\paragraph{Step 2: Active-starvation guard for Counter cap.}
+To preserve Active feasibility, code computes:
+\begin{align}
+\texttt{max\_C\_safe} &= \max(0, |\Pool|-\texttt{min\_A}), \\
+\texttt{actual\_max\_C} &= \min(\texttt{max\_C}, \texttt{max\_C\_safe}).
+\end{align}
+Then:
+\begin{equation}
+\Counter = \text{top-}\texttt{actual\_max\_C}(\Counter_{\text{cand}}).
+\end{equation}
+
+\paragraph{Step 3: Active selection on remaining pool.}
+Let $R=\Pool\setminus\Counter$, sorted by $\Rel(e)$ descending.
+If $|R|<\texttt{min\_A}$, set $\Active=R$ and $\Susp=\varnothing$.
+Else:
+\begin{align}
+\texttt{num\_active} &= \max(\texttt{min\_A}, \min(\texttt{max\_A}, |R|)), \\
+\Active &= R[:\texttt{num\_active}], \\
+\Susp &= R[\texttt{num\_active}:].
+\end{align}
+
+\subsection{Invariants enforced by assertions}
+\begin{enumerate}
+\item Active bound: $|\Active|\le\texttt{max\_A}$.
+\item Counter bound: $|\Counter|\le\texttt{max\_C}$.
+\item Feasibility guard: if $|R|\ge\texttt{min\_A}$ then $|\Active|\ge\texttt{min\_A}$.
+\item Completeness: $|\Active|+|\Susp|+|\Counter|=|\Pool|$.
+\item Disjointness: no evidence id appears in more than one set.
+\end{enumerate}
+
+\subsection{Edge-case behavior}
+\paragraph{Empty pool.}
+Returns \texttt{\{"A":[], "S":[], "C":[]\}} with warning log.
+
+\paragraph{Pool smaller than \texttt{min\_A}.}
+All non-counter remainder goes to Active, and Suspended remains empty.
+This is an intentional fallback to avoid artificial starvation.
+
+\paragraph{High contradiction density.}
+Even if many items satisfy $\Con(e)\ge\tau$, Counter is shrunk by
+\texttt{max\_C\_safe} to protect minimum Active evidence where possible.
+
+\subsection{Toy numeric walk-through}
+Suppose:
+\begin{equation}
+|\Pool|=9,\;\texttt{min\_A}=5,\;\texttt{max\_A}=20,\;\texttt{max\_C}=5.
+\end{equation}
+Then:
+\begin{equation}
+\texttt{max\_C\_safe}=\max(0,9-5)=4,
+\end{equation}
+so at most 4 items may enter Counter even if 5+ satisfy threshold.
+Remaining 5 items fill Active exactly, preserving the starvation guard.

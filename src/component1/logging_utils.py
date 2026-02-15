@@ -44,6 +44,7 @@ def write_claim_log(
     C: List[EvidenceItem],
     pool: List[EvidenceItem],
     min_A: int,
+    contra_tau: float,  # FIX 1: contra_tau from ESM config
     out_file: Union[str, Path, TextIO]
 ):
     """
@@ -64,13 +65,22 @@ def write_claim_log(
         A, S, C: Evidence sets from ESM
         pool: Full evidence pool
         min_A: Minimum Active size (for shortfall calculation)
+        contra_tau: Contradiction threshold from ESM (for counter_in_A calculation)
         out_file: File path or file handle for JSONL output
     """
     # Compute pool statistics
     rel_vals = [e.pv.rel for e in pool]
     pol_vals = [e.pv.pol for e in pool]
     
+    # Enhanced pool size metrics
+    pool_size_total = len(pool)
+    pool_size_after_C = pool_size_total - len(C)
+    min_A_feasible = min(min_A, pool_size_after_C)  # Min_A after C selection
+    
     pool_stats = {
+        "pool_size_total": pool_size_total,
+        "pool_size_after_C": pool_size_after_C,
+        "min_A_feasible": min_A_feasible,
         "mean_rel": float(np.mean(rel_vals)) if rel_vals else 0.0,
         "mean_pol": float(np.mean(pol_vals)) if pol_vals else 0.0,
         "p25_rel": float(np.percentile(rel_vals, 25)) if rel_vals else 0.0,
@@ -87,11 +97,16 @@ def write_claim_log(
         "by_contra": [e.evidence_id for e in pool_by_contra[:5]]
     }
     
-    # Compute sufficiency metrics
-    esi_metrics = compute_esi(A, claim_entities)
+    # Compute sufficiency metrics on A+C to avoid support-only asymmetry.
+    esi_metrics = compute_esi(A + C, claim_entities)
     neutral_dom = compute_neutral_dominance(A)
-    cr_metrics = compute_cr_at_k(C, pool, [5, 10])  # FIX: Corrected argument order C, pool
+    cr_metrics = compute_cr_at_k(pool_items=pool, counter_items=C, ks=[5, 10])
     rpi_metrics = compute_rpi_at_k(A, S, claim_entities, [1, 3, 5])
+    
+    # Counter evidence that ended up in A (leaked contradictions)
+    # Use the same contra_tau threshold that ESM used for Counter selection
+    counter_in_A = sum(1 for e in A if e.pv.p_contra >= contra_tau)
+    max_contra_A = max((e.pv.p_contra for e in A), default=0.0)
     
     # Compute legacy starvation metrics
     starved_A = int(len(A) == 0)
@@ -109,6 +124,9 @@ def write_claim_log(
         "claim_id": claim_id,
         "claim_text": claim_text,
         "label": label,
+        # Preserve retrieval seed entities so Component 2 can reuse them as anchors.
+        "entity_set": list(claim_entities),
+        "Entity_set": list(claim_entities),
         "counts": {
             "A": len(A),
             "S": len(S),
@@ -135,7 +153,10 @@ def write_claim_log(
             "cr_at_10": cr_metrics["cr_at_10"],
             "max_contra_all": cr_metrics["max_contra_all"],
             "max_contra_C": cr_metrics["max_contra_C"],
-            "contra_mass_C": cr_metrics["contra_mass_C"]
+            "contra_mass_C": cr_metrics["contra_mass_C"],
+            # NEW: Counter evidence that leaked into A
+            "counter_in_A": counter_in_A,
+            "max_contra_A": max_contra_A
         },
         "recovery": {
             "bridge_count_S": rpi_metrics["bridge_count_S"],
@@ -201,16 +222,29 @@ def write_pair_log(
     if not should_log:
         return
     
-    # Extract raw triple for audit (if kg_triple)
+    # Extract raw evidence payload for audit and downstream adapters.
     raw_triple = None
+    raw_sentence = None
+    sentence_page = None
+    sentence_line = None
     if evidence_item.kind == "kg_triple":
         raw_triple = evidence_item.content.get("triple", [])
+    elif evidence_item.kind == "sentence":
+        raw_sentence = evidence_item.content.get("text")
+        sentence_page = evidence_item.content.get("doc_id")
+        sentence_line = evidence_item.content.get("sent_id")
     
     # Construct log entry
     log_entry = {
         "claim_id": claim_id,
         "evidence_id": evidence_item.evidence_id,
+        # Required for Component 2 A/S/C reconstruction.
+        "pool": evidence_assignment,
+        "evidence_assignment": evidence_assignment,
         "raw_triple": raw_triple,
+        "raw_sentence": raw_sentence,
+        "sentence_page": sentence_page,
+        "sentence_line": sentence_line,
         "premise_text": premise_text,
         "hypothesis_text": claim_text,
         "model_name": model_name,

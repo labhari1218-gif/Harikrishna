@@ -1,0 +1,82 @@
+\section{Selective Prediction and Rationale Faithfulness}
+\label{sec:selective-salience}
+
+\subsection{Selective prediction objective}
+FactKG labels are binary (SUPPORTED/REFUTED), but practical deployment requires controlled abstention when evidence sufficiency is low.
+M3 computes an abstain score per claim and supports both:
+\begin{itemize}
+\item threshold-free risk-coverage behavior (\AURC{}),
+\item optional fixed operating point via \texttt{tau\_abstain}.
+\end{itemize}
+This follows the selective classification framing where a model may abstain to improve reliability at chosen coverage levels \cite{geifman2017selective}.
+
+\subsection{Abstain score used in code}
+For class probabilities $\hat{\mathbf{p}}$ and sufficiency score $\texttt{esi\_geom}$:
+\[
+\texttt{abstain\_score}
+= \alpha\cdot (1-\max(\hat{\mathbf{p}})) + (1-\alpha)\cdot (1-\texttt{esi\_geom}),
+\]
+with default $\alpha=0.5$.
+
+\subsection{Risk-coverage evaluation and \AURC}
+Given abstain scores and correctness labels:
+\begin{enumerate}
+\item sort claims by ascending abstain score (most answerable first),
+\item reveal predictions progressively,
+\item at each coverage level compute risk $=$ error rate among answered claims.
+\end{enumerate}
+Area under risk-coverage curve is computed by trapezoidal integration:
+\[
+\AURC = \sum_i (\phi_i-\phi_{i-1})\cdot\frac{R_i+R_{i-1}}{2}.
+\]
+Lower \AURC{} is better.
+
+\subsection{Fixed operating point (\texttt{tau\_abstain})}
+When \texttt{tau\_abstain} is set, claims with
+\[
+\texttt{abstain\_score} \le \texttt{tau\_abstain}
+\]
+are answered, and the rest are abstained.
+Logged metrics:
+\begin{itemize}
+\item \texttt{coverage} $=$ answered / total,
+\item \texttt{risk} $=$ errors among answered / answered,
+\item \texttt{accuracy\_on\_answered},
+\item \texttt{abstain\_rate} $=1-\texttt{coverage}$.
+\end{itemize}
+
+\subsection{Rationale edge extraction}
+\texttt{extract\_top\_rationale\_edges} ranks edges by:
+\[
+\text{salience}_{\text{attn-pv}}(e)=\texttt{attention\_used}(e)\cdot \Rel(e).
+\]
+where \texttt{attention\_used} is class-conditioned:
+\begin{itemize}
+\item predicted class SUPPORTED: use \texttt{attention\_sup},
+\item predicted class REFUTED: use \texttt{attention\_ref},
+\item if no target class is passed: use $\max(\texttt{attention\_sup},\texttt{attention\_ref})$.
+\end{itemize}
+Default rationale budget: \texttt{rationale\_top\_n = 10}.
+
+\subsection{Faithfulness checks implemented}
+Two complementary checks are available:
+\begin{enumerate}
+\item \textbf{Leave-one-out (LOO):} remove one rationale edge at a time and measure confidence drop for predicted class.
+\item \textbf{Grouped removal:} remove top-$k$ rationale edges together and measure confidence drop.
+\end{enumerate}
+
+Current boolean criterion is positive confidence drop:
+\[
+\texttt{is\_faithful} = [\Delta\text{confidence} > 0].
+\]
+M3 runs faithfulness only on the first \texttt{faithfulness\_subset\_size} claims (default $3$) to keep runtime bounded.
+
+\subsection{What M3 logs for interpretability}
+Per claim, M3 logs:
+\begin{itemize}
+\item \texttt{top\_rationale\_edges} with attention, PV relevance, and combined score,
+\item \texttt{faithfulness\_loo} with per-edge confidence drops,
+\item \texttt{salience\_results} (group removal) with aggregate drop.
+\end{itemize}
+Run-level summary adds counts such as:
+\texttt{num\_faithful\_claims} and \texttt{num\_salience\_checked}.

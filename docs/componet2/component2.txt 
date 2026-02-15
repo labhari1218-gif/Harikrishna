@@ -1,0 +1,570 @@
+````md
+# Component 2 — PV-Aware, Polarity-Aware, Bridge-Resilient Graph Reasoner (Standalone Explanation)
+
+> **Audience:** someone who has never seen this project before.  
+> **Goal:** after reading this document, an outsider should understand:
+> 1) what Component 2 is solving,  
+> 2) what it consumes/produces,  
+> 3) how it works step-by-step,  
+> 4) why “partial/bridge evidence” won’t get suppressed,  
+> 5) how we evaluate it rigorously.
+
+---
+
+## 0) One-paragraph story
+
+Component 1 already **scores and partitions evidence** for each claim using NLI-based Premise Validation (PV) and evidence management boxes **A/S/C**.  
+Component 2 is the first component that **actually reasons** over that evidence as a graph. It runs a **PV-aware GNN** (soft masking, not pruning), separates **support vs refute** evidence with polarity-aware aggregation, and **rescues crucial low-PV “bridge” edges** using a bridge/path structural score. If diagnostics (ESI/RPI) say evidence is insufficient, it can do a **single recovery step** by moving the most promising bridge edges from **S → A** and re-reason once. Finally, because FactKG is binary, insufficiency is handled via **selective prediction (abstention)** and evaluated with **risk–coverage** curves.
+
+---
+
+## 1) Where Component 2 sits in the end-to-end system
+
+```mermaid
+flowchart TD
+  C[Claim c] --> R[Retriever: KG k-hop or text retriever]
+  R --> P[Candidate evidence pool P={e1..en}]
+
+  P --> C1[Component 1: PV scoring + ESM partitioning + diagnostics]
+  C1 -->|A,S,C + PV features + ESI/CR/RPI| C2[Component 2: Graph Reasoner + Bridge Rescue + Optional Recovery]
+  C2 --> Y[Prediction: SUPPORTED / REFUTED]
+  C2 --> Z[Rationale: top edges/nodes + recovery logs]
+````
+
+---
+
+## 2) Component 1 recap (the contract Component 2 relies on)
+
+For each claim **c**, Component 1 provides:
+
+### 2.1 Evidence items with PV signals
+
+For each evidence unit `e` (KG triple or sentence):
+
+* PV: `(p_ent(e), p_con(e), p_neu(e))`
+* Derived:
+
+  * `rel(e) = p_ent(e) + p_con(e)`  (how decision-relevant)
+  * `pol(e) = p_ent(e) - p_con(e)`  (direction: +support, -refute)
+
+### 2.2 Evidence state partition
+
+* **A (Active):** main evidence we’ll reason over now
+* **C (Counter):** contradiction-leaning evidence that must not be lost
+* **S (Suspended):** held for potential recovery / later use
+
+### 2.3 Diagnostics (controller sensors)
+
+* **ESI_geom:** evidence sufficiency index (coverage/connectivity/informativeness)
+* **CR@k:** counter retention at top-k contradictions
+* **RPI@k:** recovery potential if we add k items from S
+* **neutral_dominance:** PV uncertainty signal (lots of neutrality → don’t trust PV too sharply)
+
+---
+
+## 3) What Component 2 does (in plain words)
+
+Component 2 has four jobs:
+
+1. **Build a reasoning graph** from evidence (typically using `A ∪ C`)
+2. **Run a PV-aware GNN** where PV acts as a *soft* mask inside message passing
+3. **Use polarity** so “support” and “refute” evidence don’t get mixed into one blur
+4. **Rescue bridge evidence** (partial evidence problem) using structural bridge/path scoring; optionally **recover** from S
+
+---
+
+## 4) Inputs and outputs (exact, unambiguous)
+
+### 4.1 Input to Component 2 (per claim)
+
+* `claim_text`, `claim_entities`, `claim_id`
+* Evidence edges/triples with PV:
+
+  * `A_edges`: list of EvidenceEdge from Active
+  * `C_edges`: list of EvidenceEdge from Counter
+  * `S_edges`: list of EvidenceEdge from Suspended
+* Diagnostics:
+
+  * `ESI_geom`, `CR@k`, `RPI@k`, `neutral_dominance`, plus counts and graph stats
+
+### 4.2 Output of Component 2 (per claim)
+
+* `label ∈ {SUPPORTED, REFUTED}` (FactKG binary)
+* `confidence ∈ [0,1]`
+* `abstain_score ∈ [0,1]` and `abstained?` (selective prediction)
+* `rationale_edges`: top-N edges by salience
+* `recovery_triggered?` + `recovered_edges` + before/after diagnostics + confidence delta
+* Logging: JSONL per claim + summary JSON
+
+---
+
+## 5) Step-by-step design (the actual algorithm)
+
+### Step 1 — Graph construction from `A ∪ C`
+
+**Nodes:** entities
+**Edges:** KG triples (`subj --rel--> obj`) from A and C
+**Edge features:** PV features + relation embedding
+
+* `rel_mass = rel(e)`
+* `polarity = pol(e)`
+* optional: full PV vector `(p_ent, p_con, p_neu)`
+
+**Anchor nodes:** claim entities present in the graph
+These anchors are crucial for bridge/path scoring and recovery.
+
+**Result:** `G = (V, E(A∪C))` + anchors
+
+---
+
+### Step 2 — PV-aware soft masking (do NOT prune)
+
+**Key principle:** We never hard delete edges based on PV.
+We only reduce their influence, so bridges can still contribute if structurally important.
+
+Basic PV mask:
+
+* `m_rel(e) = sigmoid(a * rel(e) + b)`  where `a,b` are learnable or tuned
+
+Inside message passing / attention:
+
+* messages are scaled by `m_rel(e)`
+* low-rel edges contribute **less**, but not zero.
+
+**Why this matters:** hard pruning destroys multi-hop chains; soft masking preserves them.
+
+---
+
+### Step 3 — Polarity-aware reasoning (support vs refute separation)
+
+Evidence is directional. If we pool everything together, refute evidence can cancel support evidence or vice versa.
+
+We run **two streams**:
+
+* **Support stream:** emphasizes `p_ent(e)`
+* **Refute stream:** emphasizes `p_con(e)`
+
+Example masks:
+
+* `m_sup(e) = sigmoid(a_s * p_ent(e) + b_s)`
+* `m_ref(e) = sigmoid(a_r * p_con(e) + b_r)`
+
+We run message passing and pooling for both streams, then combine:
+
+* `repr = concat(pool_sup, pool_ref, pool_all)`
+
+Then classifier head:
+
+* `logits = MLP(repr)` → {SUPPORTED, REFUTED}
+
+---
+
+## 6) The key concern: “Partial evidence / bridge edges get low PV → won’t they be suppressed?”
+
+Yes, that can happen **if you only use PV relevance**.
+
+Bridge evidence is often:
+
+* *individually* PV-uncertain / neutral-ish (low rel), BUT
+* *structurally* essential to connect claim anchors across hops
+
+So Component 2 introduces a **second signal**: a **BridgeBonus** that captures “this edge helps connect anchors”.
+
+---
+
+## 7) Bridge rescue (recommended default: diffusion / random-walk scoring)
+
+### 7.1 Why diffusion instead of enumerating paths?
+
+Path enumeration can blow up in dense graphs. Diffusion gives a scalable approximation:
+
+* “How much does this edge lie on the flow between anchors?”
+
+### 7.2 Core idea: Personalized PageRank (PPR) from anchors
+
+We create a weighted adjacency where edge weight is PV relevance:
+
+* `w(e) = ε + rel(e)`
+
+Compute PPR distribution `p[v]` over nodes starting from the anchor set.
+
+Then define an edge bridge score:
+
+* `BridgeBonus(e = u→v) = p[u] * w(e) * p[v]`
+
+### 7.3 Neutrality safeguard (avoid boosting junk shortcuts)
+
+If PV says an edge is mostly neutral, cap the bridge bonus:
+
+* `BridgeBonus'(e) = BridgeBonus(e) * (1 - p_neu(e))^γ`
+
+This prevents “irrelevant shortcut connectors” from dominating.
+
+---
+
+## 8) Optional ablation: explicit path scoring (small graph mode)
+
+If you want a more “reasoning-path” aligned ablation, do hop-limited path enumeration:
+
+For each pair of anchors, enumerate paths up to hop limit `H` (e.g., 3–4).
+
+Path score (geometric mean to avoid collapse):
+
+* `PathScore(π) = (Π (ε + rel(e)))^(1/|π|) * exp(-λ|π|) * CoverageBonus(π)`
+
+Edge bonus:
+
+* `PathBonus(e) = max_{π contains e} PathScore(π)`
+
+Use this **only as ablation** or on small graphs.
+
+---
+
+## 9) Final mask combines PV + BridgeBonus
+
+Final message mask:
+
+* `m(e) = sigmoid(a1 * rel(e) + a2 * BridgeBonus'(e) + b)`
+
+**Adaptive behavior under PV uncertainty:**
+If `neutral_dominance` is high:
+
+* reduce PV sharpness (`a1 ↓`)
+* rely more on structure (`a2 ↑`)
+
+This directly addresses “PV uncertainty causes bridge suppression.”
+
+---
+
+## 10) Optional 1-step recovery: `S → A` when diagnostics predict insufficiency
+
+### 10.1 When do we trigger recovery?
+
+Use Component 1 diagnostics as a controller:
+
+Trigger if:
+
+* `ESI_geom < τ_esi`  (structurally insufficient)
+  AND
+* `RPI@k > τ_rpi`     (adding k from S likely helps connectivity)
+
+### 10.2 Which edges do we recover?
+
+Score edges in S by:
+
+* `RecoverScore(e) = BridgeBonus'(e) * (1 + α * (1 - p_neu(e)))`
+
+Pick top-k (small k, e.g., 1–5), move them to A **for this claim only**, rebuild graph, rerun forward once.
+
+### 10.3 What gets logged?
+
+* `recovery_triggered = true/false`
+* recovered edges list
+* before/after ESI
+* confidence delta and label flip (if any)
+
+---
+
+## 11) Selective prediction (abstention) — how we represent “insufficiency” in a binary dataset
+
+FactKG labels are {SUPPORTED, REFUTED}. There is no supervised NEI label.
+
+So “insufficient evidence” is handled as **selective prediction**:
+
+* model outputs prediction + an abstain score
+* if abstain score is high, we choose not to predict
+
+Abstain head:
+
+* `abstain_score = sigmoid(MLP([repr, ESI_geom, neutral_dominance, |A|, connectivity]))`
+
+Decision:
+
+* abstain if `abstain_score > τ`
+
+Evaluation:
+
+* **risk–coverage curve**
+* **AURC** (area under risk–coverage)
+* accuracy/F1 on the non-abstained subset
+
+This is how we make “evidence sufficiency” measurable without needing NEI labels.
+
+---
+
+## 12) Rationale output (faithfulness-oriented)
+
+We output rationale edges as the top-N by a salience measure like:
+
+* `salience(e) = attention(e) * m(e)`
+  (or gradient-based salience if implemented later)
+
+Faithfulness check:
+
+* removing rationale edges should reduce confidence more than removing random edges
+
+---
+
+## 13) Evaluation suite (what we claim and how we prove it)
+
+### 13.1 Accuracy + ablations
+
+Ablation ladder:
+
+1. Base reasoner (no PV, no polarity, no bridge bonus, no recovery)
+2. * PV mask
+3. * polarity streams
+4. * bridge bonus
+5. * recovery
+6. * abstention head
+
+Report:
+
+* accuracy/F1 for predictions
+* AURC / risk–coverage for abstention
+
+### 13.2 Stress tests (robustness / reliability)
+
+Create controlled evidence corruption:
+
+* **Drop bridge edges** (should abstain more / confidence drops)
+* **Add distractors** (should not get tricked by shortcuts)
+* **Hop budget reduction** (simulate insufficient retrieval)
+
+### 13.3 Shortcut-path audit
+
+Construct graphs where anchors can connect via irrelevant shortcuts.
+Show that neutrality cap + polarity-consistency prevents over-boosting these shortcuts.
+
+---
+
+## 14) Recommended implementation structure (module map)
+
+Suggested files:
+
+* `src/component2/graph_builder.py`
+
+  * build entity graph from A∪C
+  * track anchors
+
+* `src/component2/masking.py`
+
+  * PV masks `m_rel`
+  * combined mask `m`
+
+* `src/component2/model.py`
+
+  * GNN layers + polarity streams + classifier head
+
+* `src/component2/bridge_scoring.py`
+
+  * diffusion/PPR computation
+  * BridgeBonus + safeguards
+
+* `src/component2/recovery.py`
+
+  * recovery trigger and S→A selection
+
+* `src/component2/selective.py`
+
+  * abstain head + risk–coverage metrics
+
+* `src/component2/rationale.py`
+
+  * salience extraction + rationale faithfulness test utilities
+
+Scripts:
+
+* `scripts/run_component2.py` (end-to-end on N claims)
+* `scripts/eval_component2.py` (ablations + summary.json)
+* `scripts/stress_tests/*.py` (drop bridges, distractors, shortcut audit)
+
+Logs:
+
+* `logs/component2/{split}/claims.jsonl`
+* `logs/component2/{split}/summary.json`
+
+---
+
+## 15) Minimal pseudocode (per claim inference)
+
+```python
+def component2_infer(claim, A, S, C, diagnostics):
+    # 1) build graph from A∪C
+    G = build_graph(A + C, anchors=claim.entities)
+
+    # 2) compute bridge bonus on G
+    bridge_bonus = compute_bridge_bonus(G, anchors=G.anchors)
+
+    # 3) run reasoner with combined mask
+    logits, salience = reasoner_forward(G, bridge_bonus=bridge_bonus)
+
+    # 4) optional recovery
+    if diagnostics.ESI < tau_esi and diagnostics.RPIk > tau_rpi:
+        recovered = select_recovery_edges(S, bridge_bonus, claim)
+        G2 = build_graph(A + recovered + C, anchors=claim.entities)
+        bridge_bonus2 = compute_bridge_bonus(G2, anchors=G2.anchors)
+        logits2, salience2 = reasoner_forward(G2, bridge_bonus=bridge_bonus2)
+        logits, salience = logits2, salience2
+
+    # 5) abstention head
+    abstain_score = abstain_head(logits, diagnostics, G.stats)
+    label, conf = softmax(logits).argmax(), softmax(logits).max()
+    abstained = abstain_score > tau_abstain
+
+    # 6) rationale edges
+    rationale = top_edges_by_salience(salience)
+
+    return label, conf, abstain_score, abstained, rationale
+```
+
+---
+
+## 16) FAQ (things outsiders usually ask)
+
+### Q: Why not just “filter evidence” using PV?
+
+Because multi-hop reasoning needs bridges. PV can be uncertain for a bridge edge; hard filtering breaks chains. Soft masking + bridge bonus preserves reasoning paths.
+
+### Q: Why do we need polarity streams?
+
+Refute evidence is not just “relevant”; it pushes the decision opposite. Separate streams keep that structure.
+
+### Q: Why abstention?
+
+Because FactKG doesn’t have NEI labels. Abstention lets us evaluate “insufficient evidence” behavior properly via risk–coverage.
+
+### Q: What is the main thesis claim for Component 2?
+
+Not necessarily “highest accuracy,” but **more reliable reasoning under evidence insufficiency and noise**, with diagnostics-driven recovery and selective prediction.
+
+---
+
+## 17) References (names + repos)
+
+(Links placed in code block to avoid raw-URL rendering issues.)
+
+```text
+FactKG: arXiv 2305.06590 ; repo: https://github.com/jiho283/FactKG
+GEAR: arXiv 1908.01843 ; repo: https://github.com/thunlp/GEAR
+CO-GAT: repo: https://github.com/NEUIR/CO-GAT
+HoVer: ACL Findings 2020 ; repo: https://github.com/hover-nlp/hover
+Reasoning Paths as Signals (RPS): arXiv 2506.07075
+```
+
+---
+
+## 18) TL;DR summary (for the last slide)
+
+Component 2 takes `(A,S,C + PV + ESI/CR/RPI)` and produces a **graph-based verifier** that:
+
+* suppresses noise using PV **soft masks**
+* separates SUPPORT vs REFUTE evidence via **polarity streams**
+* rescues low-PV but crucial bridges via **bridge/diffusion scoring**
+* optionally recovers missing bridges from S when diagnostics indicate insufficiency
+* supports **selective prediction** and is evaluated with risk–coverage + stress tests
+
+```
+
+If you want, I can also tailor this doc to your exact repo naming (module names, class names, existing training scripts) once you paste your current folder tree (`tree -L 3`) and the exact Component 1 output JSONL schema.
+::contentReference[oaicite:0]{index=0}
+```
+Here are the standalone files you asked for (drop them into your repo so **anyone** can open them later and understand Component 2 without chat context):
+
+* [Download COMPONENT2_SPEC_AND_PLAN.md](sandbox:/mnt/data/COMPONENT2_SPEC_AND_PLAN.md)
+* [Download COMPONENT2_PLAN.md](sandbox:/mnt/data/COMPONENT2_PLAN.md)
+* [Download COMPONENT2_DECISIONS.md](sandbox:/mnt/data/COMPONENT2_DECISIONS.md)
+* [Download CODEX_INTERVIEW_PROMPT_COMPONENT2.txt](sandbox:/mnt/data/CODEX_INTERVIEW_PROMPT_COMPONENT2.txt)
+
+## How to use these files (recommended workflow)
+
+1. Create this folder in your repo:
+
+```
+docs/component2/
+```
+
+2. Move the downloads into it:
+
+* `docs/component2/COMPONENT2_SPEC_AND_PLAN.md`
+* `docs/component2/COMPONENT2_PLAN.md`
+* `docs/component2/COMPONENT2_DECISIONS.md`
+* `docs/component2/CODEX_INTERVIEW_PROMPT_COMPONENT2.txt`
+
+3. Start Codex with:
+
+* Paste the contents of `CODEX_INTERVIEW_PROMPT_COMPONENT2.txt`
+* Tell it to **read those 3 docs** first
+* Then it will interview you **one question at a time** and keep `COMPONENT2_PLAN.md` updated with checkboxes.
+
+That’s exactly the “open a new chat later and it still works” setup (because the *state* lives in the repo docs, not the chat).
+
+---
+
+## Anchor entities (how to choose them in Fact-or-Fiction / FactKG)
+
+### What anchors are (clear definition)
+
+Anchors are the **claim’s key entities**—the entity nodes that “define what must be connected” for multi-hop reasoning to succeed.
+
+This is the same conceptual role as **topic entities** in QA-GNN-style KG reasoning: you extract the entities mentioned in the query/context and build reasoning around connecting them. 
+
+### Best-practice anchor selection hierarchy (use this order)
+
+**(1) Use the exact claim→entity seeds already used by retrieval (best).**
+In this repo, retrieval exists to start from entities that correspond to the claim and expand k-hops. Those starting entities are the most correct “anchors” because:
+
+* they’re already mapped to the KG’s entity IDs consistently with the rest of the pipeline (and with your Component 1 coverage logic),
+* they match what the baseline system assumes. ([ACL Anthology][1])
+
+**How to find them quickly in the repo**
+Run searches like:
+
+* `rg -n "entity" -S`
+* `rg -n "seed|seeds|topic|anchors|entity_set|entity_set" -S`
+* `rg -n "retrieve|subgraph" -S`
+
+Whatever variable/field is used to start subgraph retrieval = your anchors.
+
+**(2) If FactKG (or the repo’s processed dataset) stores a list of claim entities, use it.**
+FactKG is built around KG reasoning patterns (one-hop, conjunction, existence, multi-hop, negation), and many pipelines store the claim entities explicitly once linked. ([arXiv][2])
+
+**(3) If neither exists: fallback anchors from claim text + retrieved subgraph**
+Use a lightweight heuristic:
+
+* Normalize claim text (`lower`, strip punctuation)
+* Normalize entity labels from retrieved triples (`Barack_Obama → barack obama`)
+* Anchors = entities whose normalized label appears in the claim string
+* If too many: keep top `K=2..5` by frequency/degree in the retrieved subgraph
+
+### Why anchors directly help bridge scoring + recovery (example)
+
+Claim: “Barack Obama was born in Hawaii.”
+
+Anchors:
+
+* `Barack_Obama`
+* `Hawaii`
+
+Your bridge rescue (PPR/diffusion) asks:
+“Which edges help flow between Obama and Hawaii?”
+Edges that sit on the best connectivity flow between anchors get boosted and become recovery candidates (from S→A) if ESI/RPI say evidence is insufficient.
+
+This “connect anchors through the graph” framing is exactly how many KG reasoning systems operationalize multi-hop reasoning: connect a context node to topic entities, then reason over paths between them. 
+
+---
+
+## Why your plan’s “soft masking + bridge rescue” is well-groundedrted by CO-GAT’s idea that masking (especially *soft* masking) helps reduce noise propagation in graph reasoning. ([arXiv][3])
+
+* **Risk–coverage selective prediction** is a standard way to handle “insufficient evidence” when labels are binary (you abstain on low-confidence / low-sufficiency cases and report risk vs coverage). 
+
+All of this is integrated (with examples) inside `COMPONENT2_SPEC_AND_PLAN.md`.
+
+If you want, paste back** you find in the repo that stores the retrieval seed entities—then I’ll tell you the cleanest way to thread that into:
+`AnchorSelector → BridgeRescuePPR → Recovery(S→A)` without breaking your Component 1 “contract.”
+
+[1]: https://aclanthology.org/2024.fever-1.32/?utm_source=chatgpt.com "Fact or Fiction? Improving Fact Verification with Knowledge ..."
+[2]: https://arxiv.org/abs/2305.06590?utm_source=chatgpt.com "FactKG: Fact Verification via Reasoning on Knowledge Graphs"
+[3]: https://arxiv.org/abs/2405.10481?utm_source=chatgpt.com "Multi-Evidence based Fact Verification via A Confidential Graph Neural Network"
+
+

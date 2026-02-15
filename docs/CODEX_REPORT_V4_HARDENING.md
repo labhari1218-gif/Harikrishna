@@ -1,4 +1,4 @@
-# Component 1 v4 Hardening - Codex Report
+ Component 1 v4 Hardening - Codex Report
 
 **Date**: 2026-02-02  
 **Branch**: fix/component1-v4-hardening  

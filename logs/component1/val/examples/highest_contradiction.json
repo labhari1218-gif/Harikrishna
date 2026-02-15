@@ -1,0 +1,768 @@
+[
+  {
+    "claim_id": "val_12604",
+    "claim_text": "No, it's not an ingredient in Bandeja paisa!",
+    "label": "TRUE",
+    "entity_set": [
+      "Bandeja_paisa",
+      "Schmaltz"
+    ],
+    "Entity_set": [
+      "Bandeja_paisa",
+      "Schmaltz"
+    ],
+    "counts": {
+      "A": 10,
+      "S": 0,
+      "C": 5
+    },
+    "sufficiency": {
+      "esi_geom": 0.3081295997252659,
+      "starve_score_geom": 0.6918704002747341,
+      "esi_prod": 0.029255010566775666,
+      "starve_score_prod": 0.9707449894332243,
+      "mass_A": 8.797182610083837,
+      "mass_A_normalized": 0.5851002113355133,
+      "coverage_A": 1.0,
+      "connectivity_A": 0.0,
+      "neutral_rate_A": 0.1202817240031436
+    },
+    "counter_retention": {
+      "has_counter": true,
+      "counter_kept": 5,
+      "cr_at_5": 1.0,
+      "cr_at_10": 0.5,
+      "max_contra_all": 0.9996770620346069,
+      "max_contra_C": 0.9996770620346069,
+      "contra_mass_C": 4.996854484081268,
+      "counter_in_A": 9,
+      "max_contra_A": 0.9986603260040283
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 15,
+      "pool_size_after_C": 10,
+      "min_A_feasible": 5,
+      "mean_rel": 0.9196512380571221,
+      "mean_pol": -0.9146449725497708,
+      "p25_rel": 0.9025613464182243,
+      "p50_rel": 0.9960310049937107,
+      "p75_rel": 0.9993455598087166
+    },
+    "top_evidence": {
+      "by_rel": [
+        "val_12604_triple_6",
+        "val_12604_triple_1",
+        "val_12604_triple_4",
+        "val_12604_triple_3",
+        "val_12604_triple_7"
+      ],
+      "by_contra": [
+        "val_12604_triple_6",
+        "val_12604_triple_1",
+        "val_12604_triple_3",
+        "val_12604_triple_4",
+        "val_12604_triple_7"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 8.797182610083837
+    }
+  },
+  {
+    "claim_id": "val_11206",
+    "claim_text": "Salaberry Armoury did not even have an award!",
+    "label": "FALSE",
+    "entity_set": [
+      "Salaberry_Armoury"
+    ],
+    "Entity_set": [
+      "Salaberry_Armoury"
+    ],
+    "counts": {
+      "A": 9,
+      "S": 0,
+      "C": 5
+    },
+    "sufficiency": {
+      "esi_geom": 0.7552296930002556,
+      "starve_score_geom": 0.24477030699974445,
+      "esi_prod": 0.43076178676838084,
+      "starve_score_prod": 0.5692382132316192,
+      "mass_A": 5.0711065203431644,
+      "mass_A_normalized": 0.43076178676838084,
+      "coverage_A": 1.0,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.43654372460312313
+    },
+    "counter_retention": {
+      "has_counter": true,
+      "counter_kept": 5,
+      "cr_at_5": 1.0,
+      "cr_at_10": 0.5,
+      "max_contra_all": 0.9996719360351562,
+      "max_contra_C": 0.9996719360351562,
+      "contra_mass_C": 4.87100750207901,
+      "counter_in_A": 6,
+      "max_contra_A": 0.9103859066963196
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 14,
+      "pool_size_after_C": 9,
+      "min_A_feasible": 5,
+      "mean_rel": 0.7101836416841252,
+      "mean_pol": -0.709884393484182,
+      "p25_rel": 0.6824018120933033,
+      "p50_rel": 0.8644773811902269,
+      "p75_rel": 0.9481738848353416
+    },
+    "top_evidence": {
+      "by_rel": [
+        "val_11206_triple_13",
+        "val_11206_triple_5",
+        "val_11206_triple_4",
+        "val_11206_triple_12",
+        "val_11206_triple_3"
+      ],
+      "by_contra": [
+        "val_11206_triple_13",
+        "val_11206_triple_5",
+        "val_11206_triple_4",
+        "val_11206_triple_12",
+        "val_11206_triple_3"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 5.0711065203431644
+    }
+  },
+  {
+    "claim_id": "val_11207",
+    "claim_text": "Mio, My Son did not receive any awards.",
+    "label": "FALSE",
+    "entity_set": [
+      "Mio,_My_Son"
+    ],
+    "Entity_set": [
+      "Mio,_My_Son"
+    ],
+    "counts": {
+      "A": 6,
+      "S": 0,
+      "C": 1
+    },
+    "sufficiency": {
+      "esi_geom": 0.41358980247170835,
+      "starve_score_geom": 0.5864101975282916,
+      "esi_prod": 0.07074723426572127,
+      "starve_score_prod": 0.9292527657342787,
+      "mass_A": 0.4402469610067783,
+      "mass_A_normalized": 0.07074723426572127,
+      "coverage_A": 1.0,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.9266254901885986
+    },
+    "counter_retention": {
+      "has_counter": true,
+      "counter_kept": 1,
+      "cr_at_5": 0.2,
+      "cr_at_10": 0.14285714285714285,
+      "max_contra_all": 0.9996638298034668,
+      "max_contra_C": 0.9996638298034668,
+      "contra_mass_C": 0.9996638298034668,
+      "counter_in_A": 0,
+      "max_contra_A": 0.15598100423812866
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 7,
+      "pool_size_after_C": 6,
+      "min_A_feasible": 5,
+      "mean_rel": 0.20571708839270286,
+      "mean_pol": -0.20528985612743003,
+      "p25_rel": 0.035406576658715494,
+      "p50_rel": 0.07223962794523686,
+      "p75_rel": 0.13759548051893944
+    },
+    "top_evidence": {
+      "by_rel": [
+        "val_11207_triple_6",
+        "val_11207_triple_1",
+        "val_11207_triple_2",
+        "val_11207_triple_0",
+        "val_11207_triple_3"
+      ],
+      "by_contra": [
+        "val_11207_triple_6",
+        "val_11207_triple_1",
+        "val_11207_triple_2",
+        "val_11207_triple_0",
+        "val_11207_triple_3"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 0.4402469610067783
+    }
+  },
+  {
+    "claim_id": "val_1554",
+    "claim_text": "Grigory Neujmin was born in Budleigh Salterton!",
+    "label": "FALSE",
+    "entity_set": [
+      "Grigory_Neujmin",
+      "Budleigh_Salterton"
+    ],
+    "Entity_set": [
+      "Grigory_Neujmin",
+      "Budleigh_Salterton"
+    ],
+    "counts": {
+      "A": 13,
+      "S": 0,
+      "C": 5
+    },
+    "sufficiency": {
+      "esi_geom": 0.20193670236207983,
+      "starve_score_geom": 0.7980632976379202,
+      "esi_prod": 0.008234662037287432,
+      "starve_score_prod": 0.9917653379627126,
+      "mass_A": 2.3394311881856993,
+      "mass_A_normalized": 0.16469324074574865,
+      "coverage_A": 1.0,
+      "connectivity_A": 0.0,
+      "neutral_rate_A": 0.8200437506804099
+    },
+    "counter_retention": {
+      "has_counter": true,
+      "counter_kept": 5,
+      "cr_at_5": 1.0,
+      "cr_at_10": 0.5,
+      "max_contra_all": 0.9996610879898071,
+      "max_contra_C": 0.9996610879898071,
+      "contra_mass_C": 4.908464729785919,
+      "counter_in_A": 1,
+      "max_contra_A": 0.8370209336280823
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 18,
+      "pool_size_after_C": 13,
+      "min_A_feasible": 5,
+      "mean_rel": 0.4028818017848405,
+      "mean_pol": -0.4008535179471235,
+      "p25_rel": 0.055686370891635306,
+      "p50_rel": 0.12156666303053498,
+      "p75_rel": 0.914220342237968
+    },
+    "top_evidence": {
+      "by_rel": [
+        "val_1554_triple_3",
+        "val_1554_triple_12",
+        "val_1554_triple_16",
+        "val_1554_triple_0",
+        "val_1554_triple_11"
+      ],
+      "by_contra": [
+        "val_1554_triple_3",
+        "val_1554_triple_12",
+        "val_1554_triple_16",
+        "val_1554_triple_0",
+        "val_1554_triple_11"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 2.3394311881856993
+    }
+  },
+  {
+    "claim_id": "val_11100",
+    "claim_text": "Did you know that Frank Ski did not have a child.",
+    "label": "FALSE",
+    "entity_set": [
+      "Frank_Ski"
+    ],
+    "Entity_set": [
+      "Frank_Ski"
+    ],
+    "counts": {
+      "A": 5,
+      "S": 0,
+      "C": 2
+    },
+    "sufficiency": {
+      "esi_geom": 0.8364757349290189,
+      "starve_score_geom": 0.16352426507098106,
+      "esi_prod": 0.5852750914444215,
+      "starve_score_prod": 0.41472490855557853,
+      "mass_A": 4.400699247489683,
+      "mass_A_normalized": 0.5852750914444215,
+      "coverage_A": 1.0,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.11986013064160943
+    },
+    "counter_retention": {
+      "has_counter": true,
+      "counter_kept": 2,
+      "cr_at_5": 0.4,
+      "cr_at_10": 0.2857142857142857,
+      "max_contra_all": 0.9996592998504639,
+      "max_contra_C": 0.9996592998504639,
+      "contra_mass_C": 1.9977858662605286,
+      "counter_in_A": 4,
+      "max_contra_A": 0.9977279305458069
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 7,
+      "pool_size_after_C": 5,
+      "min_A_feasible": 5,
+      "mean_rel": 0.9141275033325655,
+      "mean_pol": -0.9111722450200302,
+      "p25_rel": 0.9878615807392634,
+      "p50_rel": 0.9936344535672106,
+      "p75_rel": 0.9981847657763865
+    },
+    "top_evidence": {
+      "by_rel": [
+        "val_11100_triple_6",
+        "val_11100_triple_1",
+        "val_11100_triple_4",
+        "val_11100_triple_0",
+        "val_11100_triple_2"
+      ],
+      "by_contra": [
+        "val_11100_triple_6",
+        "val_11100_triple_1",
+        "val_11100_triple_4",
+        "val_11100_triple_0",
+        "val_11100_triple_2"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 4.400699247489683
+    }
+  },
+  {
+    "claim_id": "val_12703",
+    "claim_text": "Well, it's not an ingredient in Bandeja paisa.",
+    "label": "TRUE",
+    "entity_set": [
+      "Bandeja_paisa",
+      "Chocolate_syrup"
+    ],
+    "Entity_set": [
+      "Bandeja_paisa",
+      "Chocolate_syrup"
+    ],
+    "counts": {
+      "A": 7,
+      "S": 0,
+      "C": 5
+    },
+    "sufficiency": {
+      "esi_geom": 0.3135050395519256,
+      "starve_score_geom": 0.6864949604480743,
+      "esi_prod": 0.0308129712943928,
+      "starve_score_prod": 0.9691870287056072,
+      "mass_A": 6.704519800696289,
+      "mass_A_normalized": 0.616259425887856,
+      "coverage_A": 1.0,
+      "connectivity_A": 0.0,
+      "neutral_rate_A": 0.042211445913250954
+    },
+    "counter_retention": {
+      "has_counter": true,
+      "counter_kept": 5,
+      "cr_at_5": 1.0,
+      "cr_at_10": 0.5,
+      "max_contra_all": 0.999657154083252,
+      "max_contra_C": 0.999657154083252,
+      "contra_mass_C": 4.9950971603393555,
+      "counter_in_A": 7,
+      "max_contra_A": 0.9978522062301636
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 12,
+      "pool_size_after_C": 7,
+      "min_A_feasible": 5,
+      "mean_rel": 0.9750593452081375,
+      "mean_pol": -0.9736888559236831,
+      "p25_rel": 0.9740231688774657,
+      "p50_rel": 0.9975617854070151,
+      "p75_rel": 0.9992277403653134
+    },
+    "top_evidence": {
+      "by_rel": [
+        "val_12703_triple_6",
+        "val_12703_triple_1",
+        "val_12703_triple_4",
+        "val_12703_triple_7",
+        "val_12703_triple_0"
+      ],
+      "by_contra": [
+        "val_12703_triple_6",
+        "val_12703_triple_1",
+        "val_12703_triple_4",
+        "val_12703_triple_7",
+        "val_12703_triple_2"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 6.704519800696289
+    }
+  },
+  {
+    "claim_id": "val_11210",
+    "claim_text": "Marco Sassone did not have an award at all.",
+    "label": "FALSE",
+    "entity_set": [
+      "Marco_Sassone"
+    ],
+    "Entity_set": [
+      "Marco_Sassone"
+    ],
+    "counts": {
+      "A": 5,
+      "S": 0,
+      "C": 4
+    },
+    "sufficiency": {
+      "esi_geom": 0.7623178984128762,
+      "starve_score_geom": 0.23768210158712377,
+      "esi_prod": 0.4430047164720553,
+      "starve_score_prod": 0.5569952835279447,
+      "mass_A": 2.9259925336227752,
+      "mass_A_normalized": 0.4430047164720553,
+      "coverage_A": 1.0,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.4148015171289444
+    },
+    "counter_retention": {
+      "has_counter": true,
+      "counter_kept": 4,
+      "cr_at_5": 0.8,
+      "cr_at_10": 0.4444444444444444,
+      "max_contra_all": 0.9996532201766968,
+      "max_contra_C": 0.9996532201766968,
+      "contra_mass_C": 3.9979244470596313,
+      "counter_in_A": 2,
+      "max_contra_A": 0.9430040717124939
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 9,
+      "pool_size_after_C": 5,
+      "min_A_feasible": 5,
+      "mean_rel": 0.7693813468965042,
+      "mean_pol": -0.7687814209906113,
+      "p25_rel": 0.4353482808219269,
+      "p50_rel": 0.9431915714521892,
+      "p75_rel": 0.999662246365915
+    },
+    "top_evidence": {
+      "by_rel": [
+        "val_11210_triple_8",
+        "val_11210_triple_7",
+        "val_11210_triple_4",
+        "val_11210_triple_3",
+        "val_11210_triple_5"
+      ],
+      "by_contra": [
+        "val_11210_triple_8",
+        "val_11210_triple_4",
+        "val_11210_triple_7",
+        "val_11210_triple_3",
+        "val_11210_triple_5"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 2.9259925336227752
+    }
+  },
+  {
+    "claim_id": "val_11141",
+    "claim_text": "Do you know that Morris Brown College does not have a mascot?",
+    "label": "FALSE",
+    "entity_set": [
+      "Morris_Brown_College"
+    ],
+    "Entity_set": [
+      "Morris_Brown_College"
+    ],
+    "counts": {
+      "A": 14,
+      "S": 0,
+      "C": 5
+    },
+    "sufficiency": {
+      "esi_geom": 0.7943920510951098,
+      "starve_score_geom": 0.2056079489048902,
+      "esi_prod": 0.5013080395559234,
+      "starve_score_prod": 0.4986919604440766,
+      "mass_A": 9.740733626211295,
+      "mass_A_normalized": 0.5013080395559234,
+      "coverage_A": 1.0,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.304233332829816
+    },
+    "counter_retention": {
+      "has_counter": true,
+      "counter_kept": 5,
+      "cr_at_5": 1.0,
+      "cr_at_10": 0.5,
+      "max_contra_all": 0.999651312828064,
+      "max_contra_C": 0.999651312828064,
+      "contra_mass_C": 4.956169605255127,
+      "counter_in_A": 8,
+      "max_contra_A": 0.9633086323738098
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 19,
+      "pool_size_after_C": 14,
+      "min_A_feasible": 5,
+      "mean_rel": 0.773569892331388,
+      "mean_pol": -0.7691972590745488,
+      "p25_rel": 0.6006521778181195,
+      "p50_rel": 0.8719890711363405,
+      "p75_rel": 0.9695186558674322
+    },
+    "top_evidence": {
+      "by_rel": [
+        "val_11141_triple_3",
+        "val_11141_triple_12",
+        "val_11141_triple_1",
+        "val_11141_triple_2",
+        "val_11141_triple_17"
+      ],
+      "by_contra": [
+        "val_11141_triple_3",
+        "val_11141_triple_12",
+        "val_11141_triple_1",
+        "val_11141_triple_2",
+        "val_11141_triple_17"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 9.740733626211295
+    }
+  },
+  {
+    "claim_id": "val_11211",
+    "claim_text": "Volney F. Warner did not even get an award!",
+    "label": "FALSE",
+    "entity_set": [
+      "Volney_F._Warner"
+    ],
+    "Entity_set": [
+      "Volney_F._Warner"
+    ],
+    "counts": {
+      "A": 5,
+      "S": 0,
+      "C": 4
+    },
+    "sufficiency": {
+      "esi_geom": 0.7131723068520013,
+      "starve_score_geom": 0.2868276931479987,
+      "esi_prod": 0.3627299468974149,
+      "starve_score_prod": 0.6372700531025851,
+      "mass_A": 2.2528088401668356,
+      "mass_A_normalized": 0.3627299468974149,
+      "coverage_A": 1.0,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.5494382530450821
+    },
+    "counter_retention": {
+      "has_counter": true,
+      "counter_kept": 4,
+      "cr_at_5": 0.8,
+      "cr_at_10": 0.4444444444444444,
+      "max_contra_all": 0.9996441602706909,
+      "max_contra_C": 0.9996441602706909,
+      "contra_mass_C": 3.9781614542007446,
+      "counter_in_A": 1,
+      "max_contra_A": 0.9389253854751587
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 9,
+      "pool_size_after_C": 5,
+      "min_A_feasible": 5,
+      "mean_rel": 0.6923728340265775,
+      "mean_pol": -0.6919733332199232,
+      "p25_rel": 0.31693331952556036,
+      "p50_rel": 0.9390230927747325,
+      "p75_rel": 0.9936510308543802
+    },
+    "top_evidence": {
+      "by_rel": [
+        "val_11211_triple_5",
+        "val_11211_triple_4",
+        "val_11211_triple_7",
+        "val_11211_triple_8",
+        "val_11211_triple_3"
+      ],
+      "by_contra": [
+        "val_11211_triple_5",
+        "val_11211_triple_4",
+        "val_11211_triple_7",
+        "val_11211_triple_8",
+        "val_11211_triple_3"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 2.2528088401668356
+    }
+  },
+  {
+    "claim_id": "val_11233",
+    "claim_text": "Do you know that Sylvian Mahuza did not attend college?",
+    "label": "FALSE",
+    "entity_set": [
+      "Sylvian_Mahuza"
+    ],
+    "Entity_set": [
+      "Sylvian_Mahuza"
+    ],
+    "counts": {
+      "A": 8,
+      "S": 0,
+      "C": 4
+    },
+    "sufficiency": {
+      "esi_geom": 0.5721528991266577,
+      "starve_score_geom": 0.4278471008733423,
+      "esi_prod": 0.1872993665640369,
+      "starve_score_prod": 0.8127006334359631,
+      "mass_A": 1.6591396944131702,
+      "mass_A_normalized": 0.1872993665640369,
+      "coverage_A": 1.0,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.7926075384020805
+    },
+    "counter_retention": {
+      "has_counter": true,
+      "counter_kept": 4,
+      "cr_at_5": 0.8,
+      "cr_at_10": 0.4,
+      "max_contra_all": 0.9996386766433716,
+      "max_contra_C": 0.9996386766433716,
+      "contra_mass_C": 3.709293484687805,
+      "counter_in_A": 0,
+      "max_contra_A": 0.3276319205760956
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 12,
+      "pool_size_after_C": 8,
+      "min_A_feasible": 5,
+      "mean_rel": 0.44769103868990595,
+      "mean_pol": -0.44051569035461097,
+      "p25_rel": 0.14534971641842276,
+      "p50_rel": 0.29509937041439116,
+      "p75_rel": 0.8348532092059031
+    },
+    "top_evidence": {
+      "by_rel": [
+        "val_11233_triple_4",
+        "val_11233_triple_6",
+        "val_11233_triple_8",
+        "val_11233_triple_7",
+        "val_11233_triple_2"
+      ],
+      "by_contra": [
+        "val_11233_triple_4",
+        "val_11233_triple_6",
+        "val_11233_triple_8",
+        "val_11233_triple_7",
+        "val_11233_triple_2"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 1.6591396944131702
+    }
+  }
+]

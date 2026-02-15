@@ -1,0 +1,125 @@
+\section{Data Contract: Inputs, Validation Rules, and Outputs}
+\label{sec:contract}
+
+\subsection{Primary claim input format (triples JSONL mode)}
+The standard input to Component 2 is a JSONL file where each row is normalized to \texttt{ClaimRecord} in \texttt{src/component2/types.py}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.26\linewidth}p{0.18\linewidth}p{0.50\linewidth}@{}}
+\toprule
+Field & Type & Semantics \\
+\midrule
+\texttt{claim\_id} & string & Required unique claim identifier. Empty values are rejected. \\
+\texttt{claim\_text} & string & Claim text. Fallback key accepted: \texttt{Sentence}. \\
+\texttt{label} & string/null & Optional. Mapped to class index: SUPPORT$\to0$, REFUTE$\to1$. \\
+\texttt{entity\_set} & list/string & Claim seed entities used for anchor selection. Fallback key: \texttt{Entity\_set}. \\
+\texttt{triples} & list & Required per-claim evidence list. Each item must be a valid evidence triple. \\
+\texttt{sufficiency} & object & Optional diagnostic map; \texttt{esi\_geom} is consumed by recovery/abstention. \\
+\bottomrule
+\end{tabular}
+\caption{Claim-level schema accepted by \texttt{claim\_from\_dict}.}
+\label{tab:claim-schema}
+\end{table}
+
+\subsection{Per-evidence schema and derived values}
+Each evidence row is normalized to \texttt{EvidenceTriple}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.26\linewidth}p{0.18\linewidth}p{0.50\linewidth}@{}}
+\toprule
+Field & Type & Semantics \\
+\midrule
+\texttt{evidence\_id} & string & Required unique id within claim. Duplicates are rejected. \\
+\texttt{raw\_triple} & 3-tuple/list & Required $(subject, relation, object)$ triple. \\
+\texttt{pool} & string & One of \texttt{A}, \texttt{S}, \texttt{C}. \\
+\texttt{p\_ent}, \texttt{p\_con}, \texttt{p\_neu} & float & Required probabilities in $[0,1]$ and finite. \\
+\texttt{probs} (alternative) & object & Accepted as \{entail, contra, neutral\} or \{p\_ent, p\_con, p\_neu\}. \\
+\bottomrule
+\end{tabular}
+\caption{Evidence-level schema and accepted key variants.}
+\label{tab:evidence-schema}
+\end{table}
+
+Derived values used by downstream modules:
+\begin{align}
+\Rel(e) &= p_{\text{ent}}(e) + p_{\text{con}}(e), \\
+\Pol(e) &= p_{\text{ent}}(e) - p_{\text{con}}(e).
+\end{align}
+
+\subsection{Validation behavior (strictness of parser)}
+\texttt{src/component2/types.py} enforces the following:
+\begin{itemize}
+\item Non-finite probabilities and values outside $[0,1]$ raise errors.
+\item Unknown pool labels raise errors.
+\item Missing or malformed triples (not length 3) raise errors.
+\item Empty claim batches are rejected by \texttt{ensure\_non\_empty\_claims}.
+\end{itemize}
+
+\subsection{Component 1 compatibility mode (claims + pairs logs)}
+\label{subsec:component1-compat}
+\texttt{run\_m3.py} supports an alternate loader for Component 1 logs:
+\begin{itemize}
+\item Claims file: typically \texttt{logs/component1/train/claims.jsonl}.
+\item Companion pairs file: same directory, \texttt{pairs.jsonl}, required.
+\item Triple reconstruction is done by grouping pair rows by \texttt{claim\_id}.
+\end{itemize}
+
+Required pair-row elements:
+\begin{itemize}
+\item \texttt{claim\_id}, \texttt{evidence\_id}, \texttt{raw\_triple}, \texttt{pool} (or \texttt{evidence\_assignment}), \texttt{probs}.
+\item Pool aliases accepted: \texttt{A/ACTIVE}, \texttt{S/SUSPENDED}, \texttt{C/CANDIDATE}, and ids \texttt{0/1/2}.
+\item Missing pool labels or partial Suspended logging raises explicit errors because recovery needs full $S$ visibility.
+\end{itemize}
+
+\subsection{Output artifacts and path pattern}
+All milestones write outputs under:
+\[
+\texttt{<output\_root>/<milestone>/<YYYYMMDD\_HHMMSS\_microseconds>/}
+\]
+using \texttt{make\_run\_dir(...)} in \texttt{src/component2/io\_utils.py}.
+
+Each run writes:
+\begin{itemize}
+\item \texttt{run\_config.json}
+\item \texttt{summary.json}
+\item \texttt{predictions.jsonl}
+\end{itemize}
+M3 additionally writes \texttt{risk\_coverage.json}.
+
+\subsection{M1 output schema (\texttt{run\_m1.py})}
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.30\linewidth}p{0.62\linewidth}@{}}
+\toprule
+Field & Meaning \\
+\midrule
+\texttt{prediction} & Binary label from argmax over \texttt{probs}. \\
+\texttt{prob\_supported}, \texttt{prob\_refuted} & Final class probabilities. \\
+\texttt{anchors} & Selected anchors used to build graph. \\
+\texttt{top\_salience} & Top-3 edges by internal salience score. \\
+\bottomrule
+\end{tabular}
+\caption{Per-claim prediction fields in M1.}
+\end{table}
+
+\subsection{M2 output schema (\texttt{run\_m2.py})}
+In addition to M1-like prediction fields, M2 logs:
+\begin{itemize}
+\item Recovery metrics: \texttt{rpi\_rel\_at\_k}, \texttt{rpi\_bridge\_at\_k}, \texttt{delta\_conn\_bridge\_at\_k}, \texttt{should\_recover}.
+\item Selected edge ids: \texttt{selected\_rel\_ids}, \texttt{selected\_bridge\_ids}, \texttt{moved\_evidence\_ids}.
+\item Bridge diagnostics over Suspended edges: \texttt{bridge\_scores\_s} with uncapped and capped scores.
+\item PPR diagnostics: convergence flag, iterations, residual, anchor connectivity counters.
+\end{itemize}
+
+\subsection{M3 output schema (\texttt{run\_m3.py})}
+M3 extends M2 with reliability and interpretability fields:
+\begin{itemize}
+\item \texttt{abstain\_score} and optional correctness indicator \texttt{is\_correct}.
+\item \texttt{top\_rationale\_edges}: top-$N$ ranked by attention$\times$PV relevance.
+\item \texttt{faithfulness\_loo}: leave-one-out confidence-drop report (subset of claims).
+\item \texttt{salience\_results}: grouped top-$k$ removal faithfulness report.
+\item \texttt{risk\_coverage.json}: full risk-coverage points and \AURC.
+\end{itemize}
+

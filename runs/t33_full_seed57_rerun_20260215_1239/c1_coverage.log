@@ -1,0 +1,6 @@
+/home/bs_thesis/miniconda/envs/fact_check_env/lib/python3.10/site-packages/transformers/utils/hub.py:110: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.
+  warnings.warn(
+[train] claims=86367 pair_rows=1751327/1751327 missing_claims=1126 fallback_claims=1126 fallback_pct=1.30%
+[val] claims=13266 pair_rows=282730/282730 missing_claims=125 fallback_claims=125 fallback_pct=0.94%
+[test] claims=9041 pair_rows=168139/168139 missing_claims=108 fallback_claims=108 fallback_pct=1.19%
+Wrote coverage report to: runs/t33_full_seed57_rerun_20260215_1239/c1_coverage.json

@@ -1,0 +1,142 @@
+\section{Sufficiency and Safety Metrics (ESI, CR@k, RPI@k)}
+\label{sec:c1_metrics}
+
+\subsection{Metric overview}
+Component 1 computes four metric families from a claim-level partition $(\Active,\Susp,\Counter)$:
+\begin{itemize}
+\item Evidence Sufficiency Index: $\ESIprod$, $\ESIgeom$.
+\item Counter Retention: $\CR@k$.
+\item Recovery Potential Index: $\RPI@k$.
+\item Auxiliary uncertainty: neutral dominance in Active set.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\begin{adjustbox}{max width=\textwidth}
+\begin{tikzpicture}[
+  node distance=7mm and 9mm,
+  block/.style={draw,rounded corners,align=center,text width=3.25cm,minimum height=1.15cm,fill=gray!7},
+  arrow/.style={-Latex,thick}
+]
+\node[block] (A) {Active set $\Active$};
+\node[block, right=of A] (mass) {Mass\\$\hat{M}_{\Active}$};
+\node[block, above right=of mass] (cov) {Coverage\\$\Cov_{\Active}$};
+\node[block, below right=of mass] (conn) {Connectivity\\$\Conn_{\Active}$};
+\node[block, right=24mm of mass] (esi) {ESI outputs\\$\ESIprod,\;\ESIgeom$};
+
+\draw[arrow] (A) -- (mass);
+\draw[arrow] (A) |- (cov);
+\draw[arrow] (A) |- (conn);
+\draw[arrow] (mass) -- (esi);
+\draw[arrow] (cov) -- (esi);
+\draw[arrow] (conn) -- (esi);
+\end{tikzpicture}
+\end{adjustbox}
+\caption{Page-fitted ESI computation structure from Active evidence.}
+\label{fig:c1_esi_flow}
+\end{figure}
+
+\subsection{ESI components as implemented in \texttt{compute\_esi}}
+
+\paragraph{Mass term.}
+\begin{align}
+M_{\Active} &= \sum_{e\in\Active} \Rel(e), \\
+\alpha &= \max(1, |\Active|), \\
+\hat{M}_{\Active} &= 1-\exp\!\left(-\frac{M_{\Active}}{\alpha}\right).
+\end{align}
+
+\paragraph{Coverage and connectivity raw terms.}
+Let $E_{\text{claim}}$ be claim entities and $V(\Active)$ graph nodes from Active triples.
+\begin{align}
+\Cov_{\Active,\text{raw}} &= \frac{|E_{\text{claim}}\cap V(\Active)|}{|E_{\text{claim}}|},
+\end{align}
+with edge-case override to 1.0 if $|E_{\text{claim}}|=0$.
+
+Connectivity is computed over present claim entities:
+\begin{equation}
+E_{\text{present}} = E_{\text{claim}}\cap V(\Active).
+\end{equation}
+If $|E_{\text{present}}|<2$, connectivity raw is set to 1.0.
+Otherwise:
+\begin{equation}
+\Conn_{\Active,\text{raw}} = \frac{\#\{\{u,v\}\subseteq E_{\text{present}}: u\leftrightsquigarrow v\}}{\binom{|E_{\text{present}}|}{2}}.
+\end{equation}
+Connectivity uses BFS on a simple undirected graph built from subject-object edges.
+
+\paragraph{Smoothing and final ESI forms.}
+With $\epsilon=0.05$:
+\begin{align}
+\Cov_{\Active} &= \epsilon + (1-\epsilon)\Cov_{\Active,\text{raw}}, \\
+\Conn_{\Active} &= \epsilon + (1-\epsilon)\Conn_{\Active,\text{raw}}.
+\end{align}
+Final scores:
+\begin{align}
+\ESIprod &= \hat{M}_{\Active}\cdot\Cov_{\Active}\cdot\Conn_{\Active}, \\
+\ESIgeom &= \left(\hat{M}_{\Active}\cdot\Cov_{\Active}\cdot\Conn_{\Active}\right)^{1/3}.
+\end{align}
+
+\paragraph{Why both are logged.}
+\begin{itemize}
+\item $\ESIprod$ is strict and can collapse under conservative NLI outputs.
+\item $\ESIgeom$ is less collapse-prone and used as primary metric in summaries/examples.
+\end{itemize}
+
+\subsection{Counter Retention at $k$}
+\texttt{compute\_cr\_at\_k} uses keyword-only signature:
+\begin{lstlisting}[style=jsonstyle]
+compute_cr_at_k(*, pool_items, counter_items, ks=[5, 10])
+\end{lstlisting}
+This prevents silent positional argument swapping.
+
+Let \texttt{TopContra\_k(Pool)} be top-$k$ by $\Con(e)$:
+\begin{equation}
+\CR@k = \frac{|\texttt{TopContra\_k}(\Pool)\cap\Counter|}{\min(k,|\Pool|)}.
+\end{equation}
+The denominator fix \(\min(k,|\Pool|)\) is critical for small pools.
+
+\subsection{Recovery Potential Index at $k$}
+\texttt{compute\_rpi\_at\_k} estimates connectivity gain from Suspended bridges.
+
+\paragraph{Bridge definition in code.}
+A suspended triple $e=(u,r,v)\in\Susp$ is a bridge candidate iff:
+\begin{enumerate}
+\item both endpoints $u,v$ exist in Active graph nodes,
+\item $u$ and $v$ belong to different connected components of Active graph.
+\end{enumerate}
+Candidates are sorted by $\Rel(e)$ descending.
+
+For each $k\in\{1,3,5\}$ by default:
+\begin{align}
+\Active^{(+k)} &= \Active \cup \text{top-}k\text{ bridges from }\Susp, \\
+\RPI@k &= \Conn(\Active^{(+k)}) - \Conn(\Active).
+\end{align}
+
+\subsection{Neutral dominance}
+\begin{equation}
+\text{NeutralRate}_{\Active} =
+\begin{cases}
+0, & |\Active|=0,\\
+\frac{1}{|\Active|}\sum_{e\in\Active} \Neu(e), & \text{otherwise.}
+\end{cases}
+\end{equation}
+High neutral rate often indicates verbalization uncertainty or off-topic evidence.
+
+\subsection{Interpreting metrics on large runs (real train summary)}
+From \texttt{logs/component1/train/summary.json}:
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.42\linewidth}p{0.20\linewidth}p{0.30\linewidth}@{}}
+\toprule
+Statistic & Value & Interpretation \\
+\midrule
+\texttt{mean\_esi\_geom} & 0.3151 & Moderate average sufficiency. \\
+\texttt{esi\_geom\_p10} & 0.1000 & Bottom-decile starvation reference. \\
+\texttt{starve\_rate\_geom\_fixed\_03} & 0.6358 & 63.58\% claims below 0.3 threshold. \\
+\texttt{mean\_coverage\_A} & 0.7796 & Entities frequently present but not always complete. \\
+\texttt{mean\_connectivity\_A} & 0.3961 & Structural disconnection is common. \\
+\texttt{mean\_neutral\_rate\_A} & 0.6113 & PV often remains neutral-dominant. \\
+\bottomrule
+\end{tabular}
+\caption{Selected real summary metrics (train split).}
+\label{tab:c1_real_summary_stats}
+\end{table}

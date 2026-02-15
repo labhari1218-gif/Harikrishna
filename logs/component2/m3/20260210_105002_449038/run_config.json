@@ -1,0 +1,92 @@
+{
+  "component2_config": {
+    "abstain_alpha": 0.5,
+    "anchor_fallback_degree_k": 2,
+    "anchor_max_k": 5,
+    "compute_risk_coverage_sweep": true,
+    "factkg_data_dir": "data/factkg",
+    "factkg_test_pickle": "factkg_test.pickle",
+    "factkg_train_pickle": "factkg_train.pickle",
+    "factkg_val_pickle": "factkg_dev.pickle",
+    "faithfulness_subset_size": 3,
+    "faithfulness_top_k_edges": 10,
+    "hidden_dim": 256,
+    "mask_ref_bias": -2.0,
+    "mask_ref_scale": 4.0,
+    "mask_sup_bias": -2.0,
+    "mask_sup_scale": 4.0,
+    "message_passing_layers": 1,
+    "neutral_cap_gamma": 2.0,
+    "num_heads": 4,
+    "numpy_edge_warn_threshold": 5000,
+    "ppr_alpha": 0.15,
+    "ppr_epsilon": 0.001,
+    "ppr_max_iters": 100,
+    "ppr_tolerance": 1e-06,
+    "random_seed": 13,
+    "rationale_top_n": 10,
+    "recovery_tau_esi": 0.3,
+    "recovery_tau_rpi_legacy": 0.15,
+    "recovery_top_k": 3,
+    "rel_emb_dim": 64,
+    "smoke_max_claims": 5,
+    "tau_abstain": null
+  },
+  "runtime": {
+    "anchors": {
+      "claims_missing_pickle_mapping": 0,
+      "factkg_pickles": {
+        "test": "data/factkg/factkg_test.pickle",
+        "train": "data/factkg/factkg_train.pickle",
+        "val": "data/factkg/factkg_dev.pickle"
+      },
+      "source_counts": {
+        "heuristic": 0,
+        "pickle": 5,
+        "provided": 0
+      },
+      "source_priority": [
+        "provided",
+        "pickle",
+        "heuristic"
+      ]
+    },
+    "input_jsonl": "/tmp/component1_no_anchors/claims.jsonl",
+    "input_source": "component1_logs",
+    "mask_formulas": {
+      "refute": "sigmoid(4*p_con-2)",
+      "support": "sigmoid(4*p_ent-2)"
+    },
+    "max_claims": 5,
+    "num_claims": 5,
+    "output_dir": "logs/component2/m3/20260210_105002_449038",
+    "performance_guardrails": {
+      "num_warnings": 0,
+      "numpy_edge_warn_threshold": 5000
+    },
+    "reasoner": "HybridMaskedDualStreamReasoner",
+    "recovery_policy": {
+      "recovery_top_k": 3,
+      "trigger": "esi_geom<tau_esi and delta_conn_bridge_at_k>0"
+    },
+    "relation_embeddings": {
+      "mode": "fixed_features_numpy",
+      "note": "Relation embeddings are random-initialized features in numpy inference; no end-to-end training in v1.",
+      "trainable": false
+    },
+    "salience": {
+      "faithfulness_drop_mode": "grouped_top_k_removal",
+      "faithfulness_subset_size": 3,
+      "faithfulness_top_k_edges": 10,
+      "formula": "attention_for_predicted_class * (p_ent+p_con)",
+      "top_n": 10
+    },
+    "selective_prediction": {
+      "abstain_formula": "alpha*(1-max_prob)+(1-alpha)*(1-esi_geom)",
+      "alpha": 0.5,
+      "compute_risk_coverage_sweep": true,
+      "metric": "AURC",
+      "tau_abstain": null
+    }
+  }
+}

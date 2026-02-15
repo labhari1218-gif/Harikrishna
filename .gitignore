@@ -15,3 +15,9 @@ cache/
 logs/
 *.db
 *.db-journal
+
+# HuggingFace model cache (large files)
+models/huggingface/
+*.bin
+*.safetensors
+

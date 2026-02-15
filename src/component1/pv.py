@@ -2,8 +2,8 @@
 pv.py - Premise Validation Scorer using NLI models
 
 Implements PVScorer class for scoring evidence items using transformer-based
-NLI models (e.g., DeBERTa-v3-base-mnli). Supports batching, fp16, and robust
-label mapping.
+NLI models (e.g., DeBERTa-v3-base-mnli). Supports batching, configurable fp16
+autocast, and robust label mapping.
 """
 
 import logging
@@ -25,7 +25,8 @@ class PVConfig:
     device: str = "auto"  # "auto", "cuda", "cpu"
     batch_size: int = 8  # Conservative for 8GB GPU with concurrent processes
     max_length: int = 256
-    use_fp16: bool = True  # Auto-enabled if CUDA available
+    use_fp16: bool = True  # Use autocast on CUDA unless disabled for stability
+    non_blocking_transfers: bool = False
 
 
 class PVScorer:
@@ -42,6 +43,8 @@ class PVScorer:
         device: torch device (cuda/cpu)
         label_map: Mapping from model output indices to entail/neutral/contra
     """
+
+    _FP16_UNSAFE_MODEL_PATTERNS = ("deberta-v3",)
     
     def __init__(self, config: PVConfig):
         """
@@ -70,11 +73,15 @@ class PVScorer:
             self.model = AutoModelForSequenceClassification.from_pretrained(config.model_name)
             self.model.to(self.device)
             self.model.eval()
+
+            # Resolve autocast policy once during initialization.
+            self.use_autocast = self._resolve_autocast_policy()
             
             # Determine entail/neutral/contra label indices
             self.label_map = self._determine_label_mapping()
             
             logger.info(f"Label mapping: {self.label_map}")
+            logger.info(f"FP16 autocast enabled: {self.use_autocast}")
             logger.info(f"PV scorer initialized successfully")
             
         except Exception as e:
@@ -124,6 +131,32 @@ class PVScorer:
             'neutral': 1,
             'contra': 0
         }
+
+    def _resolve_autocast_policy(self) -> bool:
+        """
+        Decide whether FP16 autocast should be used for this scorer instance.
+        """
+        if not self.config.use_fp16:
+            return False
+        if self.device.type != "cuda":
+            return False
+
+        model_name_lower = self.config.model_name.lower()
+        if any(pattern in model_name_lower for pattern in self._FP16_UNSAFE_MODEL_PATTERNS):
+            logger.warning(
+                "Disabling FP16 autocast for model '%s' due to known overflow instability; using FP32.",
+                self.config.model_name,
+            )
+            return False
+        return True
+
+    @staticmethod
+    def _is_fp16_overflow_error(error: RuntimeError) -> bool:
+        """
+        Detect mixed-precision overflow errors that should trigger FP32 fallback.
+        """
+        message = str(error).lower()
+        return "at::half" in message and "overflow" in message
     
     def pv_score_many(
         self,
@@ -188,14 +221,22 @@ class PVScorer:
             truncation=True,
             max_length=self.config.max_length
         )
-        
-        # Move to device
-        inputs = {k: v.to(self.device) for k, v in inputs.items()}
-        
-        # Inference with fp16 if CUDA and enabled
-        with torch.no_grad():
-            if self.config.use_fp16 and self.device.type == "cuda":
-                with torch.cuda.amp.autocast():
+
+        # Move to device. non_blocking=True is only meaningful for CUDA + pinned host tensors.
+        inputs = self._move_inputs_to_device(inputs)
+
+        # Inference with optional FP16 autocast and FP32 fallback on overflow.
+        with torch.inference_mode():
+            if self.use_autocast:
+                try:
+                    with torch.cuda.amp.autocast():
+                        outputs = self.model(**inputs)
+                except RuntimeError as error:
+                    if not self._is_fp16_overflow_error(error):
+                        raise
+                    logger.warning(
+                        "FP16 overflow detected for a PV batch; retrying in FP32 for stability."
+                    )
                     outputs = self.model(**inputs)
             else:
                 outputs = self.model(**inputs)
@@ -223,3 +264,13 @@ class PVScorer:
             ))
         
         return results
+
+    def _move_inputs_to_device(self, inputs: dict) -> dict:
+        use_non_blocking = bool(self.config.non_blocking_transfers and self.device.type == "cuda")
+        moved: dict = {}
+        for key, value in inputs.items():
+            tensor = value
+            if use_non_blocking and tensor.device.type == "cpu":
+                tensor = tensor.pin_memory()
+            moved[key] = tensor.to(self.device, non_blocking=use_non_blocking)
+        return moved

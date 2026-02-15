@@ -1,0 +1,44 @@
+\section{Glossary and Explainer Checklist}
+\label{sec:glossary}
+
+\subsection{Glossary}
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.24\linewidth}p{0.68\linewidth}@{}}
+\toprule
+Term & Definition \\
+\midrule
+PV & Premise Validation probability distribution over entail/contradict/neutral. \\
+Active ($A$) & Evidence currently used by the reasoner. \\
+Suspended ($S$) & Evidence held out unless recovery trigger opens it. \\
+Counter ($C$) & Contradiction-oriented evidence retained for refutation signal. \\
+Dual-stream & Two separate message-passing streams: support and refute. \\
+Bridge rescue & Diffusion-based scoring to detect structurally useful edges. \\
+Recovery & One-step move of selected edges from $S$ to $A$ under trigger gate. \\
+Selective prediction & Ability to abstain based on uncertainty + insufficiency. \\
+\AURC{} & Area under risk-coverage curve; lower is better. \\
+Rationale faithfulness & Whether removing important edges reduces predicted-class confidence. \\
+\bottomrule
+\end{tabular}
+\caption{Quick definitions for presentation and review settings.}
+\end{table}
+
+\subsection{Checklist for explaining Component 2 to others}
+Use this sequence for clean technical explanation:
+\begin{enumerate}
+\item Start with the interface contract: claim row, triple row, and required probability constraints.
+\item Explain why $A/S/C$ pools are separated and why Component 2 reasons on $A\cup C$ but scores bridges on $A\cup S\cup C$.
+\item Show PV masks and dual-stream attention to clarify how support/refute signals are preserved.
+\item Explain recovery gate: low \texttt{esi\_geom} is necessary but not sufficient; predicted bridge connectivity gain must be positive.
+\item Present selective prediction and \AURC{} to show reliability beyond top-1 accuracy.
+\item End with rationale faithfulness to show interpretability is tested, not only visualized.
+\end{enumerate}
+
+\subsection{Current limitations (for transparent academic reporting)}
+\begin{itemize}
+\item The reasoner is currently a deterministic NumPy implementation, not a trained deep model checkpoint.
+\item Recovery is one-step and greedy top-$k$; no multi-round optimization is implemented.
+\item Faithfulness criterion uses confidence-drop positivity; stronger causal tests can be added later.
+\item M3 behavior depends on quality/completeness of Component 1 pair logs in compatibility mode.
+\end{itemize}
+

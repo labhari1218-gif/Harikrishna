@@ -1,0 +1,35 @@
+{
+  "run_id": "t33_preflight_20260215",
+  "stages": [
+    {
+      "stage": "stage1_freeze_bert",
+      "epochs": 1,
+      "learning_rate": 1e-05,
+      "unfreeze_pooler": false,
+      "best_epoch": 1,
+      "best_val_loss": 0.6146494150161743,
+      "best_val_accuracy": 100.0,
+      "last_loss_bce": 0.550774335861206,
+      "last_loss_evidence": 0.5448402762413025,
+      "last_loss_starvation": 0.0,
+      "last_loss_counter": 0.0,
+      "last_loss_recovery": 0.0,
+      "last_loss_total": 0.6052583456039429
+    },
+    {
+      "stage": "stage2_unfreeze_pooler",
+      "epochs": 1,
+      "learning_rate": 2e-06,
+      "unfreeze_pooler": true,
+      "best_epoch": 1,
+      "best_val_loss": 0.6152853667736053,
+      "best_val_accuracy": 100.0,
+      "last_loss_bce": 0.5494651198387146,
+      "last_loss_evidence": 0.5448346138000488,
+      "last_loss_starvation": 0.0,
+      "last_loss_counter": 0.0,
+      "last_loss_recovery": 0.0,
+      "last_loss_total": 0.6039485931396484
+    }
+  ]
+}

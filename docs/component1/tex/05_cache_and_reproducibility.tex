@@ -1,0 +1,77 @@
+\section{PV Cache, Determinism, and Reproducibility}
+\label{sec:c1_cache}
+
+\subsection{Why persistent caching is mandatory}
+PV scoring dominates runtime because each claim can contain many evidence triples.
+Without caching, repeated development runs recompute identical NLI pairs.
+Component 1 uses persistent SQLite cache to decouple algorithm iteration from repeated inference cost.
+
+\subsection{Cache key design (staleness-safe)}
+Each PV entry is keyed by:
+\begin{equation}
+(\texttt{claim\_key},\;\texttt{evidence\_hash},\;\texttt{model\_name},\;\texttt{max\_length},\;\texttt{verbalizer\_id}).
+\end{equation}
+
+Reasoning:
+\begin{itemize}
+\item claim text change $\Rightarrow$ new \texttt{claim\_key},
+\item verbalization logic change $\Rightarrow$ new \texttt{verbalizer\_id},
+\item tokenizer context change $\Rightarrow$ new \texttt{max\_length},
+\item model checkpoint change $\Rightarrow$ new \texttt{model\_name}.
+\end{itemize}
+This prevents silent reuse of stale probabilities.
+
+\subsection{SQLite schema}
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.24\linewidth}p{0.17\linewidth}p{0.53\linewidth}@{}}
+\toprule
+Column & Type & Description \\
+\midrule
+\texttt{claim\_key} & TEXT & SHA-256 hash of claim text. \\
+\texttt{evidence\_hash} & TEXT & SHA-256 hash of verbalized premise text. \\
+\texttt{model\_name} & TEXT & PV model id. \\
+\texttt{max\_length} & INTEGER & Tokenizer truncation parameter. \\
+\texttt{verbalizer\_id} & TEXT & Verbalization version tag. \\
+\texttt{probs\_json} & TEXT & Serialized entail/contra/neutral probabilities. \\
+\texttt{rel} & REAL & Stored $\Rel(e)$. \\
+\texttt{pol} & REAL & Stored $\Pol(e)$. \\
+\bottomrule
+\end{tabular}
+\caption{\texttt{pv\_scores} table in \texttt{pv\_cache\_v2.db}.}
+\label{tab:c1_cache_schema}
+\end{table}
+
+Primary key is the full 5-field tuple:
+\texttt{(claim\_key, evidence\_hash, model\_name, max\_length, verbalizer\_id)}.
+
+\subsection{Performance settings in cache layer}
+\begin{itemize}
+\item WAL mode enabled: \texttt{PRAGMA journal\_mode=WAL}.
+\item Write sync relaxed to NORMAL for throughput: \texttt{PRAGMA synchronous=NORMAL}.
+\item Buffered commits controlled by \texttt{commit\_buffer\_size} (default 256 inserts).
+\item Explicit checkpoint on close: \texttt{wal\_checkpoint(TRUNCATE)}.
+\end{itemize}
+
+\subsection{Legacy compatibility path}
+If \texttt{pv\_cache.db} exists, Component 1 opens it read-only and tries a fallback lookup
+by \texttt{claim\_id} for backward compatibility.
+This allows migration from older key schema without discarding historical cache data.
+
+\subsection{Cache-only execution mode}
+Runner flag \texttt{--cache\_only} disables model loading and enforces strict cache hits.
+Behavior on miss:
+\begin{itemize}
+\item raise \texttt{RuntimeError},
+\item report missing count and claim id,
+\item prevent partial inconsistent logs.
+\end{itemize}
+
+\subsection{Reproducibility checklist for experiments}
+\begin{enumerate}
+\item Keep \texttt{model\_name}, \texttt{max\_length}, and \texttt{VERBALIZER\_VERSION} fixed.
+\item Log CLI arguments and output directory per run.
+\item Recompute summary with \texttt{scripts/summarize\_component1.py} after claim logs are written.
+\item Track cache hit rate using \texttt{pv\_cache.get\_stats()}.
+\item When verbalizer logic changes, increment verbalizer version before rerunning.
+\end{enumerate}

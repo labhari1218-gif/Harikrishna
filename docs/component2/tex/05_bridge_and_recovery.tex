@@ -1,0 +1,111 @@
+\section{Bridge Rescue and Policy-Aware Recovery}
+\label{sec:bridge-recovery}
+
+\subsection{Why bridge rescue exists}
+Suspended edges $S$ may contain low standalone relevance but high structural value.
+Bridge rescue identifies such edges by anchor-conditioned diffusion on the full graph $A\cup S\cup C$.
+
+\subsection{Weighted undirected walk graph}
+For each edge $e$ in the full graph:
+\[
+w(e)=\epsilon+\Rel(e),\quad \epsilon=\texttt{ppr\_epsilon}.
+\]
+The implementation builds a symmetric adjacency matrix by adding weight in both directions.
+Row normalization yields transition matrix $T$.
+
+\subsection{PPR fixed-point iteration (code form)}
+Restart vector $\mathbf{r}$ is uniform over resolved anchors; if no anchors are resolved, it falls back to uniform over all nodes.
+Node score vector $\mathbf{p}$ is iterated as:
+\[
+\mathbf{p}^{(t+1)} = \alpha\mathbf{r} + (1-\alpha)T^\top\mathbf{p}^{(t)}.
+\]
+Stop condition:
+\[
+\|\mathbf{p}^{(t+1)}-\mathbf{p}^{(t)}\|_1 \le \texttt{ppr\_tolerance}
+\]
+or max iterations \texttt{ppr\_max\_iters} reached.
+After convergence (or cutoff), $\mathbf{p}$ is normalized to sum to $1$ if possible.
+
+\subsection{Bridge score and neutral cap}
+For edge $e=(u,v)$:
+\begin{align}
+\text{BridgeBonus}(e) &= p_u\cdot w(e)\cdot p_v, \\
+\text{BridgeBonus}'(e) &= \text{BridgeBonus}(e)\cdot (1-p_{neu}(e))^{\gamma}.
+\end{align}
+All edges receive a score, but recovery ranking only considers edges with \texttt{pool=="S"}.
+
+\subsection{PPR diagnostics emitted by code}
+\texttt{BridgeRescuePPR.compute\_node\_scores\_with\_diagnostics} returns:
+\begin{itemize}
+\item convergence status, iteration count, and final $L_1$ residual,
+\item number of nodes, edges, anchors,
+\item anchor pair totals and connected-pair counts,
+\item disconnected-anchor flag and optional fallback reason (e.g., empty graph, no edges).
+\end{itemize}
+
+\subsection{Recovery policy and trigger}
+\label{subsec:recovery-trigger}
+The recovery policy compares two top-$k$ selections from $S$:
+\begin{itemize}
+\item \textbf{Rel-policy}: sort by $(\Rel, -p_{neu}, \text{evidence\_id})$ descending.
+\item \textbf{Bridge-policy}: sort by
+$(\text{connects\_components}, \text{BridgeBonus}', \Rel, \text{evidence\_id})$ descending.
+\end{itemize}
+
+Connectivity metrics:
+\begin{align}
+\text{RPI}_{rel}@k &= \Conn(A\cup \text{TopK}_{rel}(S)) - \Conn(A), \\
+\text{RPI}_{bridge}@k &= \Conn(A\cup \text{TopK}_{bridge}(S)) - \Conn(A).
+\end{align}
+Code defines
+\[
+\Delta\Conn_{bridge}@k = \text{RPI}_{bridge}@k.
+\]
+
+Recovery trigger used in M2 and M3:
+\[
+\texttt{should\_recover} = [\texttt{esi\_geom}<\tau_{esi}]\ \land\ [\Delta\Conn_{bridge}@k > 0].
+\]
+Default values are $\tau_{esi}=0.3$, $k=3$.
+
+\subsection{One-step recovery action}
+If trigger is true, selected Suspended edges are re-labeled from \texttt{S} to \texttt{A}, then reasoner reruns once on \texttt{A\cup C}.
+No iterative multi-round recovery is performed in current implementation.
+
+\begin{figure}[H]
+\centering
+\begin{adjustbox}{max width=0.92\textwidth}
+\begin{tikzpicture}[
+  node distance=6mm and 8mm,
+  block/.style={draw,rounded corners,align=center,text width=4.2cm,minimum height=1.1cm,fill=gray!6},
+  decision/.style={draw,diamond,aspect=2,align=center,inner sep=1pt,text width=3.2cm,fill=gray!6},
+  arrow/.style={-Latex,thick}
+]
+\node[block] (full) {Build full graph $A\cup S\cup C$};
+\node[block, below=of full] (ppr) {Run weighted PPR and compute BridgeBonus'};
+\node[block, below=of ppr] (eval) {Compute $\Conn(A)$, $\text{RPI}_{rel}@k$, $\Delta\Conn_{bridge}@k$};
+\node[decision, below=of eval] (gate) {$\texttt{esi\_geom}<\tau_{esi}$ and $\Delta\Conn_{bridge}@k>0$?};
+\node[block, below left=8mm and 10mm of gate] (yes) {Move selected ids $S\rightarrow A$\\Re-run reasoner on $A\cup C$};
+\node[block, below right=8mm and 10mm of gate] (no) {Keep pools unchanged\\Use original prediction};
+\node[block, below=of gate,yshift=-18mm] (log) {Write per-claim diagnostics and summary aggregates};
+
+\draw[arrow] (full) -- (ppr);
+\draw[arrow] (ppr) -- (eval);
+\draw[arrow] (eval) -- (gate);
+\draw[arrow] (gate) -- node[left,font=\small]{yes} (yes);
+\draw[arrow] (gate) -- node[right,font=\small]{no} (no);
+\draw[arrow] (yes) |- (log);
+\draw[arrow] (no) |- (log);
+\end{tikzpicture}
+\end{adjustbox}
+\caption{Recovery control flow with explicit trigger gate.}
+\label{fig:recovery-flow}
+\end{figure}
+
+\subsection{Important edge-case semantics}
+\begin{itemize}
+\item If an anchor is not present in Active graph nodes, anchor-pair connectivity treats that pair as disconnected.
+\item During bridge ranking, an $S$ edge connecting an Active component to an unseen node is treated as component-connecting.
+\item These guards prevent false ``already connected'' interpretations in sparse graphs.
+\end{itemize}
+

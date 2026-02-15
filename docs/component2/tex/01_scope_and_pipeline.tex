@@ -1,0 +1,70 @@
+\section{Scope, Objectives, and Pipeline Placement}
+\label{sec:scope}
+
+\subsection{What Component 2 is responsible for}
+Component 2 is the graph reasoning stage that consumes Component 1 outputs and produces a robust claim-level decision.
+The implementation target is FactKG-style KG fact verification \cite{kim2023factkg}, within the Fact-or-Fiction pipeline \cite{opsahl2024factorfiction}.
+It is explicitly designed to preserve contradictory signal, reduce neutral/noisy propagation, and recover structurally important edges when evidence is insufficient.
+
+\textbf{Primary objectives:}
+\begin{itemize}
+\item Use PV scores from Component 1 as soft control signals during graph reasoning.
+\item Keep support and refute evidence streams separate until graph-level fusion.
+\item Detect bridge-like evidence in Suspended pool $S$ with diffusion instead of costly path enumeration.
+\item Trigger one-step recovery only when insufficiency and predicted connectivity gain are both present.
+\item Expose reliability outputs: abstain scores, risk-coverage metrics, and rationale faithfulness checks.
+\end{itemize}
+
+\subsection{Position in the full pipeline}
+\begin{figure}[H]
+\centering
+\begin{adjustbox}{max width=\textwidth}
+\begin{tikzpicture}[
+  node distance=7mm and 9mm,
+  block/.style={draw,rounded corners,align=center,text width=3.8cm,minimum height=1.35cm,fill=gray!6},
+  arrow/.style={-Latex,thick}
+]
+\node[block] (claim) {Claim $c$};
+\node[block, right=of claim] (retriever) {Retriever\\Candidate evidence pool $P$};
+\node[block, right=of retriever] (comp1) {Component 1\\PV scores + pool assignment\\$A, S, C$ + diagnostics};
+\node[block, below=of retriever] (comp2) {Component 2\\masked dual-stream reasoner\\bridge rescue + recovery\\selective prediction + rationale};
+\node[block, right=of comp2] (output) {Final outputs\\label + confidence\\abstain score + AURC\\top rationale edges};
+
+\draw[arrow] (claim) -- (retriever);
+\draw[arrow] (retriever) -- (comp1);
+\draw[arrow] (comp1.south) -- (comp2.north);
+\draw[arrow] (comp2) -- (output);
+\draw[arrow] (comp1) -- node[above,font=\small]{base prediction path} (output);
+\end{tikzpicture}
+\end{adjustbox}
+\caption{Page-fitted system view with Component 2 in context.}
+\label{fig:pipeline-overview}
+\end{figure}
+
+\subsection{Milestone structure in code}
+The code is organized as progressive milestones, each with a dedicated runner:
+\begin{itemize}
+\item \textbf{M1:} \texttt{src/component2/run\_m1.py} (core reasoner + salience logging).
+\item \textbf{M2:} \texttt{src/component2/run\_m2.py} (bridge rescue and policy-aware recovery).
+\item \textbf{M3:} \texttt{src/component2/run\_m3.py} (selective prediction and rationale faithfulness checks).
+\end{itemize}
+
+\subsection{Core symbols used throughout}
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.2\linewidth}p{0.72\linewidth}@{}}
+\toprule
+Symbol & Meaning \\
+\midrule
+$c$ & Claim text instance. \\
+$e$ & Evidence triple $e=(s,r,o)$ with PV scores. \\
+$A,S,C$ & Active, Suspended, Counter pools from Component 1. \\
+$\Rel(e)$ & Decision relevance mass: $p_{\text{ent}}(e)+p_{\text{con}}(e)$. \\
+$\Pol(e)$ & Polarity: $p_{\text{ent}}(e)-p_{\text{con}}(e)$. \\
+$\Conn(\cdot)$ & Anchor-pair connectivity fraction on Active graph. \\
+$\PPR$ & Personalized PageRank diffusion used for bridge scoring. \\
+\bottomrule
+\end{tabular}
+\caption{Minimal notation used across all Component 2 modules.}
+\label{tab:core-notation}
+\end{table}

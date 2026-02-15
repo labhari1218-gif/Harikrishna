@@ -1,0 +1,63 @@
+{
+  "ablation_id": "all",
+  "ablation_ids": [
+    "A0",
+    "A1",
+    "A2",
+    "A3"
+  ],
+  "baseline": {
+    "note": "Repo has no dedicated pre-Component2 inference entrypoint for claim-log subsets; using deterministic Component1 A/C mass baseline.",
+    "source": "component1_pool_mass_vote"
+  },
+  "claims_jsonl": "logs/component1/val/claims.jsonl",
+  "component2_tunables": {
+    "abstain_alpha": 0.5,
+    "anchor_fallback_degree_k": 2,
+    "anchor_max_k": 5,
+    "compute_risk_coverage_sweep": true,
+    "factkg_data_dir": "data/factkg",
+    "factkg_test_pickle": "factkg_test.pickle",
+    "factkg_train_pickle": "factkg_train.pickle",
+    "factkg_val_pickle": "factkg_dev.pickle",
+    "faithfulness_subset_size": 3,
+    "faithfulness_top_k_edges": 10,
+    "hidden_dim": 256,
+    "mask_ref_bias": -2.0,
+    "mask_ref_scale": 4.0,
+    "mask_sup_bias": -2.0,
+    "mask_sup_scale": 4.0,
+    "message_passing_layers": 1,
+    "neutral_cap_gamma": 2.0,
+    "num_heads": 4,
+    "numpy_edge_warn_threshold": 5000,
+    "ppr_alpha": 0.15,
+    "ppr_epsilon": 0.001,
+    "ppr_max_iters": 100,
+    "ppr_tolerance": 1e-06,
+    "random_seed": 13,
+    "rationale_top_n": 10,
+    "recovery_tau_esi": 0.3,
+    "recovery_tau_rpi_legacy": 0.15,
+    "recovery_top_k": 3,
+    "rel_emb_dim": 64,
+    "smoke_max_claims": 5,
+    "tau_abstain": null
+  },
+  "git_commit_hash": "1594a175e23eca51fb57a15133c1e1cda8195285",
+  "input_source": "component1_logs",
+  "n_claims": 10,
+  "n_claims_selected": 10,
+  "seed": 13,
+  "split": "val",
+  "tau_abstain_modes": {
+    "s1": {
+      "description": "risk-coverage sweep + AURC",
+      "tau_abstain": null
+    },
+    "s2": {
+      "description": "fixed operating point",
+      "tau_abstain": 0.6
+    }
+  }
+}

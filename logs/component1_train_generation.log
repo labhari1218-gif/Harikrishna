@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/home/bs_thesis/shift (Copy)/Fact-or-Fiction/scripts/run_component1_pv_esm.py", line 27, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'

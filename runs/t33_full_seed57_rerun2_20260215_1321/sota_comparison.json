@@ -1,0 +1,28 @@
+{
+  "run_metrics": "runs/t33_full_seed57_rerun2_20260215_1321/metrics.json",
+  "run_overall_accuracy_pct": 60.24776020351731,
+  "published_sota_overall_accuracy_pct": 86.82,
+  "internal_bert_baseline_accuracy_pct": 93.49,
+  "delta_vs_published_sota_pct_points": -26.572239796482684,
+  "delta_vs_internal_bert_baseline_pct_points": -33.242239796482686,
+  "beats_published_sota": false,
+  "beats_internal_bert_baseline": false,
+  "baseline_metrics": "runs/t33_tmux_20260215_095704/metrics.json",
+  "baseline_overall_accuracy_pct": 48.64506138701471,
+  "delta_vs_baseline_run_pct_points": 11.602698816502603,
+  "no_collapse_gate": {
+    "passed": false,
+    "checks": {
+      "recall_lt_0_99": true,
+      "precision_accuracy_gap_ge_0_02": false,
+      "best_val_accuracy_ge_55": true
+    },
+    "observed": {
+      "overall_recall": 0.5850386539336062,
+      "overall_precision": 0.5925840626439429,
+      "overall_accuracy": 0.6024776020351731,
+      "precision_accuracy_gap": 0.009893539391230166,
+      "best_val_accuracy": 60.41760892507161
+    }
+  }
+}

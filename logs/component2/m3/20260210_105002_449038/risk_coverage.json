@@ -1,0 +1,42 @@
+{
+  "aurc": 0.9,
+  "num_examples": 5,
+  "operating_point": null,
+  "points": [
+    {
+      "abstain_threshold": 0.4342386869337584,
+      "answered": 1,
+      "coverage": 0.2,
+      "errors": 1,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.4571861003741334,
+      "answered": 2,
+      "coverage": 0.4,
+      "errors": 2,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.4657176486982943,
+      "answered": 3,
+      "coverage": 0.6,
+      "errors": 3,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.5225822045002085,
+      "answered": 4,
+      "coverage": 0.8,
+      "errors": 4,
+      "risk": 1.0
+    },
+    {
+      "abstain_threshold": 0.5522972998825595,
+      "answered": 5,
+      "coverage": 1.0,
+      "errors": 5,
+      "risk": 1.0
+    }
+  ]
+}

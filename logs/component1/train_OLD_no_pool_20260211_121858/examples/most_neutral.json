@@ -1,0 +1,660 @@
+[
+  {
+    "claim_id": "train_31461",
+    "claim_text": "He started performing in 2006 with Chameleon Circuit and Charlie McDonnell.",
+    "label": "TRUE",
+    "counts": {
+      "A": 1,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.04243999805162163,
+      "starve_score_geom": 0.9575600019483783,
+      "esi_prod": 7.644094825601429e-05,
+      "starve_score_prod": 0.999923559051744,
+      "mass_A": 0.0002084970474243164,
+      "mass_A_normalized": 0.00020847531342549352,
+      "coverage_A": 0.3333333333333333,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 1.0
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.00011497735977172852,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.00011497735977172852
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 1,
+      "pool_size_after_C": 1,
+      "min_A_feasible": 1,
+      "mean_rel": 0.0002084970474243164,
+      "mean_pol": -2.1457672119140625e-05,
+      "p25_rel": 0.0002084970474243164,
+      "p50_rel": 0.0002084970474243164,
+      "p75_rel": 0.0002084970474243164
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_31461_triple_0"
+      ],
+      "by_contra": [
+        "train_31461_triple_0"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 4,
+      "weak_A_mass": 0.0002084970474243164
+    }
+  },
+  {
+    "claim_id": "train_55560",
+    "claim_text": "Livorno has 19238 members and their ground is in Livorno.",
+    "label": "TRUE",
+    "counts": {
+      "A": 1,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.0431557384150403,
+      "starve_score_geom": 0.9568442615849597,
+      "esi_prod": 8.03740135901343e-05,
+      "starve_score_prod": 0.9999196259864098,
+      "mass_A": 0.00021922588348388672,
+      "mass_A_normalized": 0.0002192018552458208,
+      "coverage_A": 0.3333333333333333,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 1.0
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.00010514259338378906,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.00010514259338378906
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 1,
+      "pool_size_after_C": 1,
+      "min_A_feasible": 1,
+      "mean_rel": 0.00021922588348388672,
+      "mean_pol": 8.940696716308594e-06,
+      "p25_rel": 0.00021922588348388672,
+      "p50_rel": 0.00021922588348388672,
+      "p75_rel": 0.00021922588348388672
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_55560_triple_0"
+      ],
+      "by_contra": [
+        "train_55560_triple_0"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 4,
+      "weak_A_mass": 0.00021922588348388672
+    }
+  },
+  {
+    "claim_id": "train_1920",
+    "claim_text": "D'Army Bailey was also a religious person.",
+    "label": "FALSE",
+    "counts": {
+      "A": 6,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.06861528677325808,
+      "starve_score_geom": 0.9313847132267419,
+      "esi_prod": 0.00032304472092647973,
+      "starve_score_prod": 0.9996769552790735,
+      "mass_A": 0.0019385814666748047,
+      "mass_A_normalized": 0.00032304472092647973,
+      "coverage_A": 1.0,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.9995930989583334
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.0005083084106445312,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.0005083084106445312
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 6,
+      "pool_size_after_C": 6,
+      "min_A_feasible": 5,
+      "mean_rel": 0.00032309691111246747,
+      "mean_pol": -0.00012214978535970053,
+      "p25_rel": 0.0002570897340774536,
+      "p50_rel": 0.0002695024013519287,
+      "p75_rel": 0.0002807527780532837
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_1920_triple_0",
+        "train_1920_triple_1",
+        "train_1920_triple_5",
+        "train_1920_triple_4",
+        "train_1920_triple_2"
+      ],
+      "by_contra": [
+        "train_1920_triple_0",
+        "train_1920_triple_4",
+        "train_1920_triple_1",
+        "train_1920_triple_5",
+        "train_1920_triple_2"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 0.0019385814666748047
+    }
+  },
+  {
+    "claim_id": "train_584",
+    "claim_text": "Cape Cod Academy used to have a mascot!",
+    "label": "TRUE",
+    "counts": {
+      "A": 5,
+      "S": 0,
+      "C": 1
+    },
+    "sufficiency": {
+      "esi_geom": 0.07708196967557664,
+      "starve_score_geom": 0.9229180303244233,
+      "esi_prod": 0.00045799254726563987,
+      "starve_score_prod": 0.9995420074527344,
+      "mass_A": 0.002290487289428711,
+      "mass_A_normalized": 0.00045799254726563987,
+      "coverage_A": 1.0,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.99951171875
+    },
+    "counter_retention": {
+      "has_counter": true,
+      "counter_kept": 1,
+      "cr_at_5": 0.2,
+      "cr_at_10": 0.16666666666666666,
+      "max_contra_all": 0.9931640625,
+      "max_contra_C": 0.9931640625,
+      "contra_mass_C": 0.9931640625,
+      "counter_in_A": 0,
+      "max_contra_A": 0.0004076957702636719
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 6,
+      "pool_size_after_C": 5,
+      "min_A_feasible": 5,
+      "mean_rel": 0.16618184248606363,
+      "mean_pol": -0.1653132438659668,
+      "p25_rel": 0.0004304647445678711,
+      "p50_rel": 0.0004898309707641602,
+      "p75_rel": 0.0005452632904052734
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_584_triple_3",
+        "train_584_triple_1",
+        "train_584_triple_5",
+        "train_584_triple_4",
+        "train_584_triple_2"
+      ],
+      "by_contra": [
+        "train_584_triple_3",
+        "train_584_triple_1",
+        "train_584_triple_5",
+        "train_584_triple_2",
+        "train_584_triple_4"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 0.002290487289428711
+    }
+  },
+  {
+    "claim_id": "train_1872",
+    "claim_text": "It is believed that Motosaburo Masuyama had a religious background.",
+    "label": "FALSE",
+    "counts": {
+      "A": 3,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.08069679730755276,
+      "starve_score_geom": 0.9193032026924473,
+      "esi_prod": 0.0005254953729756373,
+      "starve_score_prod": 0.9994745046270244,
+      "mass_A": 0.0015769004821777344,
+      "mass_A_normalized": 0.0005254953729756373,
+      "coverage_A": 1.0,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.99951171875
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.0004527568817138672,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.0004527568817138672
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 3,
+      "pool_size_after_C": 3,
+      "min_A_feasible": 3,
+      "mean_rel": 0.0005256334940592448,
+      "mean_pol": -5.650520324707031e-05,
+      "p25_rel": 0.0004429817199707031,
+      "p50_rel": 0.0005429983139038086,
+      "p75_rel": 0.0006169676780700684
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_1872_triple_0",
+        "train_1872_triple_1",
+        "train_1872_triple_2"
+      ],
+      "by_contra": [
+        "train_1872_triple_0",
+        "train_1872_triple_1",
+        "train_1872_triple_2"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 2,
+      "weak_A_mass": 0.0015769004821777344
+    }
+  },
+  {
+    "claim_id": "train_1875",
+    "claim_text": "Luigi Lucioni had a religious upbringing.",
+    "label": "FALSE",
+    "counts": {
+      "A": 6,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.07398945036721795,
+      "starve_score_geom": 0.9260105496327821,
+      "esi_prod": 0.0004050507153389171,
+      "starve_score_prod": 0.9995949492846611,
+      "mass_A": 0.0024307966232299805,
+      "mass_A_normalized": 0.0004050507153389171,
+      "coverage_A": 1.0,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.99951171875
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.00017702579498291016,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.00017702579498291016
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 6,
+      "pool_size_after_C": 6,
+      "min_A_feasible": 5,
+      "mean_rel": 0.0004051327705383301,
+      "mean_pol": 0.00011974573135375977,
+      "p25_rel": 0.00037795305252075195,
+      "p50_rel": 0.0004018545150756836,
+      "p75_rel": 0.0004261136054992676
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_1875_triple_4",
+        "train_1875_triple_2",
+        "train_1875_triple_3",
+        "train_1875_triple_5",
+        "train_1875_triple_0"
+      ],
+      "by_contra": [
+        "train_1875_triple_4",
+        "train_1875_triple_3",
+        "train_1875_triple_2",
+        "train_1875_triple_5",
+        "train_1875_triple_1"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 0.0024307966232299805
+    }
+  },
+  {
+    "claim_id": "train_1889",
+    "claim_text": "I have read that Otto Kyllmann had a religious background.",
+    "label": "FALSE",
+    "counts": {
+      "A": 1,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.06805955468485343,
+      "starve_score_geom": 0.9319404453151465,
+      "esi_prod": 0.0003152588663386524,
+      "starve_score_prod": 0.9996847411336613,
+      "mass_A": 0.0003153085708618164,
+      "mass_A_normalized": 0.0003152588663386524,
+      "coverage_A": 1.0,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.99951171875
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.00017189979553222656,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.00017189979553222656
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 1,
+      "pool_size_after_C": 1,
+      "min_A_feasible": 1,
+      "mean_rel": 0.0003153085708618164,
+      "mean_pol": -2.849102020263672e-05,
+      "p25_rel": 0.0003153085708618164,
+      "p50_rel": 0.0003153085708618164,
+      "p75_rel": 0.0003153085708618164
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_1889_triple_0"
+      ],
+      "by_contra": [
+        "train_1889_triple_0"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 4,
+      "weak_A_mass": 0.0003153085708618164
+    }
+  },
+  {
+    "claim_id": "train_1890",
+    "claim_text": "Rainer Schmidt actually had a religious background.",
+    "label": "FALSE",
+    "counts": {
+      "A": 2,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.08699085401543982,
+      "starve_score_geom": 0.9130091459845602,
+      "esi_prod": 0.0006582953439602246,
+      "starve_score_prod": 0.9993417046560398,
+      "mass_A": 0.0013170242309570312,
+      "mass_A_normalized": 0.0006582953439602246,
+      "coverage_A": 1.0,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.99951171875
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.00042700767517089844,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.00042700767517089844
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 2,
+      "pool_size_after_C": 2,
+      "min_A_feasible": 2,
+      "mean_rel": 0.0006585121154785156,
+      "mean_pol": -0.0001628398895263672,
+      "p25_rel": 0.0006450414657592773,
+      "p50_rel": 0.0006585121154785156,
+      "p75_rel": 0.0006719827651977539
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_1890_triple_0",
+        "train_1890_triple_1"
+      ],
+      "by_contra": [
+        "train_1890_triple_0",
+        "train_1890_triple_1"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 3,
+      "weak_A_mass": 0.0013170242309570312
+    }
+  },
+  {
+    "claim_id": "train_1906",
+    "claim_text": "Yeah, Hannah Bunce Watson was a religious person.",
+    "label": "FALSE",
+    "counts": {
+      "A": 4,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.08655376963314214,
+      "starve_score_geom": 0.9134462303668579,
+      "esi_prod": 0.0006484223289277002,
+      "starve_score_prod": 0.9993515776710723,
+      "mass_A": 0.0025945305824279785,
+      "mass_A_normalized": 0.0006484223289277002,
+      "coverage_A": 1.0,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.99951171875
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.00020813941955566406,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.00020813941955566406
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 4,
+      "pool_size_after_C": 4,
+      "min_A_feasible": 4,
+      "mean_rel": 0.0006486326456069946,
+      "mean_pol": 0.0003416389226913452,
+      "p25_rel": 0.0006454885005950928,
+      "p50_rel": 0.0006951093673706055,
+      "p75_rel": 0.0006982535123825073
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_1906_triple_2",
+        "train_1906_triple_0",
+        "train_1906_triple_1",
+        "train_1906_triple_3"
+      ],
+      "by_contra": [
+        "train_1906_triple_0",
+        "train_1906_triple_1",
+        "train_1906_triple_3",
+        "train_1906_triple_2"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 1,
+      "weak_A_mass": 0.0025945305824279785
+    }
+  },
+  {
+    "claim_id": "train_1928",
+    "claim_text": "I heard that Lynn Montross had a religious background.",
+    "label": "FALSE",
+    "counts": {
+      "A": 2,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.07781169281567607,
+      "starve_score_geom": 0.922188307184324,
+      "esi_prod": 0.0004711233081398092,
+      "starve_score_prod": 0.9995288766918602,
+      "mass_A": 0.0009424686431884766,
+      "mass_A_normalized": 0.0004711233081398092,
+      "coverage_A": 1.0,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.99951171875
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.00029015541076660156,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.00029015541076660156
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 2,
+      "pool_size_after_C": 2,
+      "min_A_feasible": 2,
+      "mean_rel": 0.0004712343215942383,
+      "mean_pol": -9.310245513916016e-05,
+      "p25_rel": 0.00044608116149902344,
+      "p50_rel": 0.0004712343215942383,
+      "p75_rel": 0.0004963874816894531
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_1928_triple_0",
+        "train_1928_triple_1"
+      ],
+      "by_contra": [
+        "train_1928_triple_0",
+        "train_1928_triple_1"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 3,
+      "weak_A_mass": 0.0009424686431884766
+    }
+  }
+]

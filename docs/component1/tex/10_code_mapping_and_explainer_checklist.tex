@@ -1,0 +1,110 @@
+\section{Code Mapping, Parameter Dictionary, and Explainer Checklist}
+\label{sec:c1_mapping}
+
+\subsection{Concept-to-code map}
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.30\linewidth}p{0.30\linewidth}p{0.34\linewidth}@{}}
+\toprule
+Concept & Primary file(s) & Key function/class \\
+\midrule
+Evidence abstraction & \texttt{src/component1/evidence.py} & \texttt{EvidenceItem}, \texttt{PVResult} \\
+Triple verbalization & \texttt{src/component1/evidence.py} & \texttt{evidence\_to\_text} \\
+PV scoring & \texttt{src/component1/pv.py} & \texttt{PVScorer}, \texttt{pv\_score\_many} \\
+Cache layer & \texttt{src/component1/cache.py} & \texttt{PVCache.get/put/flush/close} \\
+A/S/C partitioning & \texttt{src/component1/esm.py} & \texttt{EvidenceStateManager.partition} \\
+ESI/CR/RPI metrics & \texttt{src/component1/sufficiency\_metrics.py} & \texttt{compute\_esi}, \texttt{compute\_cr\_at\_k}, \texttt{compute\_rpi\_at\_k} \\
+Claim/pair logging & \texttt{src/component1/logging\_utils.py} & \texttt{write\_claim\_log}, \texttt{write\_pair\_log} \\
+End-to-end runner & \texttt{scripts/run\_component1\_pv\_esm.py} & \texttt{process\_claim}, \texttt{main} \\
+Run summarization & \texttt{scripts/summarize\_component1.py} & \texttt{compute\_summary\_statistics} \\
+\bottomrule
+\end{tabular}
+\caption{Direct mapping from documentation concepts to implementation units.}
+\label{tab:c1_concept_map}
+\end{table}
+
+\subsection{Parameter dictionary (all major values defined)}
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.24\linewidth}p{0.17\linewidth}p{0.53\linewidth}@{}}
+\toprule
+Name & Default & Definition \\
+\midrule
+\texttt{VERBALIZER\_VERSION} & \texttt{"v3"} & Verbalizer version string used in cache key and logs. \\
+\texttt{PVConfig.batch\_size} & 8 & PV inference batch size. \\
+\texttt{PVConfig.max\_length} & 256 & Tokenizer maximum sequence length. \\
+\texttt{ESMConfig.min\_A} & 5 & Target minimum Active size (if feasible). \\
+\texttt{ESMConfig.max\_A} & 20 & Maximum Active size. \\
+\texttt{ESMConfig.max\_C} & 5 & Maximum Counter size. \\
+\texttt{ESMConfig.contra\_tau} & 0.6 & Counter contradiction threshold. \\
+\texttt{EPSILON} (ESI smoothing) & 0.05 & Smoothing for coverage/connectivity terms. \\
+\texttt{CR ks} & [5, 10] & Default ranks for counter retention. \\
+\texttt{RPI k\_values} & [1, 3, 5] & Default bridge recovery probe depths. \\
+\texttt{PairLogConfig.mode} & \texttt{"none"} & Pair log filtering policy. \\
+\texttt{PairLogConfig.sample\_rate} & 0.1 & Bernoulli sampling rate for \texttt{sample} mode. \\
+\texttt{PVCache.commit\_buffer\_size} & 256 & Inserts before forced cache commit. \\
+\bottomrule
+\end{tabular}
+\caption{Component 1 parameters and exact defaults from code.}
+\label{tab:c1_parameter_dictionary}
+\end{table}
+
+\subsection{Command recipes}
+\paragraph{Run Component 1 (example).}
+\begin{lstlisting}[style=jsonstyle]
+python3 scripts/run_component1_pv_esm.py \
+  --split train \
+  --limit_claims 100 \
+  --pair_log_mode sample \
+  --pair_log_sample_rate 0.05 \
+  --cache_dir cache/pv_sqlite \
+  --model_name microsoft/deberta-v3-base-mnli \
+  --batch_size 16 \
+  --max_length 256 \
+  --min_A 5 --max_A 20 --max_C 5 --contra_tau 0.6
+\end{lstlisting}
+
+\paragraph{Summarize run outputs.}
+\begin{lstlisting}[style=jsonstyle]
+python3 scripts/summarize_component1.py --split train
+\end{lstlisting}
+
+\subsection{Explainer checklist for teaching/presentation}
+Use this order to explain Component 1 clearly:
+\begin{enumerate}
+\item Define inputs: claim row + retrieved triple pool.
+\item Explain verbalization and why NLI premise/hypothesis order matters.
+\item Define $\Rel$ and $\Pol$ and interpret their ranges.
+\item Show ESM policy and why Counter is selected before Active.
+\item Derive ESI from mass, coverage, and connectivity.
+\item Explain CR@k and RPI@k as safety and recovery diagnostics.
+\item Show one real claim log row and one real pair log row.
+\item Conclude with how Component 2 reuses \texttt{entity\_set} and \texttt{pool} fields.
+\end{enumerate}
+
+\subsection{Common debugging questions and exact checks}
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.39\linewidth}p{0.53\linewidth}@{}}
+\toprule
+Symptom & First check \\
+\midrule
+Very high neutral rates & Inspect \texttt{pairs.jsonl} premise text quality; validate verbalization output. \\
+Unexpectedly empty Counter set & Verify \texttt{contra\_tau} and max contradiction in \texttt{claims.jsonl}. \\
+ESI seems too low despite good structure & Compare \texttt{esi\_prod} vs \texttt{esi\_geom}; inspect \texttt{mass\_A\_normalized}. \\
+CR@k seems inconsistent on small pools & Confirm denominator uses \(\min(k,|\Pool|)\). \\
+Cache misses after code edits & Confirm \texttt{VERBALIZER\_VERSION}, \texttt{max\_length}, and model name changes. \\
+Component 2 input parsing fails & Verify \texttt{entity\_set} and \texttt{pool} fields are present in logs. \\
+\bottomrule
+\end{tabular}
+\caption{Practical debug lookup table for Component 1 operations.}
+\label{tab:c1_debug_table}
+\end{table}
+
+\subsection{References for surrounding context}
+For broader context (not required to run Component 1), pair this document with:
+\begin{itemize}
+\item FactKG dataset paper and repository resources,
+\item Fact-or-Fiction project documentation,
+\item NLI model card/documentation for selected PV checkpoint.
+\end{itemize}

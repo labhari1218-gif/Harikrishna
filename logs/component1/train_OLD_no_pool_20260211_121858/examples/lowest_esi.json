@@ -1,0 +1,656 @@
+[
+  {
+    "claim_id": "train_55430",
+    "claim_text": "A.C. Cesena's ground is Stadio Dino Manuzzi and they have 23900 members.",
+    "label": "TRUE",
+    "counts": {
+      "A": 2,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.02339524717005996,
+      "starve_score_geom": 0.9766047528299401,
+      "esi_prod": 1.2805098206982075e-05,
+      "starve_score_prod": 0.999987194901793,
+      "mass_A": 0.0007497072219848633,
+      "mass_A_normalized": 0.00037478336215557295,
+      "coverage_A": 0.6666666666666666,
+      "connectivity_A": 0.0,
+      "neutral_rate_A": 0.99951171875
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.0003094673156738281,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.0003094673156738281
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 2,
+      "pool_size_after_C": 2,
+      "min_A_feasible": 2,
+      "mean_rel": 0.00037485361099243164,
+      "mean_pol": -7.015466690063477e-05,
+      "p25_rel": 0.0003319680690765381,
+      "p50_rel": 0.00037485361099243164,
+      "p75_rel": 0.0004177391529083252
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_55430_triple_0",
+        "train_55430_triple_1"
+      ],
+      "by_contra": [
+        "train_55430_triple_0",
+        "train_55430_triple_1"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 3,
+      "weak_A_mass": 0.0007497072219848633
+    }
+  },
+  {
+    "claim_id": "train_20933",
+    "claim_text": "They are also used in the Philippine dish of binignit along with the main ingredient of coconut milk!",
+    "label": "FALSE",
+    "counts": {
+      "A": 3,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.023879008994386393,
+      "starve_score_geom": 0.9761209910056136,
+      "esi_prod": 1.3615979766421346e-05,
+      "starve_score_prod": 0.9999863840202335,
+      "mass_A": 0.0015565156936645508,
+      "mass_A_normalized": 0.0005187039911017655,
+      "coverage_A": 0.5,
+      "connectivity_A": 0.0,
+      "neutral_rate_A": 0.99951171875
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.0002199411392211914,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.0002199411392211914
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 3,
+      "pool_size_after_C": 3,
+      "min_A_feasible": 3,
+      "mean_rel": 0.0005188385645548502,
+      "mean_pol": 9.373823801676433e-05,
+      "p25_rel": 0.0004654526710510254,
+      "p50_rel": 0.0005017518997192383,
+      "p75_rel": 0.0005636811256408691
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_20933_triple_0",
+        "train_20933_triple_1",
+        "train_20933_triple_2"
+      ],
+      "by_contra": [
+        "train_20933_triple_1",
+        "train_20933_triple_2",
+        "train_20933_triple_0"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 2,
+      "weak_A_mass": 0.0015565156936645508
+    }
+  },
+  {
+    "claim_id": "train_44816",
+    "claim_text": "Aleksandr Prudnikov also played for Russia's under 21 football team.",
+    "label": "TRUE",
+    "counts": {
+      "A": 3,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.025223574094283264,
+      "starve_score_geom": 0.9747764259057168,
+      "esi_prod": 1.6047961505388787e-05,
+      "starve_score_prod": 0.9999839520384947,
+      "mass_A": 0.0009630322456359863,
+      "mass_A_normalized": 0.0003209592301077757,
+      "coverage_A": 1.0,
+      "connectivity_A": 0.0,
+      "neutral_rate_A": 0.99951171875
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.00021564960479736328,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.00021564960479736328
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 3,
+      "pool_size_after_C": 3,
+      "min_A_feasible": 3,
+      "mean_rel": 0.0003210107485453288,
+      "mean_pol": -4.988908767700195e-05,
+      "p25_rel": 0.00031557679176330566,
+      "p50_rel": 0.0003313422203063965,
+      "p75_rel": 0.00033161044120788574
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_44816_triple_0",
+        "train_44816_triple_1",
+        "train_44816_triple_2"
+      ],
+      "by_contra": [
+        "train_44816_triple_1",
+        "train_44816_triple_0",
+        "train_44816_triple_2"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 2,
+      "weak_A_mass": 0.0009630322456359863
+    }
+  },
+  {
+    "claim_id": "train_59659",
+    "claim_text": "It's from Spain and contains olive oil.",
+    "label": "TRUE",
+    "counts": {
+      "A": 2,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.025409878110683157,
+      "starve_score_geom": 0.9745901218893168,
+      "esi_prod": 1.640619032200169e-05,
+      "starve_score_prod": 0.999983593809678,
+      "mass_A": 0.0012503862380981445,
+      "mass_A_normalized": 0.0006249977265524453,
+      "coverage_A": 0.5,
+      "connectivity_A": 0.0,
+      "neutral_rate_A": 0.999267578125
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.0002894401550292969,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.0002894401550292969
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 2,
+      "pool_size_after_C": 2,
+      "min_A_feasible": 2,
+      "mean_rel": 0.0006251931190490723,
+      "mean_pol": 0.00016349554061889648,
+      "p25_rel": 0.0005258023738861084,
+      "p50_rel": 0.0006251931190490723,
+      "p75_rel": 0.0007245838642120361
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_59659_triple_1",
+        "train_59659_triple_0"
+      ],
+      "by_contra": [
+        "train_59659_triple_1",
+        "train_59659_triple_0"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 3,
+      "weak_A_mass": 0.0012503862380981445
+    }
+  },
+  {
+    "claim_id": "train_25199",
+    "claim_text": "Also, A T Charlie Johnson lives in the US and is the editor of AIP Advances.",
+    "label": "FALSE",
+    "counts": {
+      "A": 3,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.026133099195694395,
+      "starve_score_geom": 0.9738669008043056,
+      "esi_prod": 1.784730932765294e-05,
+      "starve_score_prod": 0.9999821526906724,
+      "mass_A": 0.002040386199951172,
+      "mass_A_normalized": 0.0006798974981963024,
+      "coverage_A": 0.5,
+      "connectivity_A": 0.0,
+      "neutral_rate_A": 0.9993489583333334
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.00051116943359375,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.00051116943359375
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 3,
+      "pool_size_after_C": 3,
+      "min_A_feasible": 3,
+      "mean_rel": 0.0006801287333170573,
+      "mean_pol": -1.3987223307291666e-05,
+      "p25_rel": 0.0006383657455444336,
+      "p50_rel": 0.0006496906280517578,
+      "p75_rel": 0.0007066726684570312
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_25199_triple_0",
+        "train_25199_triple_2",
+        "train_25199_triple_1"
+      ],
+      "by_contra": [
+        "train_25199_triple_0",
+        "train_25199_triple_1",
+        "train_25199_triple_2"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 2,
+      "weak_A_mass": 0.002040386199951172
+    }
+  },
+  {
+    "claim_id": "train_81837",
+    "claim_text": "He used to work with the musical artist Sammy Price!",
+    "label": "TRUE",
+    "counts": {
+      "A": 3,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.0264962298001676,
+      "starve_score_geom": 0.9735037701998324,
+      "esi_prod": 1.8601683261494824e-05,
+      "starve_score_prod": 0.9999813983167385,
+      "mass_A": 0.001633763313293457,
+      "mass_A_normalized": 0.0005444395100925314,
+      "coverage_A": 0.6666666666666666,
+      "connectivity_A": 0.0,
+      "neutral_rate_A": 0.99951171875
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.0004425048828125,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.0004425048828125
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 3,
+      "pool_size_after_C": 3,
+      "min_A_feasible": 3,
+      "mean_rel": 0.000544587771097819,
+      "mean_pol": -0.00016963481903076172,
+      "p25_rel": 0.0005105137825012207,
+      "p50_rel": 0.0005850791931152344,
+      "p75_rel": 0.000598907470703125
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_81837_triple_1",
+        "train_81837_triple_0",
+        "train_81837_triple_2"
+      ],
+      "by_contra": [
+        "train_81837_triple_0",
+        "train_81837_triple_1",
+        "train_81837_triple_2"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 2,
+      "weak_A_mass": 0.001633763313293457
+    }
+  },
+  {
+    "claim_id": "train_52555",
+    "claim_text": "Addis Ababa Stadium and Addis Ababa City Hall are also in Addis Ababa.",
+    "label": "TRUE",
+    "counts": {
+      "A": 3,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.026587401306019862,
+      "starve_score_geom": 0.9734125986939801,
+      "esi_prod": 1.8794365668684256e-05,
+      "starve_score_prod": 0.9999812056343313,
+      "mass_A": 0.001650691032409668,
+      "mass_A_normalized": 0.0005500789951810026,
+      "coverage_A": 0.6666666666666666,
+      "connectivity_A": 0.0,
+      "neutral_rate_A": 0.9993489583333334
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.00039577484130859375,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.00039577484130859375
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 3,
+      "pool_size_after_C": 3,
+      "min_A_feasible": 3,
+      "mean_rel": 0.000550230344136556,
+      "mean_pol": 6.953875223795573e-06,
+      "p25_rel": 0.0003929734230041504,
+      "p50_rel": 0.0004506111145019531,
+      "p75_rel": 0.0006576776504516602
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_52555_triple_0",
+        "train_52555_triple_1",
+        "train_52555_triple_2"
+      ],
+      "by_contra": [
+        "train_52555_triple_0",
+        "train_52555_triple_1",
+        "train_52555_triple_2"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 2,
+      "weak_A_mass": 0.001650691032409668
+    }
+  },
+  {
+    "claim_id": "train_25333",
+    "claim_text": "It's also a genre of Aaron Turner's music who started performing in 1995.",
+    "label": "FALSE",
+    "counts": {
+      "A": 4,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.02659954924310595,
+      "starve_score_geom": 0.9734004507568941,
+      "esi_prod": 1.882013920356994e-05,
+      "starve_score_prod": 0.9999811798607964,
+      "mass_A": 0.0019750595092773438,
+      "mass_A_normalized": 0.0004936429955034738,
+      "coverage_A": 0.75,
+      "connectivity_A": 0.0,
+      "neutral_rate_A": 0.99951171875
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.00042128562927246094,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.00042128562927246094
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 4,
+      "pool_size_after_C": 4,
+      "min_A_feasible": 4,
+      "mean_rel": 0.0004937648773193359,
+      "mean_pol": -0.0001354217529296875,
+      "p25_rel": 0.00038737058639526367,
+      "p50_rel": 0.00045031309127807617,
+      "p75_rel": 0.0005567073822021484
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_25333_triple_1",
+        "train_25333_triple_3",
+        "train_25333_triple_2",
+        "train_25333_triple_0"
+      ],
+      "by_contra": [
+        "train_25333_triple_1",
+        "train_25333_triple_3",
+        "train_25333_triple_2",
+        "train_25333_triple_0"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 1,
+      "weak_A_mass": 0.0019750595092773438
+    }
+  },
+  {
+    "claim_id": "train_55595",
+    "claim_text": "A.S. Roma have their ground in Rome and have 70634 members!",
+    "label": "TRUE",
+    "counts": {
+      "A": 2,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.026802248896441446,
+      "starve_score_geom": 0.9731977511035586,
+      "esi_prod": 1.9253678148777507e-05,
+      "starve_score_prod": 0.9999807463218512,
+      "mass_A": 0.0011273622512817383,
+      "mass_A_normalized": 0.0005635222872812928,
+      "coverage_A": 0.6666666666666666,
+      "connectivity_A": 0.0,
+      "neutral_rate_A": 0.99951171875
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.0004811286926269531,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.0004811286926269531
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 2,
+      "pool_size_after_C": 2,
+      "min_A_feasible": 2,
+      "mean_rel": 0.0005636811256408691,
+      "mean_pol": -0.00021690130233764648,
+      "p25_rel": 0.0005010664463043213,
+      "p50_rel": 0.0005636811256408691,
+      "p75_rel": 0.000626295804977417
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_55595_triple_0",
+        "train_55595_triple_1"
+      ],
+      "by_contra": [
+        "train_55595_triple_0",
+        "train_55595_triple_1"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 3,
+      "weak_A_mass": 0.0011273622512817383
+    }
+  },
+  {
+    "claim_id": "train_21062",
+    "claim_text": "Linzeux is from Spain where the language is Spanish and one ethnic group are the Nsenga.",
+    "label": "FALSE",
+    "counts": {
+      "A": 2,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.026809387414259655,
+      "starve_score_geom": 0.9731906125857404,
+      "esi_prod": 1.926906633521394e-05,
+      "starve_score_prod": 0.9999807309336648,
+      "mass_A": 0.001468658447265625,
+      "mass_A_normalized": 0.000734059669912912,
+      "coverage_A": 0.5,
+      "connectivity_A": 0.0,
+      "neutral_rate_A": 0.999267578125
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.0004763603210449219,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.0004763603210449219
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 2,
+      "pool_size_after_C": 2,
+      "min_A_feasible": 2,
+      "mean_rel": 0.0007343292236328125,
+      "mean_pol": -6.127357482910156e-05,
+      "p25_rel": 0.0006638765335083008,
+      "p50_rel": 0.0007343292236328125,
+      "p75_rel": 0.0008047819137573242
+    },
+    "top_evidence": {
+      "by_rel": [
+        "train_21062_triple_1",
+        "train_21062_triple_0"
+      ],
+      "by_contra": [
+        "train_21062_triple_1",
+        "train_21062_triple_0"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 3,
+      "weak_A_mass": 0.001468658447265625
+    }
+  }
+]

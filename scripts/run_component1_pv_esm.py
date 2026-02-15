@@ -17,6 +17,7 @@ import argparse
 import logging
 import sys
 from pathlib import Path
+from typing import Optional
 
 # Add repository root to path FIRST (before other imports)
 repo_root = Path(__file__).parent.parent
@@ -26,16 +27,16 @@ sys.path.insert(0, str(repo_root / "src"))
 import pandas as pd
 from tqdm import tqdm
 
+# FIX 3: Import heavy modules directly from submodules (not from __init__)
 from component1 import (
     EvidenceItem,
-    PVScorer,
-    PVConfig,
-    PVCache,
     EvidenceStateManager,
     ESMConfig,
     evidence_to_text,
     VERBALIZER_VERSION,
 )
+from component1.pv import PVScorer, PVConfig
+from component1.cache import PVCache
 from component1.evidence import stable_hash
 from component1.logging_utils import (
     write_claim_log,
@@ -83,11 +84,23 @@ def create_evidence_pool(claim_id: str, subgraph_row: dict) -> list:
     """
     evidence_pool = []
     
-    # Extract triples from walked['walkable']
+    # Extract triples from walked['connected'] + walked['walkable'] (deduplicated)
     walked = subgraph_row.get('walked', {})
+    connected_triples = walked.get('connected', [])
     walkable_triples = walked.get('walkable', [])
-    
-    for idx, triple in enumerate(walkable_triples):
+
+    seen_triples = set()
+    merged_triples = []
+    for triple in list(connected_triples) + list(walkable_triples):
+        if not isinstance(triple, (list, tuple)) or len(triple) != 3:
+            continue
+        triple_key = (str(triple[0]), str(triple[1]), str(triple[2]))
+        if triple_key in seen_triples:
+            continue
+        seen_triples.add(triple_key)
+        merged_triples.append([triple_key[0], triple_key[1], triple_key[2]])
+
+    for idx, triple in enumerate(merged_triples):
         if len(triple) != 3:
             continue  # Skip malformed triples
         
@@ -113,13 +126,14 @@ def process_claim(
     label: str,
     claim_entities: list,
     evidence_pool: list,
-    pv_scorer: PVScorer,
+    pv_scorer: Optional[PVScorer],
     pv_cache: PVCache,
     esm_config: ESMConfig,
     pv_config: PVConfig,
     pair_log_config: PairLogConfig,
     claim_log_file: Path,
-    pair_log_file: Path
+    pair_log_file: Path,
+    cache_only: bool = False,
 ):
     """
     Process a single claim through the PV+ESM pipeline.
@@ -130,17 +144,20 @@ def process_claim(
         label: Ground truth label
         claim_entities: List of claim entity strings
         evidence_pool: List of EvidenceItem objects
-        pv_scorer: PVScorer instance
+        pv_scorer: Optional PVScorer instance (None when cache_only=True)
         pv_cache: PVCache instance
         esm_config: ESM configuration
         pv_config: PV configuration
         pair_log_config: Pair logging configuration
         claim_log_file: Path to claim-level JSONL
         pair_log_file: Path to pair-level JSONL
+        cache_only: If True, require all PV scores to exist in cache (no model scoring)
     """
     if not evidence_pool:
         logger.warning(f"Claim {claim_id} has no evidence. Skipping.")
-        return
+        return False
+
+    claim_hash = stable_hash(claim_text)
     
     # Step 1: Score evidence using PV (with caching)
     evidence_texts = []
@@ -161,11 +178,12 @@ def process_claim(
         
         # Try cache
         cached_pv = pv_cache.get(
-            claim_id,
+            claim_hash,
             evidence_hash,
             pv_config.model_name,
             pv_config.max_length,
-            VERBALIZER_VERSION
+            VERBALIZER_VERSION,
+            claim_id=claim_id
         )
         
         if cached_pv is not None:
@@ -178,6 +196,11 @@ def process_claim(
     
     # Score uncached evidence
     if to_score_premises:
+        if cache_only or pv_scorer is None:
+            raise RuntimeError(
+                f"Cache-only mode missing {len(to_score_premises)} PV scores for claim {claim_id}. "
+                "Populate cache first or run without --cache_only."
+            )
         pv_results = pv_scorer.pv_score_many(claim_text, to_score_premises)
         
         for i, pv_result in enumerate(pv_results):
@@ -188,7 +211,7 @@ def process_claim(
             # Store in cache
             evidence_hash = stable_hash(to_score_premises[i])
             pv_cache.put(
-                claim_id,
+                claim_hash,
                 evidence_hash,
                 pv_config.model_name,
                 pv_config.max_length,
@@ -213,6 +236,7 @@ def process_claim(
         C=C,
         pool=evidence_pool,
         min_A=esm_config.min_A,
+        contra_tau=esm_config.contra_tau,  # FIX 1: Pass ESM's contra_tau
         out_file=claim_log_file
     )
     
@@ -240,6 +264,8 @@ def process_claim(
                 evidence_assignment=assignment_map.get(item.evidence_id, "unknown")
             )
 
+    return True
+
 
 def main():
     parser = argparse.ArgumentParser(description="Run Component 1: PV+ESM pipeline")
@@ -255,7 +281,7 @@ def main():
                        help="Output directory for logs")
     
     # PV scorer arguments
-    parser.add_argument("--model_name", type=str, default="microsoft/deberta-v3-base-mnli",
+    parser.add_argument("--model_name", type=str, default="microsoft/deberta-base-mnli",
                        help="HuggingFace NLI model")
     parser.add_argument("--device", type=str, default="auto", choices=["auto", "cuda", "cpu"],
                        help="Device to use (auto=detect, cuda, cpu)")
@@ -263,6 +289,11 @@ def main():
                        help="Batch size for PV scoring (conservative for 8GB GPU)")
     parser.add_argument("--max_length", type=int, default=256,
                        help="Max token length")
+    parser.add_argument(
+        "--non_blocking_transfers",
+        action="store_true",
+        help="Enable non-blocking host-to-device PV batch transfer when CUDA is active",
+    )
     
     # ESM arguments
     parser.add_argument("--min_A", type=int, default=5,
@@ -284,6 +315,11 @@ def main():
                        help="Pair-level logging mode")
     parser.add_argument("--pair_log_sample_rate", type=float, default=0.1,
                        help="Sample rate when pair_log_mode=sample")
+    parser.add_argument(
+        "--cache_only",
+        action="store_true",
+        help="Use cached PV scores only (skip model loading/scoring and fail on cache misses)",
+    )
     
     args = parser.parse_args()
     
@@ -293,29 +329,39 @@ def main():
     
     claim_log_file = out_dir / "claims.jsonl"
     pair_log_file = out_dir / "pairs.jsonl"
-    
-    # Clear existing logs
-    if claim_log_file.exists():
-        claim_log_file.unlink()
-    if pair_log_file.exists():
-        pair_log_file.unlink()
+
+    # Write to temp files first; only promote on fully successful completion.
+    claim_log_tmp = out_dir / "claims.jsonl.tmp"
+    pair_log_tmp = out_dir / "pairs.jsonl.tmp"
+    if claim_log_tmp.exists():
+        claim_log_tmp.unlink()
+    if pair_log_tmp.exists():
+        pair_log_tmp.unlink()
+    claim_log_tmp.touch()
+    if args.pair_log_mode != "none":
+        pair_log_tmp.touch()
     
     logger.info(f"Output directory: {out_dir}")
-    logger.info(f"Claim log: {claim_log_file}")
+    logger.info(f"Claim log (temp): {claim_log_tmp}")
     if args.pair_log_mode != "none":
-        logger.info(f"Pair log: {pair_log_file}")
+        logger.info(f"Pair log (temp): {pair_log_tmp}")
     
-    # Initialize PV scorer
+    # Initialize PV config
     pv_config = PVConfig(
         model_name=args.model_name,
         device=args.device,
         batch_size=args.batch_size,
-        max_length=args.max_length
+        max_length=args.max_length,
+        non_blocking_transfers=args.non_blocking_transfers,
     )
-    pv_scorer = PVScorer(pv_config)
-    
+    pv_scorer: Optional[PVScorer] = None
+    if not args.cache_only:
+        pv_scorer = PVScorer(pv_config)
+    else:
+        logger.info("Cache-only mode enabled: skipping PV model initialization.")
+
     # Initialize cache
-    pv_cache = PVCache(args.cache_dir, read_only=False)
+    pv_cache = PVCache(args.cache_dir, read_only=args.cache_only)
     
     # Initialize ESM config
     esm_config = ESMConfig(
@@ -338,49 +384,68 @@ def main():
     # Limit claims if requested
     if args.limit_claims:
         claims_df = claims_df.head(args.limit_claims)
+        subgraphs_df = subgraphs_df.head(args.limit_claims)
         logger.info(f"Limited to {len(claims_df)} claims")
+    
+    # CRITICAL: Reset indices to ensure positional alignment
+    claims_df = claims_df.reset_index(drop=True)
+    subgraphs_df = subgraphs_df.reset_index(drop=True)
+    
+    # Verify alignment
+    if len(claims_df) != len(subgraphs_df):
+        logger.error(f"Claims/subgraphs misalignment: {len(claims_df)} claims vs {len(subgraphs_df)} subgraphs")
+        raise ValueError("Claims and subgraphs must have equal length")
     
     # Process claims
     logger.info(f"Processing {len(claims_df)} claims...")
     
     # Process claims with proper cleanup
+    claim_error_count = 0
+    processed_with_evidence = 0
+    skipped_no_evidence = 0
     try:
-        for idx, row in tqdm(claims_df.iterrows(), total=len(claims_df), desc="Processing claims"):
-            claim_id = f"{args.split}_{idx}" # Reverted to original claim_id generation
-            claim_text = row['Sentence'] # Reverted to original column name
+        # Use positional indexing to guarantee alignment
+        for i in tqdm(range(len(claims_df)), desc="Processing claims"):
+            claim_row = claims_df.iloc[i]
+            subgraph_row = subgraphs_df.iloc[i]
+            
+            # Generate claim_id from positional index
+            claim_id = f"{args.split}_{i}"
+            claim_text = claim_row['Sentence']
             
             # Extract label (boolean list -> string)
-            label_list = row.get('Label', [None]) # Reverted to original column name
-            label = "TRUE" if label_list and label_list[0] else "FALSE" # Reverted to original logic
+            label_list = claim_row.get('Label', [None])
+            label = "TRUE" if label_list and label_list[0] else "FALSE"
             
             # Extract claim entities
-            claim_entities = row.get('Entity_set', []) # Reverted to original column name
+            claim_entities = claim_row.get('Entity_set', [])
             
-            # Get subgraph evidence
-            if idx >= len(subgraphs_df):
-                logger.warning(f"No subgraph for claim {claim_id}. Skipping.")
-                continue
-            
-            subgraph_row = subgraphs_df.iloc[idx]
-            evidence_pool = create_evidence_pool(claim_id, subgraph_row) # Reverted to original function call
+            # Create evidence pool from aligned subgraph
+            evidence_pool = create_evidence_pool(claim_id, subgraph_row)
             
             # Process claim
             try:
-                process_claim(
+                claim_written = process_claim(
                     claim_id=claim_id,
                     claim_text=claim_text,
-                    label=label, # Reverted to original parameter name
+                    label=label,
                     claim_entities=claim_entities,
-                    evidence_pool=evidence_pool, # Reverted to original parameter name
+                    evidence_pool=evidence_pool,
                     pv_scorer=pv_scorer,
                     pv_cache=pv_cache,
                     esm_config=esm_config,
-                    pv_config=pv_config, # Kept original parameter
+                    pv_config=pv_config,
                     pair_log_config=pair_log_config,
-                    claim_log_file=claim_log_file,
-                    pair_log_file=pair_log_file
+                    claim_log_file=claim_log_tmp,
+                    pair_log_file=pair_log_tmp,
+                    cache_only=args.cache_only,
                 )
+                if claim_written:
+                    processed_with_evidence += 1
+                else:
+                    skipped_no_evidence += 1
             except Exception as e:
+                claim_error_count += 1
                 logger.error(f"Error processing claim {claim_id}: {e}", exc_info=True)
                 continue
     finally:
@@ -396,7 +461,29 @@ def main():
     if cache_stats['hits'] + cache_stats['misses'] > 0:
         hit_rate = cache_stats['hits'] / (cache_stats['hits'] + cache_stats['misses'])
         logger.info(f"  Hit Rate: {hit_rate:.2%}")
-    
+
+    logger.info(f"Claims written: {processed_with_evidence}")
+    logger.info(f"Claims skipped (no evidence): {skipped_no_evidence}")
+    logger.info(f"Claim processing errors: {claim_error_count}")
+
+    if claim_error_count > 0:
+        logger.error(
+            "Run finished with claim-level errors; temp logs kept for inspection and final logs were not replaced."
+        )
+        logger.error(f"Claim temp log: {claim_log_tmp}")
+        if args.pair_log_mode != "none":
+            logger.error(f"Pair temp log: {pair_log_tmp}")
+        raise RuntimeError(
+            f"Component 1 run failed with {claim_error_count} claim processing errors."
+        )
+
+    # Promote temp logs to final outputs atomically once successful.
+    claim_log_tmp.replace(claim_log_file)
+    if args.pair_log_mode != "none":
+        pair_log_tmp.replace(pair_log_file)
+    elif pair_log_file.exists():
+        pair_log_file.unlink()
+
     logger.info("Processing complete!")
     logger.info(f"Claim-level logs: {claim_log_file}")
     if args.pair_log_mode != "none":

@@ -1,0 +1,84 @@
+\section{Scope, Motivation, and Pipeline Placement}
+\label{sec:c1_scope}
+
+\subsection{Why Component 1 exists}
+Hard-threshold pruning of retrieved evidence (for example, ``keep only if entailment score is above a cutoff'')
+causes evidence starvation in multi-hop fact verification.
+Component 1 replaces hard pruning with a reversible, auditable control layer:
+\begin{itemize}
+\item score every retrieved evidence item with an NLI-based premise validator,
+\item partition evidence into Active/Suspended/Counter sets instead of deleting items,
+\item compute sufficiency and safety metrics before downstream reasoning,
+\item log all critical artifacts in machine-readable JSONL.
+\end{itemize}
+
+\subsection{What Component 1 is responsible for}
+\textbf{In scope (implemented in code):}
+\begin{itemize}
+\item Evidence representation and deterministic verbalization from triples/sentences.
+\item Premise Validation (PV) scoring with transformer-based NLI.
+\item SQLite cache keyed by claim/evidence/model/verbalizer settings.
+\item Evidence State Manager (ESM) partitioning into $\Active$, $\Susp$, and $\Counter$.
+\item Sufficiency diagnostics: $\ESIprod$, $\ESIgeom$, $\CR@k$, $\RPI@k$, neutral dominance.
+\item Structured logging for claim-level and pair-level outputs.
+\end{itemize}
+
+\textbf{Out of scope (explicitly not implemented in Component 1):}
+\begin{itemize}
+\item Graph reasoner/verifier architecture and training.
+\item Multi-step recovery controller or backtracking loop.
+\item Final claim classification logic beyond PV diagnostics and A/S/C assignment.
+\end{itemize}
+
+\subsection{Pipeline position and handoff semantics}
+\begin{figure}[H]
+\centering
+\begin{adjustbox}{max width=\textwidth}
+\begin{tikzpicture}[
+  node distance=7mm and 8mm,
+  block/.style={draw,rounded corners,align=center,text width=3.45cm,minimum height=1.3cm,fill=gray!8},
+  arrow/.style={-Latex,thick},
+  dashedarrow/.style={-Latex,thick,dashed}
+]
+\node[block] (claim) {FactKG claim row\\\texttt{Sentence, Label, Entity\_set}};
+\node[block, right=of claim] (retrieved) {Retrieved subgraph row\\\texttt{walked["walkable"]}};
+\node[block, right=of retrieved] (pv) {PV scoring\\$\Ent, \Con, \Neu, \Rel, \Pol$};
+\node[block, right=of pv] (esm) {ESM partition\\$\Pool \rightarrow \Active/\Susp/\Counter$};
+\node[block, below=of pv] (metrics) {Metrics + logs\\\texttt{claims.jsonl, pairs.jsonl}};
+\node[block, right=of metrics] (c2) {Component 2 input\\soft masks + diagnostics};
+
+\draw[arrow] (claim) -- (retrieved);
+\draw[arrow] (retrieved) -- (pv);
+\draw[arrow] (pv) -- (esm);
+\draw[arrow] (esm.south) -- (metrics.north);
+\draw[arrow] (metrics) -- (c2);
+
+\draw[dashedarrow] (esm.east) ++(0.2,0.3) -- ++(1.2,0) node[midway,above,font=\scriptsize]{\Susp retained};
+\draw[dashedarrow] (esm.east) ++(0.2,-0.3) -- ++(1.2,0) node[midway,below,font=\scriptsize]{\Counter retained};
+\end{tikzpicture}
+\end{adjustbox}
+\caption{Page-fitted Component 1 flow. Active evidence is consumed immediately; Suspended and Counter are retained for diagnostics and future recovery logic.}
+\label{fig:c1_pipeline}
+\end{figure}
+
+\subsection{Core notation used across the document}
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.20\linewidth}p{0.74\linewidth}@{}}
+\toprule
+Symbol & Meaning \\
+\midrule
+$\Claim$ & Claim text (hypothesis in NLI). \\
+$\Pool$ & Full retrieved evidence pool for a claim. \\
+$\Active,\Susp,\Counter$ & Active, Suspended, and Counter evidence sets (disjoint partition of $\Pool$). \\
+$\Ent, \Con, \Neu$ & Entailment, contradiction, and neutral probabilities from PV. \\
+$\Rel(e)$ & Relevance mass: $\Ent(e)+\Con(e)=1-\Neu(e)$. \\
+$\Pol(e)$ & Polarity: $\Ent(e)-\Con(e)$. \\
+$\ESIprod, \ESIgeom$ & Product and geometric-mean Evidence Sufficiency Index variants. \\
+$\CR@k$ & Counter Retention at rank $k$. \\
+$\RPI@k$ & Recovery Potential Index at rank $k$. \\
+\bottomrule
+\end{tabular}
+\caption{Compact notation reference for Component 1.}
+\label{tab:c1_notation}
+\end{table}

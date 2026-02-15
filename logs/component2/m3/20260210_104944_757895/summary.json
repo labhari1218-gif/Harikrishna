@@ -1,0 +1,25 @@
+{
+  "abstain_rate_at_tau": null,
+  "accuracy_on_answered_at_tau": null,
+  "anchor_source_counts": {
+    "heuristic": 0,
+    "pickle": 0,
+    "provided": 5
+  },
+  "aurc": 0.22666666666666668,
+  "claims_missing_pickle_mapping": 0,
+  "coverage_at_tau": null,
+  "num_claims": 5,
+  "num_disconnected_anchor_graphs": 0,
+  "num_faithful_claims": 3,
+  "num_labeled_claims": 5,
+  "num_perf_guardrail_warnings": 0,
+  "num_ppr_not_converged": 0,
+  "num_recovered": 3,
+  "num_salience_checked": 3,
+  "perf_guardrail_claim_ids": [],
+  "relation_vocab_size_active": 6,
+  "relation_vocab_size_full": 7,
+  "risk_at_tau": null,
+  "tau_abstain": null
+}

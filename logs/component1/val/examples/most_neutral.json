@@ -1,0 +1,740 @@
+[
+  {
+    "claim_id": "val_3208",
+    "claim_text": "Hypermarcas, located in 788, sells healthcare products and has employs 10252.",
+    "label": "FALSE",
+    "entity_set": [
+      "\"10252\"",
+      "Healthcare",
+      "Hypermarcas",
+      "\"788\""
+    ],
+    "Entity_set": [
+      "\"10252\"",
+      "Healthcare",
+      "Hypermarcas",
+      "\"788\""
+    ],
+    "counts": {
+      "A": 1,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.062369646912301,
+      "starve_score_geom": 0.937630353087699,
+      "esi_prod": 0.00024261623352497816,
+      "starve_score_prod": 0.999757383766475,
+      "mass_A": 0.0008442388207186013,
+      "mass_A_normalized": 0.0008438825513912285,
+      "coverage_A": 0.25,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.9991557598114014
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.0005896691000089049,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.0005896691000089049
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 1,
+      "pool_size_after_C": 1,
+      "min_A_feasible": 1,
+      "mean_rel": 0.0008442388207186013,
+      "mean_pol": -0.0003350993792992085,
+      "p25_rel": 0.0008442388207186013,
+      "p50_rel": 0.0008442388207186013,
+      "p75_rel": 0.0008442388207186013
+    },
+    "top_evidence": {
+      "by_rel": [
+        "val_3208_triple_0"
+      ],
+      "by_contra": [
+        "val_3208_triple_0"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 4,
+      "weak_A_mass": 0.0008442388207186013
+    }
+  },
+  {
+    "claim_id": "val_5207",
+    "claim_text": "There is an academic staff of 250 at the university which is located in Kuttikkattoor in the state of Kerala.",
+    "label": "TRUE",
+    "entity_set": [
+      "\"250\"",
+      "Kuttikkattoor",
+      "Kerala"
+    ],
+    "Entity_set": [
+      "\"250\"",
+      "Kuttikkattoor",
+      "Kerala"
+    ],
+    "counts": {
+      "A": 2,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.07345365909791436,
+      "starve_score_geom": 0.9265463409020857,
+      "esi_prod": 0.0003963148130047722,
+      "starve_score_prod": 0.9996036851869953,
+      "mass_A": 0.002162886259611696,
+      "mass_A_normalized": 0.001080858580922106,
+      "coverage_A": 0.3333333333333333,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.9989185929298401
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.0010265238815918565,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.0010265238815918565
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 2,
+      "pool_size_after_C": 2,
+      "min_A_feasible": 2,
+      "mean_rel": 0.001081443129805848,
+      "mean_pol": -0.0007255927484948188,
+      "p25_rel": 0.0010271103019476868,
+      "p50_rel": 0.001081443129805848,
+      "p75_rel": 0.0011357759576640092
+    },
+    "top_evidence": {
+      "by_rel": [
+        "val_5207_triple_1",
+        "val_5207_triple_0"
+      ],
+      "by_contra": [
+        "val_5207_triple_1",
+        "val_5207_triple_0"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 3,
+      "weak_A_mass": 0.002162886259611696
+    }
+  },
+  {
+    "claim_id": "val_8332",
+    "claim_text": "Alan Bean who was hired by NASA in 1963 spent over 69 days in space.",
+    "label": "TRUE",
+    "entity_set": [
+      "\"100305.0\"",
+      "\"1963\"",
+      "Alan_Bean"
+    ],
+    "Entity_set": [
+      "\"100305.0\"",
+      "\"1963\"",
+      "Alan_Bean"
+    ],
+    "counts": {
+      "A": 1,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.07743953492125973,
+      "starve_score_geom": 0.9225604650787402,
+      "esi_prod": 0.0004643957196673727,
+      "starve_score_prod": 0.9995356042803326,
+      "mass_A": 0.0012673365126829594,
+      "mass_A_normalized": 0.0012665337809110166,
+      "coverage_A": 0.3333333333333333,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.9987326264381409
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.0010187255684286356,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.0010187255684286356
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 1,
+      "pool_size_after_C": 1,
+      "min_A_feasible": 1,
+      "mean_rel": 0.0012673365126829594,
+      "mean_pol": -0.0007701146241743118,
+      "p25_rel": 0.0012673365126829594,
+      "p50_rel": 0.0012673365126829594,
+      "p75_rel": 0.0012673365126829594
+    },
+    "top_evidence": {
+      "by_rel": [
+        "val_8332_triple_0"
+      ],
+      "by_contra": [
+        "val_8332_triple_0"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 4,
+      "weak_A_mass": 0.0012673365126829594
+    }
+  },
+  {
+    "claim_id": "val_247",
+    "claim_text": "Vineet Joshi has had an award as well.",
+    "label": "FALSE",
+    "entity_set": [
+      "Vineet_Joshi"
+    ],
+    "Entity_set": [
+      "Vineet_Joshi"
+    ],
+    "counts": {
+      "A": 9,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.10842384851781559,
+      "starve_score_geom": 0.8915761514821844,
+      "esi_prod": 0.0012746015892901585,
+      "starve_score_prod": 0.9987253984107098,
+      "mass_A": 0.011478731263196096,
+      "mass_A_normalized": 0.0012746015892901585,
+      "coverage_A": 1.0,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.9987245930565728
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.0008532076026313007,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.0008532076026313007
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 9,
+      "pool_size_after_C": 9,
+      "min_A_feasible": 5,
+      "mean_rel": 0.0012754145847995663,
+      "mean_pol": 0.00011602007564053767,
+      "p25_rel": 0.0008989024208858609,
+      "p50_rel": 0.0009357449598610401,
+      "p75_rel": 0.001226036692969501
+    },
+    "top_evidence": {
+      "by_rel": [
+        "val_247_triple_7",
+        "val_247_triple_6",
+        "val_247_triple_1",
+        "val_247_triple_2",
+        "val_247_triple_5"
+      ],
+      "by_contra": [
+        "val_247_triple_1",
+        "val_247_triple_2",
+        "val_247_triple_6",
+        "val_247_triple_3",
+        "val_247_triple_4"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 0.011478731263196096
+    }
+  },
+  {
+    "claim_id": "val_249",
+    "claim_text": "Haylie Ecker won an award for that.",
+    "label": "FALSE",
+    "entity_set": [
+      "Haylie_Ecker"
+    ],
+    "Entity_set": [
+      "Haylie_Ecker"
+    ],
+    "counts": {
+      "A": 8,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.10961708699503148,
+      "starve_score_geom": 0.8903829130049685,
+      "esi_prod": 0.0013171485871579236,
+      "starve_score_prod": 0.9986828514128421,
+      "mass_A": 0.010544134318479337,
+      "mass_A_normalized": 0.0013171485871579236,
+      "coverage_A": 1.0,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.9986819922924042
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.0015746126882731915,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.0015746126882731915
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 8,
+      "pool_size_after_C": 8,
+      "min_A_feasible": 5,
+      "mean_rel": 0.001318016789809917,
+      "mean_pol": -0.0009305657713412074,
+      "p25_rel": 0.0010866190641536377,
+      "p50_rel": 0.0012440987047739327,
+      "p75_rel": 0.0014860220871923957
+    },
+    "top_evidence": {
+      "by_rel": [
+        "val_249_triple_0",
+        "val_249_triple_2",
+        "val_249_triple_3",
+        "val_249_triple_7",
+        "val_249_triple_1"
+      ],
+      "by_contra": [
+        "val_249_triple_0",
+        "val_249_triple_2",
+        "val_249_triple_3",
+        "val_249_triple_7",
+        "val_249_triple_1"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 0.010544134318479337
+    }
+  },
+  {
+    "claim_id": "val_6206",
+    "claim_text": "They employ 6730 people and they make 1.8 million dollars annually.",
+    "label": "FALSE",
+    "entity_set": [
+      "\"1.8E9\"",
+      "\"6730\""
+    ],
+    "Entity_set": [
+      "\"1.8E9\"",
+      "\"6730\""
+    ],
+    "counts": {
+      "A": 16,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.04096911759227827,
+      "starve_score_geom": 0.9590308824077217,
+      "esi_prod": 6.876537729634813e-05,
+      "starve_score_prod": 0.9999312346227036,
+      "mass_A": 0.02202006638981402,
+      "mass_A_normalized": 0.0013753075459269626,
+      "coverage_A": 1.0,
+      "connectivity_A": 0.0,
+      "neutral_rate_A": 0.9986237436532974
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.002319367602467537,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.002319367602467537
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 16,
+      "pool_size_after_C": 16,
+      "min_A_feasible": 5,
+      "mean_rel": 0.0013762541493633762,
+      "mean_pol": -0.0009375673689646646,
+      "p25_rel": 0.0011485318536870182,
+      "p50_rel": 0.0013000058243051171,
+      "p75_rel": 0.001534325594548136
+    },
+    "top_evidence": {
+      "by_rel": [
+        "val_6206_triple_6",
+        "val_6206_triple_9",
+        "val_6206_triple_5",
+        "val_6206_triple_8",
+        "val_6206_triple_13"
+      ],
+      "by_contra": [
+        "val_6206_triple_6",
+        "val_6206_triple_9",
+        "val_6206_triple_5",
+        "val_6206_triple_13",
+        "val_6206_triple_8"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 0,
+      "weak_A_mass": 0.02202006638981402
+    }
+  },
+  {
+    "claim_id": "val_12847",
+    "claim_text": "Steve Bright created Bananaman, it was broadcast by Broadcasting House London.",
+    "label": "TRUE",
+    "entity_set": [
+      "Steve_Bright",
+      "Broadcasting_House",
+      "Bananaman"
+    ],
+    "Entity_set": [
+      "Steve_Bright",
+      "Broadcasting_House",
+      "Bananaman"
+    ],
+    "counts": {
+      "A": 1,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.07971002451875639,
+      "starve_score_geom": 0.9202899754812436,
+      "esi_prod": 0.0005064526269644413,
+      "starve_score_prod": 0.9994935473730355,
+      "mass_A": 0.0013821892207488418,
+      "mass_A_normalized": 0.001381234437175749,
+      "coverage_A": 0.3333333333333333,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.9986177682876587
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.0006253583705984056,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.0006253583705984056
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 1,
+      "pool_size_after_C": 1,
+      "min_A_feasible": 1,
+      "mean_rel": 0.0013821892207488418,
+      "mean_pol": 0.00013147247955203056,
+      "p25_rel": 0.0013821892207488418,
+      "p50_rel": 0.0013821892207488418,
+      "p75_rel": 0.0013821892207488418
+    },
+    "top_evidence": {
+      "by_rel": [
+        "val_12847_triple_0"
+      ],
+      "by_contra": [
+        "val_12847_triple_0"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 4,
+      "weak_A_mass": 0.0013821892207488418
+    }
+  },
+  {
+    "claim_id": "val_3976",
+    "claim_text": "Andrews, Texas is the largest city in an administrative region and has the Andrews County Airport.",
+    "label": "TRUE",
+    "entity_set": [
+      "Andrews_County_Airport",
+      "Andrews,_Texas"
+    ],
+    "Entity_set": [
+      "Andrews_County_Airport",
+      "Andrews,_Texas"
+    ],
+    "counts": {
+      "A": 1,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.09069284346815464,
+      "starve_score_geom": 0.9093071565318454,
+      "esi_prod": 0.0007459660375225108,
+      "starve_score_prod": 0.9992540339624775,
+      "mass_A": 0.0014218981086742133,
+      "mass_A_normalized": 0.0014208876905190682,
+      "coverage_A": 0.5,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.9985780715942383
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.0011431629536673427,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.0011431629536673427
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 1,
+      "pool_size_after_C": 1,
+      "min_A_feasible": 1,
+      "mean_rel": 0.0014218981086742133,
+      "mean_pol": -0.000864427798660472,
+      "p25_rel": 0.0014218981086742133,
+      "p50_rel": 0.0014218981086742133,
+      "p75_rel": 0.0014218981086742133
+    },
+    "top_evidence": {
+      "by_rel": [
+        "val_3976_triple_0"
+      ],
+      "by_contra": [
+        "val_3976_triple_0"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 4,
+      "weak_A_mass": 0.0014218981086742133
+    }
+  },
+  {
+    "claim_id": "val_3196",
+    "claim_text": "The pharmaceutical company Hypermarcas is based out of Madison Hall, Tennessee.",
+    "label": "FALSE",
+    "entity_set": [
+      "Pharmaceuticals",
+      "CEO",
+      "Hypermarcas",
+      "Madison_Hall,_Tennessee"
+    ],
+    "Entity_set": [
+      "Pharmaceuticals",
+      "CEO",
+      "Hypermarcas",
+      "Madison_Hall,_Tennessee"
+    ],
+    "counts": {
+      "A": 1,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.07428419477664586,
+      "starve_score_geom": 0.9257158052233542,
+      "esi_prod": 0.0004099107049451822,
+      "starve_score_prod": 0.9995900892950548,
+      "mass_A": 0.0014267937513068318,
+      "mass_A_normalized": 0.0014257763650267208,
+      "coverage_A": 0.25,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.9985731840133667
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.0012395668309181929,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.0012395668309181929
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 1,
+      "pool_size_after_C": 1,
+      "min_A_feasible": 1,
+      "mean_rel": 0.0014267937513068318,
+      "mean_pol": -0.0010523399105295539,
+      "p25_rel": 0.0014267937513068318,
+      "p50_rel": 0.0014267937513068318,
+      "p75_rel": 0.0014267937513068318
+    },
+    "top_evidence": {
+      "by_rel": [
+        "val_3196_triple_0"
+      ],
+      "by_contra": [
+        "val_3196_triple_0"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 4,
+      "weak_A_mass": 0.0014267937513068318
+    }
+  },
+  {
+    "claim_id": "val_9287",
+    "claim_text": "Harold French, who was born in the UK, was the director of the film English Without Tears.",
+    "label": "TRUE",
+    "entity_set": [
+      "Harold_French",
+      "UK",
+      "English_Without_Tears"
+    ],
+    "Entity_set": [
+      "Harold_French",
+      "UK",
+      "English_Without_Tears"
+    ],
+    "counts": {
+      "A": 1,
+      "S": 0,
+      "C": 0
+    },
+    "sufficiency": {
+      "esi_geom": 0.08220025121326509,
+      "starve_score_geom": 0.9177997487867349,
+      "esi_prod": 0.0005554173402390764,
+      "starve_score_prod": 0.9994445826597609,
+      "mass_A": 0.0015159229951677844,
+      "mass_A_normalized": 0.0015147745642883903,
+      "coverage_A": 0.3333333333333333,
+      "connectivity_A": 1.0,
+      "neutral_rate_A": 0.9984840750694275
+    },
+    "counter_retention": {
+      "has_counter": false,
+      "counter_kept": 0,
+      "cr_at_5": 0.0,
+      "cr_at_10": 0.0,
+      "max_contra_all": 0.0013556330231949687,
+      "max_contra_C": 0.0,
+      "contra_mass_C": 0,
+      "counter_in_A": 0,
+      "max_contra_A": 0.0013556330231949687
+    },
+    "recovery": {
+      "bridge_count_S": 0,
+      "bridge_rel_mass_S": 0,
+      "rpi_at_1": 0.0,
+      "rpi_at_3": 0.0,
+      "rpi_at_5": 0.0
+    },
+    "pool_stats": {
+      "pool_size_total": 1,
+      "pool_size_after_C": 1,
+      "min_A_feasible": 1,
+      "mean_rel": 0.0015159229951677844,
+      "mean_pol": -0.001195343051222153,
+      "p25_rel": 0.0015159229951677844,
+      "p50_rel": 0.0015159229951677844,
+      "p75_rel": 0.0015159229951677844
+    },
+    "top_evidence": {
+      "by_rel": [
+        "val_9287_triple_0"
+      ],
+      "by_contra": [
+        "val_9287_triple_0"
+      ]
+    },
+    "starvation": {
+      "starved_A": 0,
+      "active_shortfall": 4,
+      "weak_A_mass": 0.0015159229951677844
+    }
+  }
+]

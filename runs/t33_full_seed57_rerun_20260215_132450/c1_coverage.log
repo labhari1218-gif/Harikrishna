@@ -1,0 +1,4 @@
+/home/bs_thesis/miniconda/envs/fact_check_env/lib/python3.10/site-packages/transformers/utils/hub.py:110: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.
+  warnings.warn(
+/tmp/tmp8fck35j4: line 3: 2079170 Segmentation fault      (core dumped) python scripts/validate_component1_pairs_coverage.py --splits train,val,test --logs-root logs/component1 --subgraph-type direct_filled --missing-policy hybrid_fallback --out-json runs/t33_full_seed57_rerun_20260215_132450/c1_coverage.json
+ERROR conda.cli.main_run:execute(127): `conda run python scripts/validate_component1_pairs_coverage.py --splits train,val,test --logs-root logs/component1 --subgraph-type direct_filled --missing-policy hybrid_fallback --out-json runs/t33_full_seed57_rerun_20260215_132450/c1_coverage.json` failed. (See above for error)

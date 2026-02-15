@@ -1,0 +1,6 @@
+[START] 2026-02-15T12:25:59Z run_id=t33_full_seed57_rerun7_tmux_20260215_1755
+[C3 PRECOMPUTE] split stage start
+[C3 PRECOMPUTE] artifacts verified
+[C3] full-dataset training/eval
+[COMPARE] SOTA/baseline comparison
+[END] 2026-02-15T14:37:11Z status=0

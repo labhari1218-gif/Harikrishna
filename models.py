@@ -28,20 +28,20 @@ def get_bert_model(model_name="bert", include_classifier=True, num_labels=2, fre
         transformer model: The loaded model.
     """
     if freeze_base_model and freeze_up_to_pooler:
-        logger.warn("Both `freeze_base_model` and `freeze_up_to_pooler` is True. Freezing base model.")
+        logger.warning("Both `freeze_base_model` and `freeze_up_to_pooler` are True. Freezing base model.")
 
     if use_roberta:
-        model_name = "roberta-base"
+        hf_model_id = "roberta-base"
     else:
-        model_name = "bert-base-uncased"
+        hf_model_id = "bert-base-uncased"
 
     if include_classifier:
         model = AutoModelForSequenceClassification.from_pretrained(
-            model_name, cache_dir="./cache", trust_remote_code=True, num_labels=num_labels,
+            hf_model_id, cache_dir="./cache", trust_remote_code=True, num_labels=num_labels,
             output_hidden_states=True
         )
     else:
-        model = AutoModel.from_pretrained(model_name)
+        model = AutoModel.from_pretrained(hf_model_id)
 
     model.name = model_name
     if freeze_base_model:

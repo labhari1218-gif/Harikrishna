@@ -186,7 +186,8 @@ def compute_esi(A: List[EvidenceItem], claim_entities: List[str]) -> Dict[str, f
     - If < 2 claim entities in A: connectivity_A=1.0 (trivially connected)
     
     Args:
-        A: Active evidence set (with PV scores)
+        A: Evidence set to evaluate sufficiency on.
+           For symmetric sufficiency in current pipeline this should be A + C.
         claim_entities: List of claim entity strings
         
     Returns:
@@ -195,14 +196,14 @@ def compute_esi(A: List[EvidenceItem], claim_entities: List[str]) -> Dict[str, f
         - esi_geom: Geometric mean ESI [0,1] (recommended)
         - starve_score_prod: 1 - esi_prod
         - starve_score_geom: 1 - esi_geom
-        - mass_A: Unnormalized information mass
+        - mass_A: Unnormalized information mass (key kept for backward compatibility)
         - mass_A_normalized: M̂_A
-        - coverage_A: Entity coverage [0,1] (raw, pre-smoothing)
-        - connectivity_A: Entity connectivity [0,1] (raw, pre-smoothing)
+        - coverage_A: Entity coverage [0,1] (raw, pre-smoothing; key kept for backward compatibility)
+        - connectivity_A: Entity connectivity [0,1] (raw, pre-smoothing; key kept for backward compatibility)
     """
     EPSILON = 0.05  # Smoothing factor to prevent zero-collapse
     
-    # Edge case: empty A
+    # Edge case: empty evidence set
     if not A:
         return {
             "esi_prod": 0.0,
@@ -215,7 +216,8 @@ def compute_esi(A: List[EvidenceItem], claim_entities: List[str]) -> Dict[str, f
             "connectivity_A": 0.0
         }
     
-    # Compute information mass
+    # Informativeness uses relevance rel = p_entail + p_contra.
+    # The caller controls whether this is A-only or A+C by passing the desired evidence set.
     mass_A = sum(e.pv.rel for e in A)
     alpha = max(1, len(A))
     mass_A_normalized = 1.0 - math.exp(-mass_A / alpha)
@@ -234,7 +236,7 @@ def compute_esi(A: List[EvidenceItem], claim_entities: List[str]) -> Dict[str, f
             "connectivity_A": 1.0
         }
     
-    # Build entity graph from A
+    # Build entity graph from the provided evidence set (A or A+C)
     graph = build_entity_graph(A)
     
     # Compute coverage
@@ -287,21 +289,22 @@ def compute_neutral_dominance(A: List[EvidenceItem]) -> float:
 
 
 def compute_cr_at_k(
-    C: List[EvidenceItem],
-    Pool: List[EvidenceItem],
-    k_values: List[int] = [5, 10]
+    *,
+    pool_items: List[EvidenceItem],
+    counter_items: List[EvidenceItem],
+    ks: List[int] = None
 ) -> Dict[str, float]:
     """
-    Compute Counter-Evidence Retention@k.
+    Compute Counter-Evidence Retention@k (keyword-only to prevent argument order bugs).
     
-    CR@k = |TopContra_k(Pool) ∩ C| / k
+    CR@k = |TopContra_k(Pool) ∩ C| / min(k, |Pool|)
     
-    Measures whether the strongest contradictions from the pool were retained in C.
+    Measures whether the strongest contradictions from the pool were retained in Counter set.
     
     Args:
-        C: Counter evidence set
-        Pool: Full evidence pool
-        k_values: List of k values to compute (default: [5, 10])
+        pool_items: Full evidence pool (keyword-only)
+        counter_items: Counter evidence set C (keyword-only)
+        ks: List of k values to compute (default: [5, 10]) (keyword-only)
         
     Returns:
         Dict with keys:
@@ -309,25 +312,33 @@ def compute_cr_at_k(
         - max_contra_all: Max p_contra in Pool
         - max_contra_C: Max p_contra in C (or 0.0 if C empty)
         - contra_mass_C: Sum of p_contra in C
+    
+    Example:
+        >>> cr = compute_cr_at_k(pool_items=pool, counter_items=C, ks=[5, 10])
     """
+    if ks is None:
+        ks = [5, 10]
+    
     result = {}
     
     # Sort pool by p_contra descending
-    pool_sorted = sorted(Pool, key=lambda e: e.pv.p_contra, reverse=True)
-    C_ids = {e.evidence_id for e in C}
+    pool_sorted = sorted(pool_items, key=lambda e: e.pv.p_contra, reverse=True)
+    C_ids = {e.evidence_id for e in counter_items}
     
     # Compute CR@k for each k
-    for k in k_values:
+    for k in ks:
         top_k_ids = {e.evidence_id for e in pool_sorted[:k]}
         retained = len(top_k_ids & C_ids)
-        result[f"cr_at_{k}"] = retained / k if k > 0 else 0.0
+        # Fix for small pools: denominator should be min(k, pool_size)
+        denom = min(k, len(pool_sorted))
+        result[f"cr_at_{k}"] = retained / denom if denom > 0 else 0.0
     
     # Max contra in pool and C
     result["max_contra_all"] = pool_sorted[0].pv.p_contra if pool_sorted else 0.0
-    result["max_contra_C"] = max((e.pv.p_contra for e in C), default=0.0)
+    result["max_contra_C"] = max((e.pv.p_contra for e in counter_items), default=0.0)
     
     # Contra mass in C
-    result["contra_mass_C"] = sum(e.pv.p_contra for e in C)
+    result["contra_mass_C"] = sum(e.pv.p_contra for e in counter_items)
     
     return result
 

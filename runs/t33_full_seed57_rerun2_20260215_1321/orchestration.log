@@ -1,0 +1,5 @@
+[START] 2026-02-15T07:49:02Z run_id=t33_full_seed57_rerun2_20260215_1321
+[C1 COVERAGE] validating pair-log coverage
+[C3] full-dataset training/eval
+[COMPARE] SOTA/baseline comparison
+[END] 2026-02-15T11:01:42Z status=1

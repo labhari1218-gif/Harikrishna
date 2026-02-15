@@ -1,0 +1,13 @@
+/home/bs_thesis/miniconda/envs/fact_check_env/lib/python3.10/site-packages/transformers/utils/hub.py:110: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.
+  warnings.warn(
+Traceback (most recent call last):
+  File "/home/bs_thesis/miniconda/envs/fact_check_env/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/home/bs_thesis/miniconda/envs/fact_check_env/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/home/bs_thesis/shift (Copy)/Fact-or-Fiction/src/component3/run_train.py", line 873, in <module>
+    _set_optimizer_lr(optimizer, stage.learning_rate)
+  File "/home/bs_thesis/shift (Copy)/Fact-or-Fiction/src/component3/run_train.py", line 784, in run_training
+    "overall_recall": recall,
+RuntimeError: No-collapse gate failed. See metrics.json -> no_collapse_gate for details.
+ERROR conda.cli.main_run:execute(127): `conda run python -m component3.run_train --run-id t33_full_seed57_rerun2_20260215_1321 --train-subset-size 0 --val-subset-size 0 --subset-sampling stratified --use-component1-pairs --component1-logs-root logs/component1 --missing-pv-policy hybrid_fallback --gradient-accumulation-steps 4 --stage1-epochs 5 --stage2-epochs 5 --batch-size 8` failed. (See above for error)

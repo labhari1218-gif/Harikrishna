@@ -8,23 +8,32 @@ from utils import get_logger, save_model
 logger = get_logger(__name__)
 
 
-def run_epoch_simple(train, dataloader, optimizer, model, device):
+def run_epoch_simple(train, dataloader, optimizer, model, device, scheduler=None, grad_accum_steps=1):
+    if grad_accum_steps <= 0:
+        raise ValueError("Argument `grad_accum_steps` must be positive.")
     total_loss = 0
     total_correct = 0
     if train:
         model.train()
+        optimizer.zero_grad()
     else:
         model.eval()
 
-    for inputs in dataloader:
+    for step, inputs in enumerate(dataloader):
         batch = inputs.to(device)
 
-        optimizer.zero_grad()
-        outputs = model(**batch)
-        loss = outputs.loss
+        with torch.set_grad_enabled(train):
+            outputs = model(**batch)
+            loss = outputs.loss
         if train:
-            loss.backward()
-            optimizer.step()
+            scaled_loss = loss / grad_accum_steps
+            scaled_loss.backward()
+            should_step = ((step + 1) % grad_accum_steps == 0) or (step + 1 == len(dataloader))
+            if should_step:
+                optimizer.step()
+                if scheduler is not None:
+                    scheduler.step()
+                optimizer.zero_grad()
 
         total_loss += loss.item() * batch["input_ids"].size(0)
         probabilities = torch.softmax(outputs.logits, dim=1)
@@ -33,26 +42,34 @@ def run_epoch_simple(train, dataloader, optimizer, model, device):
     return total_loss, total_correct
 
 
-def run_epoch_qa_gnn(train, dataloader, optimizer, model, criterion, device):
+def run_epoch_qa_gnn(train, dataloader, optimizer, model, criterion, device, scheduler=None, grad_accum_steps=1):
+    if grad_accum_steps <= 0:
+        raise ValueError("Argument `grad_accum_steps` must be positive.")
     total_loss = 0
     total_correct = 0
     if train:
         model.train()
+        optimizer.zero_grad()
     else:
         model.eval()
 
-    for inputs, data_graph, labels in dataloader:
+    for step, (inputs, data_graph, labels) in enumerate(dataloader):
         batch = inputs.to(device)
         data_graph = data_graph.to(device)
         labels = labels.to(device)
 
-        optimizer.zero_grad()
-        outputs = model(batch, data_graph)
-
-        loss = criterion(outputs, labels)
+        with torch.set_grad_enabled(train):
+            outputs = model(batch, data_graph)
+            loss = criterion(outputs, labels)
         if train:
-            loss.backward()
-            optimizer.step()
+            scaled_loss = loss / grad_accum_steps
+            scaled_loss.backward()
+            should_step = ((step + 1) % grad_accum_steps == 0) or (step + 1 == len(dataloader))
+            if should_step:
+                optimizer.step()
+                if scheduler is not None:
+                    scheduler.step()
+                optimizer.zero_grad()
 
         total_loss += loss.item() * batch["input_ids"].size(0)
         probabilities = torch.sigmoid(outputs)
@@ -62,7 +79,7 @@ def run_epoch_qa_gnn(train, dataloader, optimizer, model, criterion, device):
 
 
 def train(model, criterion, optimizer, qa_gnn, train_loader, val_loader=None, n_epochs=10, scheduler=None,
-          n_early_stop=None, save_models=True, device=None, non_blocking=False, verbose=1):
+          n_early_stop=None, save_models=True, device=None, non_blocking=False, verbose=1, grad_accum_steps=1):
     """
     Trains a model and calculate training and valudation stats, given the model, loader, optimizer
     and some hyperparameters.
@@ -84,6 +101,7 @@ def train(model, criterion, optimizer, qa_gnn, train_loader, val_loader=None, n_
         non_blocking (bool): If True, allows for asyncronous transfer between RAM and VRAM.
             This only works together with `pin_memory=True` to dataloader and GPU training.
         verbose (int): If 0, will not log anything. If not 0, will log last epoch with INFO and the others with DEBUG.
+        grad_accum_steps (int): Gradient accumulation steps. Defaults to 1 (backward compatible).
 
     Returns:
         dict: A dictionary of the training history. Will contain lists of training loss and accuracy over
@@ -114,10 +132,11 @@ def train(model, criterion, optimizer, qa_gnn, train_loader, val_loader=None, n_
         if qa_gnn:
             train_loss, train_correct = run_epoch_qa_gnn(
                 train=True, dataloader=train_loader, optimizer=optimizer, model=model,
-                criterion=criterion, device=device)
+                criterion=criterion, device=device, scheduler=scheduler, grad_accum_steps=grad_accum_steps)
         else:
             train_loss, train_correct = run_epoch_simple(
-                train=True, dataloader=train_loader, optimizer=optimizer, model=model, device=device)
+                train=True, dataloader=train_loader, optimizer=optimizer, model=model, device=device,
+                scheduler=scheduler, grad_accum_steps=grad_accum_steps)
         average_train_loss = train_loss / len(train_loader.dataset)
         train_accuracy = 100 * train_correct / len(train_loader.dataset)
         train_class_loss_list.append(average_train_loss)
@@ -128,10 +147,11 @@ def train(model, criterion, optimizer, qa_gnn, train_loader, val_loader=None, n_
                 if qa_gnn:
                     val_loss, val_correct = run_epoch_qa_gnn(
                         train=False, dataloader=val_loader, optimizer=optimizer, model=model,
-                        criterion=criterion, device=device)
+                        criterion=criterion, device=device, grad_accum_steps=grad_accum_steps)
                 else:
                     val_loss, val_correct = run_epoch_simple(
-                        train=False, dataloader=val_loader, optimizer=optimizer, model=model, device=device)
+                        train=False, dataloader=val_loader, optimizer=optimizer, model=model, device=device,
+                        grad_accum_steps=grad_accum_steps)
 
                 average_val_loss = val_loss / len(val_loader.dataset)
                 val_accuracy = 100 * val_correct / len(val_loader.dataset)
@@ -156,9 +176,6 @@ def train(model, criterion, optimizer, qa_gnn, train_loader, val_loader=None, n_
                     best_epoch_number = epoch + 1
                     best_val_accuracy = val_accuracy
                     best_model = model.state_dict()
-
-        if scheduler is not None:
-            scheduler.step()
 
         if verbose == 0:  # Do not log
             continue
