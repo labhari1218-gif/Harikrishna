@@ -8,3 +8,10 @@ notes.txt
 glocal_settings.py
 Makefile
 *.pdf
+
+# Component 1 specific
+resources/
+cache/
+logs/
+*.db
+*.db-journal
