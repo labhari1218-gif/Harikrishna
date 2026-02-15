@@ -152,7 +152,47 @@ class FactKGPVDatasetGraphTests(unittest.TestCase):
             self.assertTrue(cache_path.exists())
             with cache_path.open("rb") as fp:
                 cache = pickle.load(fp)
-            self.assertEqual(len(cache), 2)
+            # Cache includes A/C graph edges plus retained S rows for recovery mode.
+            self.assertEqual(len(cache), 3)
+
+            active_rows, suspended_rows = dataset.get_recovery_triplets(0)
+            self.assertEqual(len(active_rows), 2)
+            self.assertEqual(len(suspended_rows), 1)
+            self.assertEqual(suspended_rows[0]["pool"], "S")
+            self.assertEqual(suspended_rows[0]["evidence_id"], "e2")
+
+    def test_recovery_graph_builder_keeps_initial_graph_ac_only(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            base = Path(tmp_dir)
+            embeddings_path = base / "embeddings.pkl"
+            cache_path = base / "claim_triple_embeddings.pkl"
+            self._write_embeddings(embeddings_path)
+
+            dataset = FactKGPVDatasetGraph(
+                df=self._build_df().iloc[:1],
+                evidence=self._build_evidence().iloc[:1],
+                embeddings_path=embeddings_path,
+                claim_triple_cache_path=cache_path,
+                claim_triple_encoder=_toy_encoder,
+                claim_triple_dim=6,
+                add_reverse_edges=True,
+                auto_precompute=True,
+                include_s_pool=True,
+            )
+
+            _claim, graph0, _label = dataset[0]
+            self.assertEqual(graph0.edge_index.shape[1], 4)
+
+            active_rows, suspended_rows = dataset.get_recovery_triplets(0)
+            self.assertEqual(len(suspended_rows), 1)
+
+            promoted = list(active_rows)
+            promoted.append(dict(suspended_rows[0], pool="A"))
+            recovered_graph = dataset.build_graph_from_recovery_rows(0, promoted)
+
+            # A/C-only initial graph remains unchanged; recovered graph adds one logical edge (plus reverse).
+            self.assertEqual(graph0.edge_index.shape[1], 4)
+            self.assertEqual(recovered_graph.edge_index.shape[1], 6)
 
     def test_missing_entity_embedding_raises_without_hash_fallback(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:

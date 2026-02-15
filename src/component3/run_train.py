@@ -45,6 +45,7 @@ class Component3TrainConfig:
     factkg_claim_triple_cache_path: str = "data/claim_triple_embeddings.pkl"
     factkg_require_claim_triple_cache: bool = False
     factkg_precompute_batch_size: int = 32
+    factkg_include_s_pool: bool = True
     deterministic_mode: bool = False
     no_collapse_precision_accuracy_gap_min: float = 0.005
     batch_size: int = 8
@@ -81,6 +82,12 @@ class Component3TrainConfig:
     use_component1_pairs: bool = True
     component1_logs_root: str = "logs/component1"
     missing_pv_policy: str = "hybrid_fallback"
+    enable_backtracking: bool = True
+    backtracking_margin_threshold: float = 0.15
+    backtracking_min_a: int = 5
+    backtracking_rel_threshold: float = 0.3
+    backtracking_max_rounds: int = 2
+    backtracking_top_k: int = 3
     gradient_accumulation_steps: int = 4
     enforce_no_collapse_gate: bool = True
 
@@ -662,11 +669,16 @@ def _build_factkg_loaders(config: Component3TrainConfig):
             claim_triple_cache_path=config.factkg_claim_triple_cache_path,
             claim_max_length=config.max_seq_len,
             require_pv_metadata=False,
+            include_s_pool=config.factkg_include_s_pool,
             add_reverse_edges=True,
             auto_precompute=False,
             require_claim_triple_cache=config.factkg_require_claim_triple_cache,
             precompute_batch_size=config.factkg_precompute_batch_size,
         )
+        if hasattr(dataset, "get_pool_summary"):
+            split_coverage = dict(split_coverage)
+            split_coverage["pool_summary"] = dataset.get_pool_summary()
+            coverage[split] = split_coverage
         return DataLoader(dataset, **_build_loader_kwargs(
             config,
             batch_size=batch_size,
@@ -896,6 +908,280 @@ def _evaluate_no_collapse_gate(
     }
 
 
+def _extract_dataset_attribute(dataset: Any, attr_name: str) -> list[Any] | None:
+    values = getattr(dataset, attr_name, None)
+    if values is not None:
+        return list(values)
+
+    base_dataset = getattr(dataset, "dataset", None)
+    indices = getattr(dataset, "indices", None)
+    if base_dataset is not None and indices is not None:
+        base_values = _extract_dataset_attribute(base_dataset, attr_name)
+        if base_values is None:
+            return None
+        return [base_values[int(i)] for i in indices]
+
+    return None
+
+
+def _normalize_claim_types(types_value: Any) -> list[str]:
+    if isinstance(types_value, (list, tuple, set)):
+        return [str(v) for v in types_value]
+    if types_value is None:
+        return []
+    return [str(types_value)]
+
+
+def _safe_sigmoid(logit: float) -> float:
+    if logit >= 0.0:
+        z = math.exp(-float(logit))
+        return 1.0 / (1.0 + z)
+    z = math.exp(float(logit))
+    return z / (1.0 + z)
+
+
+def _slice_single_claim_tokens(claim_tokens: Any, index: int, device: Any) -> dict[str, Any]:
+    return {
+        key: value[index: index + 1].to(device)
+        for key, value in claim_tokens.items()
+    }
+
+
+def _evaluate_factkg_with_backtracking(
+    *,
+    config: Component3TrainConfig,
+    model: Any,
+    test_loader: Any,
+    criterion: Any,
+    run_dir: Path,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    import torch  # type: ignore
+    from torch_geometric.data import Batch  # type: ignore
+    from evaluate import _evaluate_factkg_per_type, _safe_prf
+    from component3.backtracking import RuleBasedBacktrackingController
+
+    dataset = getattr(test_loader, "dataset", None)
+    if dataset is None:
+        raise ValueError("Test loader dataset is unavailable for FactKG evaluation.")
+
+    claim_ids = _extract_dataset_attribute(dataset, "claim_ids")
+    if claim_ids is None:
+        claim_ids = [str(i) for i in range(len(dataset))]
+    claim_types = _extract_dataset_attribute(dataset, "claim_types")
+    if claim_types is None:
+        raise ValueError("FactKG evaluation requires claim_types metadata.")
+    claim_types = [_normalize_claim_types(v) for v in claim_types]
+
+    if len(claim_types) != len(dataset):
+        raise ValueError(
+            "FactKG claim_types metadata length mismatch with test dataset size: "
+            f"{len(claim_types)} vs {len(dataset)}."
+        )
+
+    supports_recovery = (
+        bool(config.enable_backtracking)
+        and hasattr(dataset, "get_recovery_triplets")
+        and hasattr(dataset, "build_graph_from_recovery_rows")
+    )
+    controller = None
+    if supports_recovery:
+        controller = RuleBasedBacktrackingController(
+            max_backtrack_rounds=int(config.backtracking_max_rounds),
+            backtrack_k=int(config.backtracking_top_k),
+            margin_threshold=float(config.backtracking_margin_threshold),
+            min_a=int(config.backtracking_min_a),
+            rel_threshold=float(config.backtracking_rel_threshold),
+        )
+
+    total_loss = 0.0
+    total_correct = 0
+    all_preds: list[int] = []
+    all_labels: list[int] = []
+    n_samples = 0
+    claim_offset = 0
+
+    backtracking_claims_triggered = 0
+    backtracking_claims_promoted = 0
+    backtracking_promotions_total = 0
+    backtracking_attempted_claims = 0
+    claims_with_s_pool = 0
+
+    predictions_path = run_dir / "predictions.jsonl"
+    recovery_actions_path = run_dir / "recovery_actions.jsonl"
+    recovery_candidates_path = run_dir / "recovery_candidates.jsonl"
+
+    model_device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    model.to(model_device)
+    model.eval()
+
+    with (
+        predictions_path.open("w", encoding="utf-8") as predictions_fp,
+        recovery_actions_path.open("w", encoding="utf-8") as recovery_actions_fp,
+        recovery_candidates_path.open("w", encoding="utf-8") as recovery_candidates_fp,
+        torch.no_grad(),
+    ):
+        for claim_tokens, _graph_batch, labels in test_loader:
+            batch_size = int(labels.shape[0])
+            labels = labels.to(model_device).view(-1)
+            graph_list = _graph_batch.to_data_list()
+
+            for local_idx in range(batch_size):
+                global_idx = claim_offset + local_idx
+                if global_idx >= len(dataset):
+                    break
+
+                single_tokens = _slice_single_claim_tokens(claim_tokens, local_idx, model_device)
+                label_value = int(labels[local_idx].item())
+                claim_id = str(claim_ids[global_idx]) if global_idx < len(claim_ids) else str(global_idx)
+                metadata = claim_types[global_idx]
+
+                final_prediction: dict[str, Any] | None = None
+                backtracking_result = None
+                promoted_ids: tuple[str, ...] = ()
+
+                if controller is not None:
+                    active_rows, suspended_rows = dataset.get_recovery_triplets(global_idx)
+                    if suspended_rows:
+                        claims_with_s_pool += 1
+                    backtracking_attempted_claims += 1
+
+                    def _predictor(current_active_rows):
+                        rebuilt_graph = dataset.build_graph_from_recovery_rows(
+                            index=global_idx,
+                            active_rows=current_active_rows,
+                        )
+                        rebuilt_batch = Batch.from_data_list([rebuilt_graph]).to(model_device)
+                        claim_logit_tensor = model(single_tokens, rebuilt_batch).view(-1)
+                        logit_value = float(claim_logit_tensor[0].item())
+                        prob_value = _safe_sigmoid(logit_value)
+                        return {
+                            "logit": logit_value,
+                            "probabilities": [prob_value, 1.0 - prob_value],
+                            "margin": abs((2.0 * prob_value) - 1.0),
+                        }
+
+                    backtracking_result = controller.run(
+                        claim_id=claim_id,
+                        active_triples=active_rows,
+                        suspended_triples=suspended_rows,
+                        predictor=_predictor,
+                    )
+                    final_prediction = dict(backtracking_result.final_prediction)
+                    promoted_ids = tuple(backtracking_result.promoted_evidence_ids)
+                else:
+                    graph_obj = graph_list[local_idx]
+                    single_graph_batch = Batch.from_data_list([graph_obj]).to(model_device)
+                    claim_logit_tensor = model(single_tokens, single_graph_batch).view(-1)
+                    logit_value = float(claim_logit_tensor[0].item())
+                    prob_value = _safe_sigmoid(logit_value)
+                    final_prediction = {
+                        "logit": logit_value,
+                        "probabilities": [prob_value, 1.0 - prob_value],
+                        "margin": abs((2.0 * prob_value) - 1.0),
+                    }
+
+                if final_prediction is None or "logit" not in final_prediction:
+                    raise RuntimeError(f"Missing final prediction logit for claim_id={claim_id}.")
+
+                logit = float(final_prediction["logit"])
+                prob = _safe_sigmoid(logit)
+                pred = int(prob > 0.5)
+                margin = abs((2.0 * prob) - 1.0)
+
+                logit_tensor = torch.tensor([logit], device=model_device, dtype=torch.float32)
+                label_tensor = labels[local_idx: local_idx + 1].float()
+                loss = criterion(logit_tensor, label_tensor)
+
+                total_loss += float(loss.item())
+                total_correct += int(pred == label_value)
+                all_preds.append(pred)
+                all_labels.append(label_value)
+                n_samples += 1
+
+                if backtracking_result is not None:
+                    if bool(backtracking_result.triggered):
+                        backtracking_claims_triggered += 1
+                    if promoted_ids:
+                        backtracking_claims_promoted += 1
+                        backtracking_promotions_total += len(promoted_ids)
+
+                    for action in backtracking_result.actions:
+                        action_row = {
+                            "claim_id": claim_id,
+                            "triggered": bool(backtracking_result.triggered),
+                            "round_index": int(action.round_index),
+                            "selected_evidence_ids": list(action.selected_evidence_ids),
+                            "margin_before": float(action.margin_before),
+                            "margin_after": float(action.margin_after),
+                            "low_confidence": bool(action.decision.low_confidence),
+                            "low_connectivity": bool(action.decision.low_connectivity),
+                            "evidence_hunger": bool(action.decision.evidence_hunger),
+                            "active_high_rel_count": int(action.decision.active_high_rel_count),
+                        }
+                        recovery_actions_fp.write(json.dumps(action_row) + "\n")
+
+                        selected_set = set(action.selected_evidence_ids)
+                        for rank_idx, candidate in enumerate(action.ranked_candidates, start=1):
+                            candidate_row = {
+                                "claim_id": claim_id,
+                                "round_index": int(action.round_index),
+                                "rank": int(rank_idx),
+                                "evidence_id": str(candidate.evidence_id),
+                                "connects_components": bool(candidate.connects_components),
+                                "bridge_bonus": float(candidate.bridge_bonus),
+                                "rel": float(candidate.rel),
+                                "salience_x_pv": float(candidate.salience_x_pv),
+                                "selected": bool(candidate.evidence_id in selected_set),
+                            }
+                            recovery_candidates_fp.write(json.dumps(candidate_row) + "\n")
+
+                predictions_row = {
+                    "claim_id": claim_id,
+                    "label": int(label_value),
+                    "pred": int(pred),
+                    "logit": float(logit),
+                    "confidence": float(prob),
+                    "margin": float(margin),
+                    "claim_type": metadata,
+                    "backtracking_triggered": bool(backtracking_result.triggered) if backtracking_result is not None else False,
+                    "promoted_evidence_ids": list(promoted_ids),
+                }
+                predictions_fp.write(json.dumps(predictions_row) + "\n")
+
+            claim_offset += batch_size
+
+    if n_samples <= 0:
+        raise ValueError("Evaluation received an empty test loader.")
+
+    overall_accuracy = total_correct / float(n_samples)
+    overall_loss = total_loss / float(n_samples)
+    precision, recall, f1, _ = _safe_prf(all_labels, all_preds, average="binary")
+    metrics_dict = _evaluate_factkg_per_type(
+        test_types=claim_types[:n_samples],
+        all_preds=all_preds,
+        all_labels=all_labels,
+    )
+    metrics_dict["overall"] = {
+        "accuracy": float(overall_accuracy),
+        "loss": float(overall_loss),
+        "precision": float(precision),
+        "recall": float(recall),
+        "f1": float(f1),
+    }
+
+    backtracking_summary = {
+        "enabled": bool(controller is not None),
+        "attempted_claims": int(backtracking_attempted_claims),
+        "claims_with_s_pool": int(claims_with_s_pool),
+        "claims_triggered": int(backtracking_claims_triggered),
+        "claims_promoted": int(backtracking_claims_promoted),
+        "promotions_total": int(backtracking_promotions_total),
+        "recovery_actions_path": str(recovery_actions_path),
+        "recovery_candidates_path": str(recovery_candidates_path),
+    }
+    return metrics_dict, backtracking_summary
+
+
 def run_training(
     config: Component3TrainConfig,
     *,
@@ -935,6 +1221,16 @@ def run_training(
         raise ValueError("Argument `factkg_precompute_batch_size` must be >= 1.")
     if config.no_collapse_precision_accuracy_gap_min < 0.0:
         raise ValueError("Argument `no_collapse_precision_accuracy_gap_min` must be >= 0.")
+    if config.backtracking_margin_threshold < 0.0:
+        raise ValueError("Argument `backtracking_margin_threshold` must be >= 0.")
+    if config.backtracking_min_a < 1:
+        raise ValueError("Argument `backtracking_min_a` must be >= 1.")
+    if config.backtracking_rel_threshold < 0.0:
+        raise ValueError("Argument `backtracking_rel_threshold` must be >= 0.")
+    if config.backtracking_max_rounds < 1 or config.backtracking_max_rounds > 2:
+        raise ValueError("Argument `backtracking_max_rounds` must be in [1, 2].")
+    if config.backtracking_top_k < 1 or config.backtracking_top_k > 3:
+        raise ValueError("Argument `backtracking_top_k` must be in [1, 3].")
 
     seed_everything(config.seed)
     if config.deterministic_mode:
@@ -1058,19 +1354,45 @@ def run_training(
             "missing_pv_policy": config.missing_pv_policy,
             "use_component1_pairs": config.use_component1_pairs,
         },
+        "runtime_flags": {
+            "used_s_pool": bool(
+                (coverage_stats.get("test", {}) or {}).get("pool_summary", {}).get("s_pool_retained_total", 0) > 0
+            ),
+            "used_backtracking": False,
+            "used_router": False,
+            "used_component5": bool(config.enable_component5),
+        },
     }
 
     if config.evaluate_after_training:
         claim_only_criterion = torch.nn.BCEWithLogitsLoss()
-        metrics = evaluate_on_test_set(
-            qa_gnn=True,
-            model=wrapped_model,
-            test_loader=test_loader,
-            criterion=claim_only_criterion,
-            dataset_name=config.dataset_name,
+        dataset_name = str(config.dataset_name).strip().lower()
+        factkg_dataset = getattr(test_loader, "dataset", None)
+        can_run_factkg_backtracking = (
+            dataset_name == "factkg"
+            and factkg_dataset is not None
+            and _extract_dataset_attribute(factkg_dataset, "claim_types") is not None
         )
+        if can_run_factkg_backtracking:
+            metrics, backtracking_summary = _evaluate_factkg_with_backtracking(
+                config=config,
+                model=wrapped_model,
+                test_loader=test_loader,
+                criterion=claim_only_criterion,
+                run_dir=run_dir,
+            )
+            results["backtracking_summary"] = backtracking_summary
+            results["runtime_flags"]["used_backtracking"] = bool(backtracking_summary.get("claims_triggered", 0) > 0)
+        else:
+            metrics = evaluate_on_test_set(
+                qa_gnn=True,
+                model=wrapped_model,
+                test_loader=test_loader,
+                criterion=claim_only_criterion,
+                dataset_name=config.dataset_name,
+            )
         results["test_metrics"] = metrics
-        if str(config.dataset_name).strip().lower() == "factkg":
+        if dataset_name == "factkg":
             gate = _evaluate_no_collapse_gate(
                 metrics,
                 stage_results,
@@ -1117,6 +1439,9 @@ def _parse_args() -> Component3TrainConfig:
     parser.add_argument("--factkg-claim-triple-cache-path", type=str, default="data/claim_triple_embeddings.pkl")
     parser.add_argument("--factkg-require-claim-triple-cache", action="store_true")
     parser.add_argument("--factkg-precompute-batch-size", type=int, default=32)
+    parser.add_argument("--factkg-include-s-pool", dest="factkg_include_s_pool", action="store_true")
+    parser.add_argument("--factkg-no-include-s-pool", dest="factkg_include_s_pool", action="store_false")
+    parser.set_defaults(factkg_include_s_pool=True)
     parser.add_argument("--deterministic-mode", action="store_true")
     parser.add_argument("--no-collapse-precision-accuracy-gap-min", type=float, default=0.005)
     parser.add_argument("--batch-size", type=int, default=8)
@@ -1146,6 +1471,14 @@ def _parse_args() -> Component3TrainConfig:
 
     parser.add_argument("--component1-logs-root", type=str, default="logs/component1")
     parser.add_argument("--missing-pv-policy", type=str, default="hybrid_fallback")
+    parser.add_argument("--enable-backtracking", dest="enable_backtracking", action="store_true")
+    parser.add_argument("--disable-backtracking", dest="enable_backtracking", action="store_false")
+    parser.set_defaults(enable_backtracking=True)
+    parser.add_argument("--backtracking-margin-threshold", type=float, default=0.15)
+    parser.add_argument("--backtracking-min-a", type=int, default=5)
+    parser.add_argument("--backtracking-rel-threshold", type=float, default=0.3)
+    parser.add_argument("--backtracking-max-rounds", type=int, default=2)
+    parser.add_argument("--backtracking-top-k", type=int, default=3)
     parser.add_argument("--gradient-accumulation-steps", type=int, default=4)
     parser.add_argument("--use-component1-pairs", dest="use_component1_pairs", action="store_true")
     parser.add_argument("--no-use-component1-pairs", dest="use_component1_pairs", action="store_false")
@@ -1174,6 +1507,7 @@ def _parse_args() -> Component3TrainConfig:
         factkg_claim_triple_cache_path=args.factkg_claim_triple_cache_path,
         factkg_require_claim_triple_cache=args.factkg_require_claim_triple_cache,
         factkg_precompute_batch_size=args.factkg_precompute_batch_size,
+        factkg_include_s_pool=args.factkg_include_s_pool,
         deterministic_mode=args.deterministic_mode,
         no_collapse_precision_accuracy_gap_min=args.no_collapse_precision_accuracy_gap_min,
         batch_size=args.batch_size,
@@ -1203,6 +1537,12 @@ def _parse_args() -> Component3TrainConfig:
         use_component1_pairs=args.use_component1_pairs,
         component1_logs_root=args.component1_logs_root,
         missing_pv_policy=args.missing_pv_policy,
+        enable_backtracking=args.enable_backtracking,
+        backtracking_margin_threshold=args.backtracking_margin_threshold,
+        backtracking_min_a=args.backtracking_min_a,
+        backtracking_rel_threshold=args.backtracking_rel_threshold,
+        backtracking_max_rounds=args.backtracking_max_rounds,
+        backtracking_top_k=args.backtracking_top_k,
         gradient_accumulation_steps=args.gradient_accumulation_steps,
         enforce_no_collapse_gate=args.enforce_no_collapse_gate,
     )

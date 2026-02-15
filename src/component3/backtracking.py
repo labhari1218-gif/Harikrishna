@@ -103,6 +103,7 @@ class BacktrackingAction:
     margin_after: float
     prediction_before: Any
     prediction_after: Any
+    ranked_candidates: tuple[RankedSuspendedTriple, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -274,6 +275,17 @@ class RuleBasedBacktrackingController:
             selected_ids = {row.evidence_id for row in selected_rows}
             if not selected_ids:
                 break
+            # Conservative execution gate: only promote if the selected set
+            # contains at least one candidate that bridges disconnected components.
+            if not any(row.connects_components for row in selected_rows):
+                self._record_attempts(
+                    memory_store=memory_store,
+                    claim_id=str(claim_id),
+                    ranked_rows=ranked_rows,
+                    selected_ids=set(),
+                    round_index=round_idx,
+                )
+                break
 
             self._record_attempts(
                 memory_store=memory_store,
@@ -316,6 +328,7 @@ class RuleBasedBacktrackingController:
                     margin_after=float(margin_after),
                     prediction_before=prediction_before,
                     prediction_after=dict(prediction),
+                    ranked_candidates=tuple(ranked_rows),
                 )
             )
 

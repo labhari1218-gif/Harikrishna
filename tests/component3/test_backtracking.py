@@ -11,6 +11,10 @@ from pathlib import Path
 
 def _load_backtracking_module():
     repo_root = Path(__file__).resolve().parents[2]
+    for path in (repo_root, repo_root / "src"):
+        path_str = str(path)
+        if path_str not in sys.path:
+            sys.path.insert(0, path_str)
     module_path = repo_root / "src" / "component3" / "backtracking.py"
     spec = importlib.util.spec_from_file_location("component3_backtracking_test", module_path)
     module = importlib.util.module_from_spec(spec)
@@ -190,8 +194,8 @@ class BacktrackingTests(unittest.TestCase):
             {"evidence_id": "a0", "pool": "A", "raw_triple": ["X", "r", "Y"], "rel": 0.9, "p_ent": 0.9, "p_con": 0.05},
         ]
         suspended = [
-            {"pool": "S", "raw_triple": ["A", "r1", "B"], "rel": 0.4, "p_ent": 0.4, "p_con": 0.1},
-            {"pool": "S", "raw_triple": ["B", "r2", "C"], "rel": 0.45, "p_ent": 0.45, "p_con": 0.1},
+            {"pool": "S", "raw_triple": ["Y", "r1", "A"], "rel": 0.4, "p_ent": 0.4, "p_con": 0.1},
+            {"pool": "S", "raw_triple": ["A", "r2", "C"], "rel": 0.45, "p_ent": 0.45, "p_con": 0.1},
         ]
 
         def predictor(_current_active):
@@ -208,7 +212,43 @@ class BacktrackingTests(unittest.TestCase):
             suspended_triples=suspended,
             predictor=predictor,
         )
-        self.assertEqual(result.promoted_evidence_ids, ("triple_1",))
+        self.assertEqual(result.promoted_evidence_ids, ("triple_0",))
+
+    def test_conservative_gate_blocks_non_bridge_promotions(self) -> None:
+        mod = _load_backtracking_module()
+        controller = mod.RuleBasedBacktrackingController(
+            max_backtrack_rounds=1,
+            backtrack_k=1,
+            margin_threshold=0.15,
+            min_a=1,
+            rel_threshold=0.3,
+        )
+
+        active = [
+            {"evidence_id": "a0", "pool": "A", "raw_triple": ["X", "r", "Y"], "rel": 0.9, "p_ent": 0.9, "p_con": 0.05},
+        ]
+        # Both suspended edges are in unseen nodes only, so neither bridges the active component.
+        suspended = [
+            {"evidence_id": "s0", "pool": "S", "raw_triple": ["A", "r1", "B"], "rel": 0.7, "p_ent": 0.7, "p_con": 0.1},
+            {"evidence_id": "s1", "pool": "S", "raw_triple": ["B", "r2", "C"], "rel": 0.6, "p_ent": 0.6, "p_con": 0.1},
+        ]
+
+        def predictor(_current_active):
+            return {
+                "probabilities": [0.51, 0.49],
+                "is_disconnected": False,
+                "bridge_bonus_by_id": {"s0": 0.8, "s1": 0.7},
+                "salience_by_id": {"s0": 0.2, "s1": 0.2},
+            }
+
+        result = controller.run(
+            claim_id="claim_gate_block",
+            active_triples=active,
+            suspended_triples=suspended,
+            predictor=predictor,
+        )
+        self.assertFalse(result.triggered)
+        self.assertEqual(result.promoted_evidence_ids, ())
 
     def test_component3_package_exposes_core_api_without_optional_deps(self) -> None:
         repo_root = Path(__file__).resolve().parents[2]

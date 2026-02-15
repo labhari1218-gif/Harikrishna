@@ -132,8 +132,15 @@ class RunTrainHelperTests(unittest.TestCase):
         self.assertEqual(payload["factkg_claim_triple_cache_path"], "data/claim_triple_embeddings.pkl")
         self.assertFalse(payload["factkg_require_claim_triple_cache"])
         self.assertEqual(payload["factkg_precompute_batch_size"], 32)
+        self.assertTrue(payload["factkg_include_s_pool"])
         self.assertFalse(payload["deterministic_mode"])
         self.assertAlmostEqual(payload["no_collapse_precision_accuracy_gap_min"], 0.005, places=12)
+        self.assertTrue(payload["enable_backtracking"])
+        self.assertAlmostEqual(payload["backtracking_margin_threshold"], 0.15, places=12)
+        self.assertEqual(payload["backtracking_min_a"], 5)
+        self.assertAlmostEqual(payload["backtracking_rel_threshold"], 0.3, places=12)
+        self.assertEqual(payload["backtracking_max_rounds"], 2)
+        self.assertEqual(payload["backtracking_top_k"], 3)
         self.assertEqual(len(payload["stages"]), 2)
 
     def test_no_collapse_gate_uses_configurable_gap_threshold(self) -> None:
@@ -387,6 +394,8 @@ class RunTrainHelperTests(unittest.TestCase):
         self.assertEqual(len(set(optimizer_ids)), 1)
         self.assertEqual(state_call_counts, [1, 2])
         self.assertEqual(results["stages"][0]["optimizer_id"], results["stages"][1]["optimizer_id"])
+        self.assertIn("runtime_flags", results)
+        self.assertFalse(bool(results["runtime_flags"]["used_backtracking"]))
 
 
 if __name__ == "__main__":

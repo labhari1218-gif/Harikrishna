@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pickle
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Callable, Iterable, Sequence
 
@@ -51,6 +51,7 @@ class FactKGPVDatasetGraph(FactKGDatasetGraph):
         claim_max_length: int = 256,
         require_pv_metadata: bool = False,
         require_claim_triple_cache: bool = False,
+        include_s_pool: bool = True,
         add_reverse_edges: bool = True,
         auto_precompute: bool = True,
         precompute_batch_size: int = 32,
@@ -79,6 +80,7 @@ class FactKGPVDatasetGraph(FactKGDatasetGraph):
         self.claim_max_length = int(claim_max_length)
         self.require_pv_metadata = bool(require_pv_metadata)
         self.require_claim_triple_cache = bool(require_claim_triple_cache)
+        self.include_s_pool = bool(include_s_pool)
         self.add_reverse_edges = bool(add_reverse_edges)
         self.claim_triple_encoder = claim_triple_encoder
         self.claim_triple_model_name = claim_triple_model_name
@@ -88,7 +90,19 @@ class FactKGPVDatasetGraph(FactKGDatasetGraph):
         self._encoder_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         self.claim_triple_embeddings = self._load_claim_triple_cache()
-        self._ac_triples_by_index = [self._parse_ac_triples_for_index(idx) for idx in range(self.length)]
+        self._all_triples_by_index = [self._parse_triples_for_index(idx) for idx in range(self.length)]
+        self._ac_triples_by_index = [
+            [triple for triple in triples if triple.pool in {"A", "C"}]
+            for triples in self._all_triples_by_index
+        ]
+        self._all_s_triples_by_index = [
+            [triple for triple in triples if triple.pool == "S"]
+            for triples in self._all_triples_by_index
+        ]
+        if self.include_s_pool:
+            self._s_triples_by_index = [list(rows) for rows in self._all_s_triples_by_index]
+        else:
+            self._s_triples_by_index = [[] for _ in range(self.length)]
         if auto_precompute:
             self.precompute_claim_triple_embeddings()
 
@@ -102,6 +116,7 @@ class FactKGPVDatasetGraph(FactKGDatasetGraph):
 
         triples = self._get_ac_triples(idx)
         graph = self._build_graph(claim_id=claim_id, claim_text=claim_text, triples=triples)
+        graph.dataset_index = torch.tensor([idx], dtype=torch.long)
         return claim_text, graph, label
 
     @staticmethod
@@ -275,7 +290,7 @@ class FactKGPVDatasetGraph(FactKGDatasetGraph):
                 return list(connected) + list(walkable)
         return claim_evidence
 
-    def _parse_ac_triples_for_index(self, idx: int) -> list[TripleRecord]:
+    def _parse_triples_for_index(self, idx: int) -> list[TripleRecord]:
         raw_rows = self._iter_raw_triples(self.evidence_rows[idx])
         if raw_rows is None:
             return []
@@ -283,12 +298,56 @@ class FactKGPVDatasetGraph(FactKGDatasetGraph):
         parsed: list[TripleRecord] = []
         for row_idx, raw_row in enumerate(raw_rows):
             triple = self._parse_triple_row(raw_row, row_idx=row_idx)
-            if triple.pool in {"A", "C"}:
-                parsed.append(triple)
+            parsed.append(triple)
         return parsed
 
     def _get_ac_triples(self, idx: int) -> list[TripleRecord]:
         return list(self._ac_triples_by_index[idx])
+
+    def _get_s_triples(self, idx: int) -> list[TripleRecord]:
+        return list(self._s_triples_by_index[idx])
+
+    @staticmethod
+    def _triple_to_row(triple: TripleRecord) -> dict:
+        row = asdict(triple)
+        row["raw_triple"] = [triple.subject, triple.relation, triple.object]
+        return row
+
+    def get_recovery_triplets(self, idx: int) -> tuple[list[dict], list[dict]]:
+        active = [self._triple_to_row(triple) for triple in self._get_ac_triples(idx)]
+        suspended = [self._triple_to_row(triple) for triple in self._get_s_triples(idx)]
+        return active, suspended
+
+    def build_graph_from_recovery_rows(self, index: int, active_rows: Sequence[dict]) -> Data:
+        if index < 0 or index >= self.length:
+            raise IndexError(f"index out of range for recovery graph build: {index}")
+        triples: list[TripleRecord] = []
+        for row_idx, row in enumerate(active_rows):
+            triple = self._parse_triple_row(row, row_idx=row_idx)
+            if triple.pool in {"A", "C"}:
+                triples.append(triple)
+        claim_id = self.claim_ids[index]
+        claim_text = self.inputs[index]
+        graph = self._build_graph(claim_id=claim_id, claim_text=claim_text, triples=triples)
+        graph.dataset_index = torch.tensor([index], dtype=torch.long)
+        return graph
+
+    def get_pool_summary(self) -> dict[str, float | int | bool]:
+        total_claims = int(self.length)
+        ac_total = int(sum(len(rows) for rows in self._ac_triples_by_index))
+        s_available_total = int(sum(len(rows) for rows in self._all_s_triples_by_index))
+        s_retained_total = int(sum(len(rows) for rows in self._s_triples_by_index))
+        claims_with_s_available = int(sum(1 for rows in self._all_s_triples_by_index if rows))
+        claims_with_s_retained = int(sum(1 for rows in self._s_triples_by_index if rows))
+        return {
+            "include_s_pool": bool(self.include_s_pool),
+            "claims_total": total_claims,
+            "ac_triples_total": ac_total,
+            "s_pool_available_total": s_available_total,
+            "s_pool_retained_total": s_retained_total,
+            "claims_with_s_pool_available": claims_with_s_available,
+            "claims_with_s_pool_retained": claims_with_s_retained,
+        }
 
     def _cache_key(self, claim_id: str, triple: TripleRecord) -> tuple[str, str]:
         return claim_id, triple.evidence_id
@@ -411,6 +470,8 @@ class FactKGPVDatasetGraph(FactKGDatasetGraph):
             claim_text = self.inputs[idx]
             claim_id = self.claim_ids[idx]
             triples = self._get_ac_triples(idx)
+            if self.include_s_pool:
+                triples = triples + self._get_s_triples(idx)
             for triple in triples:
                 key = self._cache_key(claim_id=claim_id, triple=triple)
                 if not force and key in self.claim_triple_embeddings:
