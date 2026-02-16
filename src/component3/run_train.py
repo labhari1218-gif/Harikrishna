@@ -9,7 +9,8 @@ import json
 import math
 from pathlib import Path
 import random
-from typing import Any
+import re
+from typing import Any, Mapping, Sequence
 
 import torch.nn as nn  # type: ignore
 
@@ -32,6 +33,12 @@ class Component3TrainConfig:
     output_root: str = "runs"
     model_name: str = "pv_qagnn_component3"
     dataset_name: str = "factkg"
+    model_mode: str = "pv_qagnn"
+    encoder_tune: str = "none"
+    unfreeze_last_n: int = 2
+    lora_r: int = 8
+    lora_alpha: float = 16.0
+    lora_dropout: float = 0.05
     subgraph_type: str = "direct_filled"
     fever_data_root: str = "data/fever"
     fever_component1_logs_root: str = "logs/component1_fever"
@@ -44,6 +51,7 @@ class Component3TrainConfig:
     non_blocking_transfers: bool = False
     factkg_claim_triple_cache_path: str = "data/claim_triple_embeddings.pkl"
     factkg_require_claim_triple_cache: bool = False
+    factkg_require_pv_metadata: bool = True
     factkg_precompute_batch_size: int = 32
     factkg_include_s_pool: bool = True
     deterministic_mode: bool = False
@@ -60,6 +68,8 @@ class Component3TrainConfig:
     gnn_dropout: float = 0.3
     classifier_dropout: float = 0.2
     lm_layer_dropout: float = 0.4
+    edge_message_dim: int = 64
+    edge_encoder_dropout: float = 0.1
     gnn_batch_norm: bool = True
     lambda_evidence: float = 0.1
     enable_component5: bool = False
@@ -86,8 +96,17 @@ class Component3TrainConfig:
     backtracking_margin_threshold: float = 0.15
     backtracking_min_a: int = 5
     backtracking_rel_threshold: float = 0.3
+    backtracking_promotion_gamma: float = 0.0
+    backtracking_directional_delta: float = 0.0
+    backtracking_challenge_mode: bool = False
+    backtracking_hunger_mode: str = "percentile"
+    backtracking_hunger_percentile: float = 0.9
     backtracking_max_rounds: int = 2
     backtracking_top_k: int = 3
+    backtracking_do_no_harm_eps: float = 0.002
+    backtracking_flip_conf_min: float = 0.1
+    backtracking_flip_abslogit_eps: float = 0.002
+    backtracking_candidate_log_top_n: int = 25
     gradient_accumulation_steps: int = 4
     enforce_no_collapse_gate: bool = True
 
@@ -601,7 +620,149 @@ def _subset_dataloader(
     return DataLoader(subset, **kwargs)
 
 
-def _build_model(config: Component3TrainConfig):
+def _infer_edge_feature_dim_from_loader(loader: Any) -> int:
+    dataset = getattr(loader, "dataset", None)
+    if dataset is None:
+        raise ValueError("Cannot infer edge feature dim: loader has no dataset.")
+    if len(dataset) <= 0:
+        raise ValueError("Cannot infer edge feature dim: dataset is empty.")
+
+    sample = dataset[0]
+    if not isinstance(sample, (list, tuple)) or len(sample) < 2:
+        raise ValueError("Cannot infer edge feature dim: expected dataset item (claim_text, graph, label).")
+    graph = sample[1]
+    edge_attr = getattr(graph, "edge_attr", None)
+    if edge_attr is None or getattr(edge_attr, "dim", lambda: 0)() != 2:
+        raise ValueError("Cannot infer edge feature dim: graph missing rank-2 `edge_attr`.")
+    edge_dim = int(edge_attr.size(1))
+    if edge_dim < 5:
+        raise ValueError(
+            "Cannot infer edge feature dim: expected trailing PV metadata "
+            f"[p_ent,p_con,p_neu,rel,pool_id], got edge_dim={edge_dim}."
+        )
+    return edge_dim
+
+
+class ClaimOnlyBinaryModel(nn.Module):
+    """Claim-only binary verifier that ignores graph inputs but keeps label/metric path identical."""
+
+    def __init__(
+        self,
+        *,
+        model_name: str,
+        classifier_dropout: float,
+        use_roberta: bool,
+    ) -> None:
+        super().__init__()
+        from models import get_bert_model
+
+        self.name = model_name
+        self.bert = get_bert_model(
+            model_name=f"bert_{model_name}",
+            include_classifier=False,
+            freeze_base_model=False,
+            freeze_up_to_pooler=False,
+            use_roberta=use_roberta,
+        )
+        self.classifier_dropout_layer = nn.Dropout(float(classifier_dropout))
+        self.classifier = nn.Linear(int(self.bert.config.hidden_size), 1)
+
+    def forward(self, claim_tokens, _data_graph):
+        claim_outputs = self.bert(**claim_tokens)
+        claim_embeddings = claim_outputs.last_hidden_state[:, 0]
+        claim_embeddings = self.classifier_dropout_layer(claim_embeddings)
+        logits = self.classifier(claim_embeddings)
+        return logits.squeeze(1)
+
+
+def _build_claim_only_model(config: Component3TrainConfig) -> ClaimOnlyBinaryModel:
+    return ClaimOnlyBinaryModel(
+        model_name=str(config.model_name),
+        classifier_dropout=float(config.classifier_dropout),
+        use_roberta=bool(config.use_roberta),
+    )
+
+
+def _apply_lora_adapter(model: Any, config: Component3TrainConfig):
+    if str(config.encoder_tune).strip().lower() != "lora":
+        return model
+    if not hasattr(model, "bert"):
+        raise ValueError("LoRA tuning requires a model with a `bert` encoder attribute.")
+    try:
+        from peft import LoraConfig, TaskType, get_peft_model  # type: ignore
+    except Exception as exc:
+        raise RuntimeError(
+            "LoRA requested but `peft` is unavailable. Install with `pip install peft` in the active env."
+        ) from exc
+
+    lora_cfg = LoraConfig(
+        task_type=TaskType.FEATURE_EXTRACTION,
+        inference_mode=False,
+        r=int(config.lora_r),
+        lora_alpha=float(config.lora_alpha),
+        lora_dropout=float(config.lora_dropout),
+        bias="none",
+        target_modules=["query", "key", "value"],
+    )
+    model.bert = get_peft_model(model.bert, lora_cfg)
+    return model
+
+
+def _collect_encoder_layer_ids(model: Any) -> list[int]:
+    layer_ids: set[int] = set()
+    pattern = re.compile(r"\.encoder\.layer\.(\d+)\.")
+    for name, _ in model.named_parameters():
+        match = pattern.search(str(name))
+        if match is None:
+            continue
+        layer_ids.add(int(match.group(1)))
+    return sorted(layer_ids)
+
+
+def _is_lora_parameter(param_name: str) -> bool:
+    lowered = str(param_name).lower()
+    return ("lora_" in lowered) or (".lora." in lowered)
+
+
+def _apply_encoder_tune_trainable_parameters(
+    model: Any,
+    *,
+    encoder_tune: str,
+    unfreeze_last_n: int,
+) -> None:
+    mode = str(encoder_tune).strip()
+    if mode == "none":
+        return
+    if mode == "lora":
+        for name, parameter in model.named_parameters():
+            if _is_lora_parameter(name):
+                parameter.requires_grad = True
+        return
+    if mode != "unfreeze_lastN":
+        raise ValueError("Argument `encoder_tune` must be one of: none, lora, unfreeze_lastN.")
+
+    layer_ids = _collect_encoder_layer_ids(model)
+    if not layer_ids:
+        return
+    keep = max(1, int(unfreeze_last_n))
+    target_layers = set(layer_ids[-keep:])
+    for name, parameter in model.named_parameters():
+        if not _is_bert_parameter(name):
+            continue
+        match = re.search(r"\.encoder\.layer\.(\d+)\.", str(name))
+        if match is None:
+            continue
+        if int(match.group(1)) in target_layers:
+            parameter.requires_grad = True
+
+
+def _build_model(config: Component3TrainConfig, *, edge_feature_dim: int):
+    model_mode = str(config.model_mode).strip().lower()
+    if model_mode == "claim_only":
+        return _build_claim_only_model(config)
+    if model_mode != "pv_qagnn":
+        raise ValueError("Argument `model_mode` must be one of: pv_qagnn, claim_only.")
+
     from component3.pv_qagnn import PV_QAGNN
 
     return PV_QAGNN(
@@ -615,7 +776,11 @@ def _build_model(config: Component3TrainConfig):
         gnn_dropout=config.gnn_dropout,
         classifier_dropout=config.classifier_dropout,
         lm_layer_dropout=config.lm_layer_dropout,
+        edge_feature_dim=int(edge_feature_dim),
+        edge_message_dim=int(config.edge_message_dim),
+        edge_encoder_dropout=float(config.edge_encoder_dropout),
         use_roberta=config.use_roberta,
+        promotion_gamma=config.backtracking_promotion_gamma,
     )
 
 
@@ -668,7 +833,7 @@ def _build_factkg_loaders(config: Component3TrainConfig):
             evidence=evidence_rows,
             claim_triple_cache_path=config.factkg_claim_triple_cache_path,
             claim_max_length=config.max_seq_len,
-            require_pv_metadata=False,
+            require_pv_metadata=bool(config.use_component1_pairs and config.factkg_require_pv_metadata),
             include_s_pool=config.factkg_include_s_pool,
             add_reverse_edges=True,
             auto_precompute=False,
@@ -867,10 +1032,65 @@ def _validate_component1_pair_coverage(config: Component3TrainConfig, coverage_s
                 f"({split_cov.get('pairs_file')}). The file may be malformed."
             )
 
+        if str(config.dataset_name).strip().lower() == "factkg":
+            pool_summary = split_cov.get("pool_summary")
+            if not isinstance(pool_summary, dict):
+                raise RuntimeError(
+                    f"Missing pool_summary for FactKG split `{split}`. "
+                    "Cannot enforce strict artifact validation."
+                )
+            if "fallback_total" not in pool_summary or "missing_embeddings_total" not in pool_summary:
+                raise RuntimeError(
+                    f"Pool summary for split `{split}` is missing strict validation fields "
+                    "(`fallback_total`, `missing_embeddings_total`)."
+                )
+
+            fallback_total = int(pool_summary.get("fallback_total", 0))
+            missing_embeddings_total = int(pool_summary.get("missing_embeddings_total", 0))
+            claims_using_fallback = int(split_cov.get("claims_using_fallback", 0))
+            fallback_edge_rows = int(split_cov.get("fallback_edge_rows", 0))
+            pair_rows_missing_schema_version = int(split_cov.get("pair_rows_missing_schema_version", 0))
+            pair_rows_non_v2_schema = int(split_cov.get("pair_rows_non_v2_schema", 0))
+            if config.factkg_require_pv_metadata and fallback_total > 0:
+                raise RuntimeError(
+                    f"FactKG split `{split}` contains {fallback_total} fallback evidence rows "
+                    "while strict PV metadata mode is enabled."
+                )
+            if config.factkg_require_pv_metadata and (claims_using_fallback > 0 or fallback_edge_rows > 0):
+                raise RuntimeError(
+                    f"FactKG split `{split}` used Component1 fallback paths for {claims_using_fallback} claims "
+                    f"({fallback_edge_rows} fallback edges) while strict PV metadata mode is enabled."
+                )
+            if missing_embeddings_total > 0:
+                raise RuntimeError(
+                    f"FactKG split `{split}` references {missing_embeddings_total} missing entity embeddings. "
+                    "Populate entity embeddings before training."
+                )
+            if config.factkg_require_pv_metadata and pair_rows_missing_schema_version > 0:
+                raise RuntimeError(
+                    f"FactKG split `{split}` has {pair_rows_missing_schema_version} pair rows without "
+                    "schema_version=2. Regenerate Component1 logs before strict training."
+                )
+            if config.factkg_require_pv_metadata and pair_rows_non_v2_schema > 0:
+                raise RuntimeError(
+                    f"FactKG split `{split}` has {pair_rows_non_v2_schema} pair rows with non-v2 schema. "
+                    "Regenerate Component1 logs before strict training."
+                )
+
 
 def _set_optimizer_lr(optimizer: Any, lr: float) -> None:
     for group in optimizer.param_groups:
         group["lr"] = float(lr)
+
+
+def _is_subset_run(config: Component3TrainConfig) -> bool:
+    return int(config.train_subset_size) > 0 or int(config.val_subset_size) > 0
+
+
+def _should_enforce_no_collapse_gate(config: Component3TrainConfig) -> bool:
+    # Use no-collapse as a hard gate for full runs only; subset/smoke runs keep
+    # the signal in metrics but should not terminate the process.
+    return bool(config.enforce_no_collapse_gate and (not _is_subset_run(config)))
 
 
 def _evaluate_no_collapse_gate(
@@ -940,6 +1160,55 @@ def _safe_sigmoid(logit: float) -> float:
     return z / (1.0 + z)
 
 
+def _decode_binary_prediction(prediction: Mapping[str, Any]) -> tuple[int, float]:
+    if "logit" in prediction and prediction["logit"] is not None:
+        prob_one = _safe_sigmoid(float(prediction["logit"]))
+        return int(prob_one > 0.5), float(prob_one)
+
+    probabilities = prediction.get("probabilities")
+    if isinstance(probabilities, list) and len(probabilities) >= 2:
+        prob_one = float(probabilities[0])
+        return int(prob_one >= float(probabilities[1])), float(prob_one)
+    if isinstance(probabilities, tuple) and len(probabilities) >= 2:
+        prob_one = float(probabilities[0])
+        return int(prob_one >= float(probabilities[1])), float(prob_one)
+
+    pred_value = prediction.get("pred")
+    if pred_value is not None:
+        try:
+            pred_int = int(pred_value)
+            return int(pred_int == 1), float(pred_int == 1)
+        except (TypeError, ValueError):
+            pass
+
+    return 0, 0.5
+
+
+def _prediction_logit_value(prediction: Mapping[str, Any]) -> float:
+    if "logit" in prediction and prediction["logit"] is not None:
+        try:
+            return float(prediction["logit"])
+        except (TypeError, ValueError):
+            return 0.0
+
+    _pred, prob_one = _decode_binary_prediction(prediction)
+    clipped = min(1.0 - 1e-6, max(1e-6, float(prob_one)))
+    return float(math.log(clipped / (1.0 - clipped)))
+
+
+def _prediction_edge_mass_map(prediction: Mapping[str, Any], key: str) -> dict[str, float]:
+    raw_value = prediction.get(key)
+    if not isinstance(raw_value, dict):
+        return {}
+    normalized: dict[str, float] = {}
+    for raw_key, raw_mass in raw_value.items():
+        try:
+            normalized[str(raw_key)] = float(raw_mass)
+        except (TypeError, ValueError):
+            continue
+    return normalized
+
+
 def _slice_single_claim_tokens(claim_tokens: Any, index: int, device: Any) -> dict[str, Any]:
     return {
         key: value[index: index + 1].to(device)
@@ -991,6 +1260,13 @@ def _evaluate_factkg_with_backtracking(
             margin_threshold=float(config.backtracking_margin_threshold),
             min_a=int(config.backtracking_min_a),
             rel_threshold=float(config.backtracking_rel_threshold),
+            directional_delta=float(config.backtracking_directional_delta),
+            challenge_mode=bool(config.backtracking_challenge_mode),
+            hunger_mode=str(config.backtracking_hunger_mode),
+            hunger_rel_percentile=float(config.backtracking_hunger_percentile),
+            do_no_harm_margin_eps=float(config.backtracking_do_no_harm_eps),
+            flip_conf_min=float(config.backtracking_flip_conf_min),
+            flip_abslogit_eps=float(config.backtracking_flip_abslogit_eps),
         )
 
     total_loss = 0.0
@@ -1005,10 +1281,17 @@ def _evaluate_factkg_with_backtracking(
     backtracking_promotions_total = 0
     backtracking_attempted_claims = 0
     claims_with_s_pool = 0
+    recovery_candidates_ranked_total = 0
+    recovery_candidates_logged_total = 0
+    backtracking_rounds_total = 0
+    backtracking_rounds_reverted = 0
+    backtracking_rounds_top1_fallback = 0
+    backtracking_rounds_accepted = 0
 
     predictions_path = run_dir / "predictions.jsonl"
     recovery_actions_path = run_dir / "recovery_actions.jsonl"
     recovery_candidates_path = run_dir / "recovery_candidates.jsonl"
+    candidate_log_top_n = max(0, int(config.backtracking_candidate_log_top_n))
 
     model_device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model.to(model_device)
@@ -1045,6 +1328,24 @@ def _evaluate_factkg_with_backtracking(
                         claims_with_s_pool += 1
                     backtracking_attempted_claims += 1
 
+                    add_reverse_edges = bool(getattr(dataset, "add_reverse_edges", True))
+
+                    def _edge_evidence_ids_from_active_rows(current_active_rows: Sequence[Any]) -> list[str]:
+                        edge_evidence_ids: list[str] = []
+                        for row_idx, row in enumerate(current_active_rows):
+                            if isinstance(row, dict):
+                                pool = str(row.get("pool", "A")).upper()
+                                evidence_id = str(row.get("evidence_id", f"triple_{row_idx}"))
+                            else:
+                                pool = str(getattr(row, "pool", "A")).upper()
+                                evidence_id = str(getattr(row, "evidence_id", f"triple_{row_idx}"))
+                            if pool not in {"A", "C"}:
+                                continue
+                            edge_evidence_ids.append(evidence_id)
+                            if add_reverse_edges:
+                                edge_evidence_ids.append(evidence_id)
+                        return edge_evidence_ids
+
                     def _predictor(current_active_rows):
                         rebuilt_graph = dataset.build_graph_from_recovery_rows(
                             index=global_idx,
@@ -1054,10 +1355,33 @@ def _evaluate_factkg_with_backtracking(
                         claim_logit_tensor = model(single_tokens, rebuilt_batch).view(-1)
                         logit_value = float(claim_logit_tensor[0].item())
                         prob_value = _safe_sigmoid(logit_value)
+                        base_model = getattr(model, "base_model", model)
+                        raw_sup = getattr(base_model, "latest_edge_weight_sup", None)
+                        raw_ref = getattr(base_model, "latest_edge_weight_ref", None)
+                        stream_mass_sup = 0.0
+                        stream_mass_ref = 0.0
+                        edge_mass_sup_by_id: dict[str, float] = {}
+                        edge_mass_ref_by_id: dict[str, float] = {}
+                        if raw_sup is not None and raw_ref is not None:
+                            sup_values = raw_sup.view(-1).abs().detach().cpu()
+                            ref_values = raw_ref.view(-1).abs().detach().cpu()
+                            stream_mass_sup = float(sup_values.sum().item())
+                            stream_mass_ref = float(ref_values.sum().item())
+                            edge_evidence_ids = _edge_evidence_ids_from_active_rows(current_active_rows)
+                            if len(edge_evidence_ids) == int(sup_values.shape[0]):
+                                for edge_idx, evidence_id in enumerate(edge_evidence_ids):
+                                    sup_mass = float(sup_values[edge_idx].item())
+                                    ref_mass = float(ref_values[edge_idx].item())
+                                    edge_mass_sup_by_id[evidence_id] = edge_mass_sup_by_id.get(evidence_id, 0.0) + sup_mass
+                                    edge_mass_ref_by_id[evidence_id] = edge_mass_ref_by_id.get(evidence_id, 0.0) + ref_mass
                         return {
                             "logit": logit_value,
                             "probabilities": [prob_value, 1.0 - prob_value],
                             "margin": abs((2.0 * prob_value) - 1.0),
+                            "stream_mass_sup": stream_mass_sup,
+                            "stream_mass_ref": stream_mass_ref,
+                            "edge_mass_sup_by_id": edge_mass_sup_by_id,
+                            "edge_mass_ref_by_id": edge_mass_ref_by_id,
                         }
 
                     backtracking_result = controller.run(
@@ -1106,22 +1430,183 @@ def _evaluate_factkg_with_backtracking(
                         backtracking_promotions_total += len(promoted_ids)
 
                     for action in backtracking_result.actions:
+                        backtracking_rounds_total += 1
+                        if bool(action.do_no_harm_reverted):
+                            backtracking_rounds_reverted += 1
+                        else:
+                            backtracking_rounds_accepted += 1
+                            if str(action.selection_mode) == "top1_fallback":
+                                backtracking_rounds_top1_fallback += 1
+                        ranked_count = len(action.ranked_candidates)
+                        logged_count = min(ranked_count, candidate_log_top_n)
+                        recovery_candidates_ranked_total += ranked_count
+
+                        ranked_connects_components = 0
+                        ranked_rel_min: float | None = None
+                        ranked_rel_max: float | None = None
+                        for candidate in action.ranked_candidates:
+                            if bool(candidate.connects_components):
+                                ranked_connects_components += 1
+                            rel_value = float(candidate.rel)
+                            if ranked_rel_min is None or rel_value < ranked_rel_min:
+                                ranked_rel_min = rel_value
+                            if ranked_rel_max is None or rel_value > ranked_rel_max:
+                                ranked_rel_max = rel_value
+
+                        reason_tokens: list[str] = []
+                        if bool(action.decision.low_confidence):
+                            reason_tokens.append("low_confidence")
+                        if bool(action.decision.low_connectivity):
+                            reason_tokens.append("low_connectivity")
+                        if bool(action.decision.evidence_hunger):
+                            reason_tokens.append("evidence_hunger")
+
+                        before_sup_map = _prediction_edge_mass_map(action.prediction_before, "edge_mass_sup_by_id")
+                        before_ref_map = _prediction_edge_mass_map(action.prediction_before, "edge_mass_ref_by_id")
+                        after_sup_map = _prediction_edge_mass_map(action.prediction_after, "edge_mass_sup_by_id")
+                        after_ref_map = _prediction_edge_mass_map(action.prediction_after, "edge_mass_ref_by_id")
+                        selected_ids_list = list(action.selected_evidence_ids)
+                        promoted_edge_influence: list[dict[str, float | str]] = []
+                        promoted_sup_before = 0.0
+                        promoted_sup_after = 0.0
+                        promoted_ref_before = 0.0
+                        promoted_ref_after = 0.0
+                        for evidence_id in selected_ids_list:
+                            sup_before = float(before_sup_map.get(evidence_id, 0.0))
+                            sup_after = float(after_sup_map.get(evidence_id, 0.0))
+                            ref_before = float(before_ref_map.get(evidence_id, 0.0))
+                            ref_after = float(after_ref_map.get(evidence_id, 0.0))
+                            promoted_sup_before += sup_before
+                            promoted_sup_after += sup_after
+                            promoted_ref_before += ref_before
+                            promoted_ref_after += ref_after
+                            promoted_edge_influence.append(
+                                {
+                                    "evidence_id": str(evidence_id),
+                                    "edge_weight_sup_before": sup_before,
+                                    "edge_weight_sup_after": sup_after,
+                                    "edge_weight_ref_before": ref_before,
+                                    "edge_weight_ref_after": ref_after,
+                                }
+                            )
+                        stream_mass_sup_before = float(action.prediction_before.get("stream_mass_sup", 0.0))
+                        stream_mass_sup_after = float(action.prediction_after.get("stream_mass_sup", 0.0))
+                        stream_mass_ref_before = float(action.prediction_before.get("stream_mass_ref", 0.0))
+                        stream_mass_ref_after = float(action.prediction_after.get("stream_mass_ref", 0.0))
+                        promoted_share_sup_before = (
+                            promoted_sup_before / stream_mass_sup_before
+                            if stream_mass_sup_before > 0.0 else 0.0
+                        )
+                        promoted_share_sup_after = (
+                            promoted_sup_after / stream_mass_sup_after
+                            if stream_mass_sup_after > 0.0 else 0.0
+                        )
+                        promoted_share_ref_before = (
+                            promoted_ref_before / stream_mass_ref_before
+                            if stream_mass_ref_before > 0.0 else 0.0
+                        )
+                        promoted_share_ref_after = (
+                            promoted_ref_after / stream_mass_ref_after
+                            if stream_mass_ref_after > 0.0 else 0.0
+                        )
+
                         action_row = {
                             "claim_id": claim_id,
                             "triggered": bool(backtracking_result.triggered),
                             "round_index": int(action.round_index),
-                            "selected_evidence_ids": list(action.selected_evidence_ids),
+                            "selected_evidence_ids": selected_ids_list,
+                            "promoted_s_to_a": selected_ids_list,
                             "margin_before": float(action.margin_before),
+                            "tentative_margin": float(action.tentative_margin),
+                            "tentative_margin_delta": float(action.tentative_margin - action.margin_before),
                             "margin_after": float(action.margin_after),
+                            "margin_delta": float(action.margin_after - action.margin_before),
+                            "final_margin": float(action.margin_after),
+                            "final_margin_delta": float(action.margin_after - action.margin_before),
+                            "tentative_logit": float(_prediction_logit_value(action.tentative_prediction)),
+                            "final_logit": float(_prediction_logit_value(action.prediction_after)),
                             "low_confidence": bool(action.decision.low_confidence),
                             "low_connectivity": bool(action.decision.low_connectivity),
                             "evidence_hunger": bool(action.decision.evidence_hunger),
                             "active_high_rel_count": int(action.decision.active_high_rel_count),
+                            "active_high_rel_required": int(action.decision.active_high_rel_required),
+                            "hunger_rel_threshold": float(action.decision.hunger_rel_threshold),
+                            "hunger_mode": str(action.decision.hunger_mode),
+                            "recovery_mode": str(action.recovery_mode),
+                            "selection_mode": str(action.selection_mode),
+                            "do_no_harm_reverted": bool(action.do_no_harm_reverted),
+                            "reverted": bool(action.do_no_harm_reverted),
+                            "directional_delta": float(config.backtracking_directional_delta),
+                            "challenge_mode": bool(config.backtracking_challenge_mode),
+                            "promotion_gamma": float(config.backtracking_promotion_gamma),
+                            "flip_conf_min": float(config.backtracking_flip_conf_min),
+                            "flip_abslogit_eps": float(config.backtracking_flip_abslogit_eps),
+                            "stream_mass_sup_before": stream_mass_sup_before,
+                            "stream_mass_sup_after": stream_mass_sup_after,
+                            "stream_mass_ref_before": stream_mass_ref_before,
+                            "stream_mass_ref_after": stream_mass_ref_after,
+                            "promoted_mass_sup_before": promoted_sup_before,
+                            "promoted_mass_sup_after": promoted_sup_after,
+                            "promoted_mass_ref_before": promoted_ref_before,
+                            "promoted_mass_ref_after": promoted_ref_after,
+                            "promoted_share_sup_before": promoted_share_sup_before,
+                            "promoted_share_sup_after": promoted_share_sup_after,
+                            "promoted_share_ref_before": promoted_share_ref_before,
+                            "promoted_share_ref_after": promoted_share_ref_after,
+                            "promoted_edge_influence": promoted_edge_influence,
+                            "reason": "+".join(reason_tokens) if reason_tokens else "trigger_policy",
+                            "ranked_candidates_total": int(ranked_count),
+                            "ranked_candidates_logged": int(logged_count),
+                            "logged_count": int(logged_count),
+                            "ranked_candidates_connects_components_total": int(ranked_connects_components),
+                            "bridge_count": int(ranked_connects_components),
+                            "ranked_candidates_rel_min": ranked_rel_min,
+                            "rel_min": ranked_rel_min,
+                            "ranked_candidates_rel_max": ranked_rel_max,
+                            "rel_max": ranked_rel_max,
                         }
+                        pred_before, prob_before = _decode_binary_prediction(action.prediction_before)
+                        pred_tentative, prob_tentative = _decode_binary_prediction(action.tentative_prediction)
+                        pred_after, prob_after = _decode_binary_prediction(action.prediction_after)
+                        action_row.update(
+                            {
+                                "label": int(label_value),
+                                "pred_before": int(pred_before),
+                                "pred_after": int(pred_after),
+                                "prob_before": float(prob_before),
+                                "prob_after": float(prob_after),
+                                "tentative_pred": int(pred_tentative),
+                                "tentative_prob": float(prob_tentative),
+                                "final_pred": int(pred_after),
+                                "final_prob": float(prob_after),
+                                "tentative_correct": bool(pred_tentative == int(label_value)),
+                                "final_correct": bool(pred_after == int(label_value)),
+                                "correct_before": bool(pred_before == int(label_value)),
+                                "correct_after": bool(pred_after == int(label_value)),
+                                "flipped_label_tentative": bool(pred_before != pred_tentative),
+                                "flipped_to_correct_tentative": bool(
+                                    (pred_before != pred_tentative)
+                                    and (pred_tentative == int(label_value))
+                                    and (pred_before != int(label_value))
+                                ),
+                                "flipped_label": bool(pred_before != pred_after),
+                                "flipped_to_correct": bool(
+                                    (pred_before != pred_after)
+                                    and (pred_after == int(label_value))
+                                    and (pred_before != int(label_value))
+                                ),
+                                "tentative_flip_to_correct_but_reverted": bool(
+                                    (pred_before != pred_tentative)
+                                    and (pred_tentative == int(label_value))
+                                    and (pred_before != int(label_value))
+                                    and bool(action.do_no_harm_reverted)
+                                ),
+                            }
+                        )
                         recovery_actions_fp.write(json.dumps(action_row) + "\n")
 
                         selected_set = set(action.selected_evidence_ids)
-                        for rank_idx, candidate in enumerate(action.ranked_candidates, start=1):
+                        for rank_idx, candidate in enumerate(action.ranked_candidates[:logged_count], start=1):
                             candidate_row = {
                                 "claim_id": claim_id,
                                 "round_index": int(action.round_index),
@@ -1131,9 +1616,22 @@ def _evaluate_factkg_with_backtracking(
                                 "bridge_bonus": float(candidate.bridge_bonus),
                                 "rel": float(candidate.rel),
                                 "salience_x_pv": float(candidate.salience_x_pv),
+                                "p_ent": float(candidate.p_ent),
+                                "p_con": float(candidate.p_con),
+                                "pv_confidence": float(candidate.pv_confidence),
+                                "semantic_score": float(candidate.semantic_score),
+                                "bridge_semantic_score": float(candidate.bridge_semantic_score),
+                                "directional_support_score": float(candidate.p_ent - candidate.p_con),
+                                "directional_refute_score": float(candidate.p_con - candidate.p_ent),
                                 "selected": bool(candidate.evidence_id in selected_set),
+                                "ranked_candidates_total": int(ranked_count),
+                                "logged_count": int(logged_count),
+                                "bridge_count": int(ranked_connects_components),
+                                "rel_min": ranked_rel_min,
+                                "rel_max": ranked_rel_max,
                             }
                             recovery_candidates_fp.write(json.dumps(candidate_row) + "\n")
+                            recovery_candidates_logged_total += 1
 
                 predictions_row = {
                     "claim_id": claim_id,
@@ -1146,6 +1644,42 @@ def _evaluate_factkg_with_backtracking(
                     "backtracking_triggered": bool(backtracking_result.triggered) if backtracking_result is not None else False,
                     "promoted_evidence_ids": list(promoted_ids),
                 }
+                if backtracking_result is not None:
+                    pred_before_claim, prob_before_claim = _decode_binary_prediction(backtracking_result.initial_prediction)
+                    after_sup_map = _prediction_edge_mass_map(backtracking_result.final_prediction, "edge_mass_sup_by_id")
+                    after_ref_map = _prediction_edge_mass_map(backtracking_result.final_prediction, "edge_mass_ref_by_id")
+                    promoted_sup_after = float(sum(after_sup_map.get(eid, 0.0) for eid in promoted_ids))
+                    promoted_ref_after = float(sum(after_ref_map.get(eid, 0.0) for eid in promoted_ids))
+                    stream_sup_before = float(backtracking_result.initial_prediction.get("stream_mass_sup", 0.0))
+                    stream_ref_before = float(backtracking_result.initial_prediction.get("stream_mass_ref", 0.0))
+                    stream_sup_after = float(backtracking_result.final_prediction.get("stream_mass_sup", 0.0))
+                    stream_ref_after = float(backtracking_result.final_prediction.get("stream_mass_ref", 0.0))
+                    predictions_row.update(
+                        {
+                            "pred_before_backtracking": int(pred_before_claim),
+                            "prob_before_backtracking": float(prob_before_claim),
+                            "correct_before_backtracking": bool(pred_before_claim == int(label_value)),
+                            "correct_after_backtracking": bool(pred == int(label_value)),
+                            "flipped_by_backtracking": bool(pred_before_claim != pred),
+                            "flipped_to_correct": bool(
+                                (pred_before_claim != pred)
+                                and (pred == int(label_value))
+                                and (pred_before_claim != int(label_value))
+                            ),
+                            "stream_mass_sup_before": stream_sup_before,
+                            "stream_mass_ref_before": stream_ref_before,
+                            "stream_mass_sup_after": stream_sup_after,
+                            "stream_mass_ref_after": stream_ref_after,
+                            "promoted_mass_sup_after": promoted_sup_after,
+                            "promoted_mass_ref_after": promoted_ref_after,
+                            "promoted_share_sup_after": (
+                                promoted_sup_after / stream_sup_after if stream_sup_after > 0.0 else 0.0
+                            ),
+                            "promoted_share_ref_after": (
+                                promoted_ref_after / stream_ref_after if stream_ref_after > 0.0 else 0.0
+                            ),
+                        }
+                    )
                 predictions_fp.write(json.dumps(predictions_row) + "\n")
 
             claim_offset += batch_size
@@ -1176,6 +1710,18 @@ def _evaluate_factkg_with_backtracking(
         "claims_triggered": int(backtracking_claims_triggered),
         "claims_promoted": int(backtracking_claims_promoted),
         "promotions_total": int(backtracking_promotions_total),
+        "rounds_total": int(backtracking_rounds_total),
+        "rounds_reverted": int(backtracking_rounds_reverted),
+        "rounds_top1_fallback": int(backtracking_rounds_top1_fallback),
+        "rounds_accepted": int(backtracking_rounds_accepted),
+        "promotion_gamma": float(config.backtracking_promotion_gamma),
+        "directional_delta": float(config.backtracking_directional_delta),
+        "challenge_mode": bool(config.backtracking_challenge_mode),
+        "flip_conf_min": float(config.backtracking_flip_conf_min),
+        "flip_abslogit_eps": float(config.backtracking_flip_abslogit_eps),
+        "candidate_log_top_n": int(candidate_log_top_n),
+        "candidates_ranked_total": int(recovery_candidates_ranked_total),
+        "candidates_logged_total": int(recovery_candidates_logged_total),
         "recovery_actions_path": str(recovery_actions_path),
         "recovery_candidates_path": str(recovery_candidates_path),
     }
@@ -1221,16 +1767,50 @@ def run_training(
         raise ValueError("Argument `factkg_precompute_batch_size` must be >= 1.")
     if config.no_collapse_precision_accuracy_gap_min < 0.0:
         raise ValueError("Argument `no_collapse_precision_accuracy_gap_min` must be >= 0.")
+    if config.edge_message_dim <= 0:
+        raise ValueError("Argument `edge_message_dim` must be positive.")
+    if config.edge_encoder_dropout < 0.0 or config.edge_encoder_dropout > 1.0:
+        raise ValueError("Argument `edge_encoder_dropout` must be in [0, 1].")
     if config.backtracking_margin_threshold < 0.0:
         raise ValueError("Argument `backtracking_margin_threshold` must be >= 0.")
     if config.backtracking_min_a < 1:
         raise ValueError("Argument `backtracking_min_a` must be >= 1.")
     if config.backtracking_rel_threshold < 0.0:
         raise ValueError("Argument `backtracking_rel_threshold` must be >= 0.")
+    if config.backtracking_promotion_gamma < 0.0:
+        raise ValueError("Argument `backtracking_promotion_gamma` must be >= 0.")
+    if config.backtracking_directional_delta < 0.0:
+        raise ValueError("Argument `backtracking_directional_delta` must be >= 0.")
+    if str(config.backtracking_hunger_mode).strip().lower() not in {"absolute", "percentile"}:
+        raise ValueError("Argument `backtracking_hunger_mode` must be `absolute` or `percentile`.")
+    if config.backtracking_hunger_percentile <= 0.0 or config.backtracking_hunger_percentile > 1.0:
+        raise ValueError("Argument `backtracking_hunger_percentile` must be in (0, 1].")
     if config.backtracking_max_rounds < 1 or config.backtracking_max_rounds > 2:
         raise ValueError("Argument `backtracking_max_rounds` must be in [1, 2].")
     if config.backtracking_top_k < 1 or config.backtracking_top_k > 3:
         raise ValueError("Argument `backtracking_top_k` must be in [1, 3].")
+    if config.backtracking_do_no_harm_eps < 0.0:
+        raise ValueError("Argument `backtracking_do_no_harm_eps` must be >= 0.")
+    if config.backtracking_flip_conf_min < 0.0:
+        raise ValueError("Argument `backtracking_flip_conf_min` must be >= 0.")
+    if config.backtracking_flip_abslogit_eps < 0.0:
+        raise ValueError("Argument `backtracking_flip_abslogit_eps` must be >= 0.")
+    if config.backtracking_candidate_log_top_n < 0:
+        raise ValueError("Argument `backtracking_candidate_log_top_n` must be >= 0.")
+    if str(config.model_mode).strip() not in {"pv_qagnn", "claim_only"}:
+        raise ValueError("Argument `model_mode` must be one of: pv_qagnn, claim_only.")
+    if str(config.encoder_tune).strip() not in {"none", "lora", "unfreeze_lastN"}:
+        raise ValueError("Argument `encoder_tune` must be one of: none, lora, unfreeze_lastN.")
+    if int(config.unfreeze_last_n) < 1:
+        raise ValueError("Argument `unfreeze_last_n` must be >= 1.")
+    if int(config.lora_r) < 1:
+        raise ValueError("Argument `lora_r` must be >= 1.")
+    if float(config.lora_alpha) <= 0.0:
+        raise ValueError("Argument `lora_alpha` must be > 0.")
+    if float(config.lora_dropout) < 0.0 or float(config.lora_dropout) > 1.0:
+        raise ValueError("Argument `lora_dropout` must be in [0, 1].")
+    if str(config.model_mode).strip() == "claim_only" and bool(config.enable_component5):
+        raise ValueError("Argument `enable_component5` is not supported with `model_mode=claim_only`.")
 
     seed_everything(config.seed)
     if config.deterministic_mode:
@@ -1241,17 +1821,28 @@ def run_training(
     run_dir.mkdir(parents=True, exist_ok=True)
     write_config_yaml(run_dir / "config.yaml", config_to_dict(config))
 
-    if model is None:
-        model = _build_model(config)
-    wrapped_model = model if isinstance(model, MultiTaskPVModel) else MultiTaskPVModel(
-        model,
-        evidence_head_in_dim=config.gnn_out_features,
-    )
-
     coverage_stats: dict[str, Any] = {}
     if train_loader is None or val_loader is None or test_loader is None:
         train_loader, val_loader, test_loader, coverage_stats = _build_default_loaders(config)
         _validate_component1_pair_coverage(config, coverage_stats)
+
+    if model is None:
+        if str(config.model_mode).strip() == "pv_qagnn":
+            inferred_edge_feature_dim = _infer_edge_feature_dim_from_loader(train_loader)
+            model = _build_model(config, edge_feature_dim=inferred_edge_feature_dim)
+            model = _apply_lora_adapter(model, config)
+        else:
+            model = _build_claim_only_model(config)
+            model = _apply_lora_adapter(model, config)
+
+    claim_only_mode = str(config.model_mode).strip() == "claim_only"
+    if claim_only_mode:
+        wrapped_model = model
+    else:
+        wrapped_model = model if isinstance(model, MultiTaskPVModel) else MultiTaskPVModel(
+            model,
+            evidence_head_in_dim=config.gnn_out_features,
+        )
 
     train_loader = _subset_dataloader(
         train_loader,
@@ -1282,9 +1873,16 @@ def run_training(
     stage_results: list[dict[str, Any]] = []
     for stage in stages:
         configure_trainable_parameters(wrapped_model, unfreeze_pooler=stage.unfreeze_pooler)
+        _apply_encoder_tune_trainable_parameters(
+            wrapped_model,
+            encoder_tune=str(config.encoder_tune).strip(),
+            unfreeze_last_n=int(config.unfreeze_last_n),
+        )
         _set_optimizer_lr(optimizer, stage.learning_rate)
 
-        if config.enable_component5:
+        if claim_only_mode:
+            criterion = torch.nn.BCEWithLogitsLoss()
+        elif config.enable_component5:
             from component3.controller import Component5JointLossAdapter
 
             criterion = Component5JointLossAdapter(
@@ -1325,6 +1923,12 @@ def run_training(
         if best_state_dict is not None:
             wrapped_model.load_state_dict(best_state_dict)
 
+        train_acc_series = history.get("train_class_accuracy") or []
+        train_loss_series = history.get("train_class_loss") or []
+        train_acc_last_pct = float(train_acc_series[-1]) if train_acc_series else 0.0
+        train_acc_best_pct = float(max(train_acc_series)) if train_acc_series else 0.0
+        stage_last_total = float(train_loss_series[-1]) if train_loss_series else float(getattr(criterion, "last_total", 0.0))
+
         stage_results.append(
             {
                 "stage": stage.name,
@@ -1334,12 +1938,16 @@ def run_training(
                 "best_epoch": history.get("best_epoch"),
                 "best_val_loss": history.get("best_val_loss"),
                 "best_val_accuracy": history.get("best_val_accuracy"),
-                "last_loss_bce": criterion.last_bce,
-                "last_loss_evidence": criterion.last_evidence,
-                "last_loss_starvation": getattr(criterion, "last_starvation", 0.0),
-                "last_loss_counter": getattr(criterion, "last_counter", 0.0),
-                "last_loss_recovery": getattr(criterion, "last_recovery", 0.0),
-                "last_loss_total": criterion.last_total,
+                "train_accuracy_last": float(train_acc_last_pct / 100.0),
+                "train_accuracy_best": float(train_acc_best_pct / 100.0),
+                "train_accuracy_last_pct": float(train_acc_last_pct),
+                "train_accuracy_best_pct": float(train_acc_best_pct),
+                "last_loss_bce": float(getattr(criterion, "last_bce", 0.0)),
+                "last_loss_evidence": float(getattr(criterion, "last_evidence", 0.0)),
+                "last_loss_starvation": float(getattr(criterion, "last_starvation", 0.0)),
+                "last_loss_counter": float(getattr(criterion, "last_counter", 0.0)),
+                "last_loss_recovery": float(getattr(criterion, "last_recovery", 0.0)),
+                "last_loss_total": float(stage_last_total),
                 "trainable_summary": _summarize_trainable_parameters(wrapped_model),
                 "optimizer_id": id(optimizer),
                 "optimizer_state_size": len(optimizer.state),
@@ -1359,8 +1967,14 @@ def run_training(
                 (coverage_stats.get("test", {}) or {}).get("pool_summary", {}).get("s_pool_retained_total", 0) > 0
             ),
             "used_backtracking": False,
+            "no_collapse_gate_enforced": bool(_should_enforce_no_collapse_gate(config)),
+            "backtracking_enabled": bool(config.enable_backtracking),
+            "backtracking_triggered": False,
+            "backtracking_attempted": False,
             "used_router": False,
             "used_component5": bool(config.enable_component5),
+            "model_mode": str(config.model_mode).strip(),
+            "encoder_tune": str(config.encoder_tune).strip(),
         },
     }
 
@@ -1382,7 +1996,11 @@ def run_training(
                 run_dir=run_dir,
             )
             results["backtracking_summary"] = backtracking_summary
-            results["runtime_flags"]["used_backtracking"] = bool(backtracking_summary.get("claims_triggered", 0) > 0)
+            backtracking_triggered = bool(backtracking_summary.get("claims_triggered", 0) > 0)
+            backtracking_attempted = bool(backtracking_summary.get("attempted_claims", 0) > 0)
+            results["runtime_flags"]["used_backtracking"] = backtracking_triggered
+            results["runtime_flags"]["backtracking_triggered"] = backtracking_triggered
+            results["runtime_flags"]["backtracking_attempted"] = backtracking_attempted
         else:
             metrics = evaluate_on_test_set(
                 qa_gnn=True,
@@ -1398,6 +2016,13 @@ def run_training(
                 stage_results,
                 precision_accuracy_gap_min=config.no_collapse_precision_accuracy_gap_min,
             )
+            if _is_subset_run(config):
+                gate = dict(gate)
+                gate["enforcement_skipped_for_subset_run"] = True
+                gate["subset_context"] = {
+                    "train_subset_size": int(config.train_subset_size),
+                    "val_subset_size": int(config.val_subset_size),
+                }
         else:
             gate = {
                 "passed": True,
@@ -1410,7 +2035,7 @@ def run_training(
 
     if (
         config.evaluate_after_training
-        and config.enforce_no_collapse_gate
+        and _should_enforce_no_collapse_gate(config)
         and (not results.get("no_collapse_gate", {}).get("passed", False))
     ):
         raise RuntimeError(
@@ -1426,6 +2051,12 @@ def _parse_args() -> Component3TrainConfig:
     parser.add_argument("--output-root", type=str, default="runs")
     parser.add_argument("--model-name", type=str, default="pv_qagnn_component3")
     parser.add_argument("--dataset-name", type=str, choices=["factkg", "fever"], default="factkg")
+    parser.add_argument("--model-mode", type=str, choices=["pv_qagnn", "claim_only"], default="pv_qagnn")
+    parser.add_argument("--encoder_tune", type=str, choices=["none", "lora", "unfreeze_lastN"], default="none")
+    parser.add_argument("--unfreeze_last_n", type=int, default=2)
+    parser.add_argument("--lora_r", type=int, default=8)
+    parser.add_argument("--lora_alpha", type=float, default=16.0)
+    parser.add_argument("--lora_dropout", type=float, default=0.05)
     parser.add_argument("--subgraph-type", type=str, default="direct_filled")
     parser.add_argument("--fever-data-root", type=str, default="data/fever")
     parser.add_argument("--fever-component1-logs-root", type=str, default="logs/component1_fever")
@@ -1438,6 +2069,9 @@ def _parse_args() -> Component3TrainConfig:
     parser.add_argument("--non-blocking-transfers", action="store_true")
     parser.add_argument("--factkg-claim-triple-cache-path", type=str, default="data/claim_triple_embeddings.pkl")
     parser.add_argument("--factkg-require-claim-triple-cache", action="store_true")
+    parser.add_argument("--factkg-require-pv-metadata", dest="factkg_require_pv_metadata", action="store_true")
+    parser.add_argument("--factkg-no-require-pv-metadata", dest="factkg_require_pv_metadata", action="store_false")
+    parser.set_defaults(factkg_require_pv_metadata=True)
     parser.add_argument("--factkg-precompute-batch-size", type=int, default=32)
     parser.add_argument("--factkg-include-s-pool", dest="factkg_include_s_pool", action="store_true")
     parser.add_argument("--factkg-no-include-s-pool", dest="factkg_include_s_pool", action="store_false")
@@ -1450,6 +2084,8 @@ def _parse_args() -> Component3TrainConfig:
     parser.add_argument("--val-subset-size", type=int, default=0)
     parser.add_argument("--subset-sampling", type=str, choices=["stratified", "prefix"], default="stratified")
     parser.add_argument("--seed", type=int, default=57)
+    parser.add_argument("--edge-message-dim", type=int, default=64)
+    parser.add_argument("--edge-encoder-dropout", type=float, default=0.1)
     parser.add_argument("--lambda-evidence", type=float, default=0.1)
     parser.add_argument("--enable-component5", action="store_true")
     parser.add_argument("--component5-evidence-weight", type=float, default=1.0)
@@ -1477,8 +2113,19 @@ def _parse_args() -> Component3TrainConfig:
     parser.add_argument("--backtracking-margin-threshold", type=float, default=0.15)
     parser.add_argument("--backtracking-min-a", type=int, default=5)
     parser.add_argument("--backtracking-rel-threshold", type=float, default=0.3)
+    parser.add_argument("--backtracking-promotion-gamma", type=float, default=0.0)
+    parser.add_argument("--backtracking-directional-delta", type=float, default=0.0)
+    parser.add_argument("--backtracking-challenge-mode", dest="backtracking_challenge_mode", action="store_true")
+    parser.add_argument("--backtracking-no-challenge-mode", dest="backtracking_challenge_mode", action="store_false")
+    parser.set_defaults(backtracking_challenge_mode=False)
+    parser.add_argument("--backtracking-hunger-mode", type=str, choices=["absolute", "percentile"], default="percentile")
+    parser.add_argument("--backtracking-hunger-percentile", type=float, default=0.9)
     parser.add_argument("--backtracking-max-rounds", type=int, default=2)
     parser.add_argument("--backtracking-top-k", type=int, default=3)
+    parser.add_argument("--backtracking-do-no-harm-eps", type=float, default=0.002)
+    parser.add_argument("--backtracking-flip-conf-min", type=float, default=0.1)
+    parser.add_argument("--backtracking-flip-abslogit-eps", type=float, default=0.002)
+    parser.add_argument("--backtracking-candidate-log-top-n", type=int, default=25)
     parser.add_argument("--gradient-accumulation-steps", type=int, default=4)
     parser.add_argument("--use-component1-pairs", dest="use_component1_pairs", action="store_true")
     parser.add_argument("--no-use-component1-pairs", dest="use_component1_pairs", action="store_false")
@@ -1494,6 +2141,12 @@ def _parse_args() -> Component3TrainConfig:
         output_root=args.output_root,
         model_name=args.model_name,
         dataset_name=args.dataset_name,
+        model_mode=args.model_mode,
+        encoder_tune=args.encoder_tune,
+        unfreeze_last_n=args.unfreeze_last_n,
+        lora_r=args.lora_r,
+        lora_alpha=args.lora_alpha,
+        lora_dropout=args.lora_dropout,
         subgraph_type=args.subgraph_type,
         fever_data_root=args.fever_data_root,
         fever_component1_logs_root=args.fever_component1_logs_root,
@@ -1506,6 +2159,7 @@ def _parse_args() -> Component3TrainConfig:
         non_blocking_transfers=args.non_blocking_transfers,
         factkg_claim_triple_cache_path=args.factkg_claim_triple_cache_path,
         factkg_require_claim_triple_cache=args.factkg_require_claim_triple_cache,
+        factkg_require_pv_metadata=args.factkg_require_pv_metadata,
         factkg_precompute_batch_size=args.factkg_precompute_batch_size,
         factkg_include_s_pool=args.factkg_include_s_pool,
         deterministic_mode=args.deterministic_mode,
@@ -1516,6 +2170,8 @@ def _parse_args() -> Component3TrainConfig:
         val_subset_size=args.val_subset_size,
         subset_sampling=args.subset_sampling,
         seed=args.seed,
+        edge_message_dim=args.edge_message_dim,
+        edge_encoder_dropout=args.edge_encoder_dropout,
         lambda_evidence=args.lambda_evidence,
         enable_component5=args.enable_component5,
         component5_evidence_weight=args.component5_evidence_weight,
@@ -1541,8 +2197,17 @@ def _parse_args() -> Component3TrainConfig:
         backtracking_margin_threshold=args.backtracking_margin_threshold,
         backtracking_min_a=args.backtracking_min_a,
         backtracking_rel_threshold=args.backtracking_rel_threshold,
+        backtracking_promotion_gamma=args.backtracking_promotion_gamma,
+        backtracking_directional_delta=args.backtracking_directional_delta,
+        backtracking_challenge_mode=args.backtracking_challenge_mode,
+        backtracking_hunger_mode=args.backtracking_hunger_mode,
+        backtracking_hunger_percentile=args.backtracking_hunger_percentile,
         backtracking_max_rounds=args.backtracking_max_rounds,
         backtracking_top_k=args.backtracking_top_k,
+        backtracking_do_no_harm_eps=args.backtracking_do_no_harm_eps,
+        backtracking_flip_conf_min=args.backtracking_flip_conf_min,
+        backtracking_flip_abslogit_eps=args.backtracking_flip_abslogit_eps,
+        backtracking_candidate_log_top_n=args.backtracking_candidate_log_top_n,
         gradient_accumulation_steps=args.gradient_accumulation_steps,
         enforce_no_collapse_gate=args.enforce_no_collapse_gate,
     )

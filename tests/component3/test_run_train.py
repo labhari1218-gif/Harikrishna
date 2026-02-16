@@ -7,6 +7,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 try:
@@ -45,6 +46,21 @@ class _FakeModel:
         self.params = {
             "base_model.bert.base_model.encoder.layer0.weight": _FakeParam(),
             "base_model.bert.base_model.pooler.weight": _FakeParam(),
+            "base_model.classifier.weight": _FakeParam(),
+        }
+
+    def named_parameters(self):
+        return self.params.items()
+
+
+class _FakeEncoderTuneModel:
+    def __init__(self) -> None:
+        self.params = {
+            "base_model.bert.base_model.encoder.layer.0.attention.self.query.weight": _FakeParam(),
+            "base_model.bert.base_model.encoder.layer.1.attention.self.query.weight": _FakeParam(),
+            "base_model.bert.base_model.encoder.layer.2.attention.self.query.weight": _FakeParam(),
+            "base_model.bert.base_model.encoder.layer.3.attention.self.query.weight": _FakeParam(),
+            "base_model.bert.base_model.encoder.layer.3.attention.self.query.lora_A.default.weight": _FakeParam(),
             "base_model.classifier.weight": _FakeParam(),
         }
 
@@ -118,11 +134,19 @@ class RunTrainHelperTests(unittest.TestCase):
         payload = mod.config_to_dict(mod.Component3TrainConfig())
 
         self.assertEqual(payload["task"], "T3.3")
+        self.assertEqual(payload["model_mode"], "pv_qagnn")
+        self.assertEqual(payload["encoder_tune"], "none")
+        self.assertEqual(payload["unfreeze_last_n"], 2)
+        self.assertEqual(payload["lora_r"], 8)
+        self.assertAlmostEqual(payload["lora_alpha"], 16.0, places=12)
+        self.assertAlmostEqual(payload["lora_dropout"], 0.05, places=12)
         self.assertEqual(payload["batch_size"], 8)
         self.assertEqual(payload["max_seq_len"], 256)
         self.assertEqual(payload["train_subset_size"], 0)
         self.assertEqual(payload["val_subset_size"], 0)
         self.assertEqual(payload["subset_sampling"], "stratified")
+        self.assertEqual(payload["edge_message_dim"], 64)
+        self.assertAlmostEqual(payload["edge_encoder_dropout"], 0.1, places=12)
         self.assertEqual(payload["loss"]["lambda_evidence"], 0.1)
         self.assertEqual(payload["loader_num_workers"], 0)
         self.assertFalse(payload["loader_pin_memory"])
@@ -131,6 +155,7 @@ class RunTrainHelperTests(unittest.TestCase):
         self.assertFalse(payload["non_blocking_transfers"])
         self.assertEqual(payload["factkg_claim_triple_cache_path"], "data/claim_triple_embeddings.pkl")
         self.assertFalse(payload["factkg_require_claim_triple_cache"])
+        self.assertTrue(payload["factkg_require_pv_metadata"])
         self.assertEqual(payload["factkg_precompute_batch_size"], 32)
         self.assertTrue(payload["factkg_include_s_pool"])
         self.assertFalse(payload["deterministic_mode"])
@@ -139,8 +164,17 @@ class RunTrainHelperTests(unittest.TestCase):
         self.assertAlmostEqual(payload["backtracking_margin_threshold"], 0.15, places=12)
         self.assertEqual(payload["backtracking_min_a"], 5)
         self.assertAlmostEqual(payload["backtracking_rel_threshold"], 0.3, places=12)
+        self.assertAlmostEqual(payload["backtracking_promotion_gamma"], 0.0, places=12)
+        self.assertAlmostEqual(payload["backtracking_directional_delta"], 0.0, places=12)
+        self.assertFalse(payload["backtracking_challenge_mode"])
+        self.assertEqual(payload["backtracking_hunger_mode"], "percentile")
+        self.assertAlmostEqual(payload["backtracking_hunger_percentile"], 0.9, places=12)
         self.assertEqual(payload["backtracking_max_rounds"], 2)
         self.assertEqual(payload["backtracking_top_k"], 3)
+        self.assertAlmostEqual(payload["backtracking_do_no_harm_eps"], 0.002, places=12)
+        self.assertAlmostEqual(payload["backtracking_flip_conf_min"], 0.1, places=12)
+        self.assertAlmostEqual(payload["backtracking_flip_abslogit_eps"], 0.002, places=12)
+        self.assertEqual(payload["backtracking_candidate_log_top_n"], 25)
         self.assertEqual(len(payload["stages"]), 2)
 
     def test_no_collapse_gate_uses_configurable_gap_threshold(self) -> None:
@@ -219,6 +253,50 @@ class RunTrainHelperTests(unittest.TestCase):
         self.assertTrue(model.params["base_model.bert.base_model.pooler.weight"].requires_grad)
         self.assertTrue(model.params["base_model.classifier.weight"].requires_grad)
 
+    def test_encoder_tune_unfreeze_last_n_unfreezes_only_tail_layers(self) -> None:
+        mod = _load_run_train_module()
+        model = _FakeEncoderTuneModel()
+        for _, parameter in model.named_parameters():
+            parameter.requires_grad = False
+
+        mod._apply_encoder_tune_trainable_parameters(
+            model,
+            encoder_tune="unfreeze_lastN",
+            unfreeze_last_n=2,
+        )
+        self.assertFalse(
+            model.params["base_model.bert.base_model.encoder.layer.0.attention.self.query.weight"].requires_grad
+        )
+        self.assertFalse(
+            model.params["base_model.bert.base_model.encoder.layer.1.attention.self.query.weight"].requires_grad
+        )
+        self.assertTrue(
+            model.params["base_model.bert.base_model.encoder.layer.2.attention.self.query.weight"].requires_grad
+        )
+        self.assertTrue(
+            model.params["base_model.bert.base_model.encoder.layer.3.attention.self.query.weight"].requires_grad
+        )
+
+    def test_encoder_tune_lora_keeps_lora_parameters_trainable(self) -> None:
+        mod = _load_run_train_module()
+        model = _FakeEncoderTuneModel()
+        for _, parameter in model.named_parameters():
+            parameter.requires_grad = False
+
+        mod._apply_encoder_tune_trainable_parameters(
+            model,
+            encoder_tune="lora",
+            unfreeze_last_n=2,
+        )
+        self.assertFalse(
+            model.params["base_model.bert.base_model.encoder.layer.3.attention.self.query.weight"].requires_grad
+        )
+        self.assertTrue(
+            model.params[
+                "base_model.bert.base_model.encoder.layer.3.attention.self.query.lora_A.default.weight"
+            ].requires_grad
+        )
+
     def test_subset_size_zero_keeps_full_loader(self) -> None:
         mod = _load_run_train_module()
         dataset = _LabelDataset([0, 1, 0, 1, 0, 1])
@@ -267,6 +345,21 @@ class RunTrainHelperTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             mod._build_default_loaders(cfg)
 
+    def test_infer_edge_feature_dim_from_loader_reads_graph_edge_attr_width(self) -> None:
+        mod = _load_run_train_module()
+
+        class _GraphDataset(Dataset):
+            def __len__(self):
+                return 2
+
+            def __getitem__(self, idx):
+                graph = SimpleNamespace(edge_attr=torch.zeros((3, 9), dtype=torch.float32))
+                return "claim", graph, 0
+
+        loader = DataLoader(_GraphDataset(), batch_size=1, shuffle=False)
+        inferred = mod._infer_edge_feature_dim_from_loader(loader)
+        self.assertEqual(inferred, 9)
+
     def test_ensure_binary_labels_rejects_non_binary_values(self) -> None:
         mod = _load_run_train_module()
         with self.assertRaises(ValueError):
@@ -290,6 +383,114 @@ class RunTrainHelperTests(unittest.TestCase):
             "train": {"pairs_file_exists": True, "pair_rows_total": 10, "pair_rows_parsed": 0},
             "val": {"pairs_file_exists": True, "pair_rows_total": 10, "pair_rows_parsed": 10},
             "test": {"pairs_file_exists": True, "pair_rows_total": 10, "pair_rows_parsed": 10},
+        }
+        with self.assertRaises(RuntimeError):
+            mod._validate_component1_pair_coverage(cfg, coverage)
+
+    def test_component1_coverage_validation_rejects_factkg_fallback_rows_in_strict_mode(self) -> None:
+        mod = _load_run_train_module()
+        cfg = mod.Component3TrainConfig(
+            dataset_name="factkg",
+            use_component1_pairs=True,
+            factkg_require_pv_metadata=True,
+        )
+        coverage = {
+            "train": {
+                "pairs_file_exists": True,
+                "pair_rows_total": 10,
+                "pair_rows_parsed": 10,
+                "pool_summary": {"fallback_total": 2, "missing_embeddings_total": 0},
+            },
+            "val": {
+                "pairs_file_exists": True,
+                "pair_rows_total": 10,
+                "pair_rows_parsed": 10,
+                "pool_summary": {"fallback_total": 0, "missing_embeddings_total": 0},
+            },
+            "test": {
+                "pairs_file_exists": True,
+                "pair_rows_total": 10,
+                "pair_rows_parsed": 10,
+                "pool_summary": {"fallback_total": 0, "missing_embeddings_total": 0},
+            },
+        }
+        with self.assertRaises(RuntimeError):
+            mod._validate_component1_pair_coverage(cfg, coverage)
+
+    def test_component1_coverage_validation_rejects_claim_level_fallback_usage_in_strict_mode(self) -> None:
+        mod = _load_run_train_module()
+        cfg = mod.Component3TrainConfig(
+            dataset_name="factkg",
+            use_component1_pairs=True,
+            factkg_require_pv_metadata=True,
+        )
+        coverage = {
+            "train": {
+                "pairs_file_exists": True,
+                "pair_rows_total": 10,
+                "pair_rows_parsed": 10,
+                "claims_using_fallback": 1,
+                "fallback_edge_rows": 4,
+                "pool_summary": {"fallback_total": 0, "missing_embeddings_total": 0},
+            },
+            "val": {
+                "pairs_file_exists": True,
+                "pair_rows_total": 10,
+                "pair_rows_parsed": 10,
+                "claims_using_fallback": 0,
+                "fallback_edge_rows": 0,
+                "pool_summary": {"fallback_total": 0, "missing_embeddings_total": 0},
+            },
+            "test": {
+                "pairs_file_exists": True,
+                "pair_rows_total": 10,
+                "pair_rows_parsed": 10,
+                "claims_using_fallback": 0,
+                "fallback_edge_rows": 0,
+                "pool_summary": {"fallback_total": 0, "missing_embeddings_total": 0},
+            },
+        }
+        with self.assertRaises(RuntimeError):
+            mod._validate_component1_pair_coverage(cfg, coverage)
+
+    def test_component1_coverage_validation_rejects_non_v2_schema_rows_in_strict_mode(self) -> None:
+        mod = _load_run_train_module()
+        cfg = mod.Component3TrainConfig(
+            dataset_name="factkg",
+            use_component1_pairs=True,
+            factkg_require_pv_metadata=True,
+        )
+        coverage = {
+            "train": {
+                "pairs_file_exists": True,
+                "pair_rows_total": 10,
+                "pair_rows_parsed": 10,
+                "pair_rows_missing_schema_version": 2,
+                "pair_rows_non_v2_schema": 0,
+                "claims_using_fallback": 0,
+                "fallback_edge_rows": 0,
+                "pool_summary": {"fallback_total": 0, "missing_embeddings_total": 0},
+            },
+            "val": {
+                "pairs_file_exists": True,
+                "pair_rows_total": 10,
+                "pair_rows_parsed": 10,
+                "pair_rows_missing_schema_version": 0,
+                "pair_rows_non_v2_schema": 1,
+                "claims_using_fallback": 0,
+                "fallback_edge_rows": 0,
+                "pool_summary": {"fallback_total": 0, "missing_embeddings_total": 0},
+            },
+            "test": {
+                "pairs_file_exists": True,
+                "pair_rows_total": 10,
+                "pair_rows_parsed": 10,
+                "pair_rows_missing_schema_version": 0,
+                "pair_rows_non_v2_schema": 0,
+                "claims_using_fallback": 0,
+                "fallback_edge_rows": 0,
+                "pool_summary": {"fallback_total": 0, "missing_embeddings_total": 0},
+            },
         }
         with self.assertRaises(RuntimeError):
             mod._validate_component1_pair_coverage(cfg, coverage)
@@ -321,6 +522,34 @@ class RunTrainHelperTests(unittest.TestCase):
                 train_loader=empty_train_loader,
                 val_loader=non_empty_loader,
                 test_loader=non_empty_loader,
+            )
+
+    def test_run_training_rejects_component5_in_claim_only_mode(self) -> None:
+        mod = _load_run_train_module()
+
+        class _TinyDataset(Dataset):
+            def __len__(self):
+                return 2
+
+            def __getitem__(self, idx):
+                return idx
+
+        loader = DataLoader(_TinyDataset(), batch_size=1, shuffle=False, drop_last=False)
+        cfg = mod.Component3TrainConfig(
+            run_id="unit_test_claim_only_component5_guard",
+            output_root=tempfile.gettempdir(),
+            model_mode="claim_only",
+            enable_component5=True,
+            evaluate_after_training=False,
+            enforce_no_collapse_gate=False,
+        )
+        with self.assertRaises(ValueError):
+            mod.run_training(
+                cfg,
+                model=_TinyBaseModel(),
+                train_loader=loader,
+                val_loader=loader,
+                test_loader=loader,
             )
 
     def test_optimizer_state_is_preserved_across_stages(self) -> None:
@@ -395,7 +624,131 @@ class RunTrainHelperTests(unittest.TestCase):
         self.assertEqual(state_call_counts, [1, 2])
         self.assertEqual(results["stages"][0]["optimizer_id"], results["stages"][1]["optimizer_id"])
         self.assertIn("runtime_flags", results)
+        self.assertTrue(bool(results["runtime_flags"]["backtracking_enabled"]))
+        self.assertFalse(bool(results["runtime_flags"]["backtracking_triggered"]))
+        self.assertFalse(bool(results["runtime_flags"]["backtracking_attempted"]))
         self.assertFalse(bool(results["runtime_flags"]["used_backtracking"]))
+
+    def test_no_collapse_gate_is_advisory_for_subset_runs(self) -> None:
+        mod = _load_run_train_module()
+
+        class _DummyDataset(Dataset):
+            def __init__(self, n: int):
+                self.labels = [0] * n
+                self.n = n
+
+            def __len__(self):
+                return self.n
+
+            def __getitem__(self, idx):
+                return idx
+
+        loader = DataLoader(_DummyDataset(4), batch_size=2, shuffle=False)
+
+        def _fake_train(model, criterion, optimizer, qa_gnn, train_loader, val_loader=None, n_epochs=1,
+                        scheduler=None, grad_accum_steps=1, n_early_stop=None, save_models=True,
+                        device=None, non_blocking=False, verbose=0):
+            history = {
+                "best_epoch": 1,
+                "best_val_loss": 0.1,
+                "best_val_accuracy": 50.0,  # below no-collapse minimum
+                "model_name": "dummy",
+            }
+            return history, {"best_model_state_dict": model.state_dict()}
+
+        failing_metrics = {
+            "overall": {
+                "accuracy": 0.60,
+                "precision": 0.58,
+                "recall": 0.80,
+                "f1": 0.67,
+            }
+        }
+
+        cfg = mod.Component3TrainConfig(
+            run_id="unit_test_no_collapse_subset_advisory",
+            output_root=tempfile.gettempdir(),
+            train_subset_size=2,
+            val_subset_size=2,
+            stage1_epochs=1,
+            stage2_epochs=1,
+            evaluate_after_training=True,
+            enforce_no_collapse_gate=True,
+        )
+
+        with patch("train.train", side_effect=_fake_train), patch(
+            "evaluate.evaluate_on_test_set", return_value=failing_metrics
+        ):
+            _run_dir, results = mod.run_training(
+                cfg,
+                model=_TinyBaseModel(),
+                train_loader=loader,
+                val_loader=loader,
+                test_loader=loader,
+            )
+
+        self.assertFalse(bool(results["no_collapse_gate"]["passed"]))
+        self.assertTrue(bool(results["no_collapse_gate"]["enforcement_skipped_for_subset_run"]))
+        self.assertFalse(bool(results["runtime_flags"]["no_collapse_gate_enforced"]))
+
+    def test_no_collapse_gate_still_raises_for_full_runs(self) -> None:
+        mod = _load_run_train_module()
+
+        class _DummyDataset(Dataset):
+            def __init__(self, n: int):
+                self.labels = [0] * n
+                self.n = n
+
+            def __len__(self):
+                return self.n
+
+            def __getitem__(self, idx):
+                return idx
+
+        loader = DataLoader(_DummyDataset(4), batch_size=2, shuffle=False)
+
+        def _fake_train(model, criterion, optimizer, qa_gnn, train_loader, val_loader=None, n_epochs=1,
+                        scheduler=None, grad_accum_steps=1, n_early_stop=None, save_models=True,
+                        device=None, non_blocking=False, verbose=0):
+            history = {
+                "best_epoch": 1,
+                "best_val_loss": 0.1,
+                "best_val_accuracy": 50.0,  # below no-collapse minimum
+                "model_name": "dummy",
+            }
+            return history, {"best_model_state_dict": model.state_dict()}
+
+        failing_metrics = {
+            "overall": {
+                "accuracy": 0.60,
+                "precision": 0.58,
+                "recall": 0.80,
+                "f1": 0.67,
+            }
+        }
+
+        cfg = mod.Component3TrainConfig(
+            run_id="unit_test_no_collapse_full_enforced",
+            output_root=tempfile.gettempdir(),
+            train_subset_size=0,
+            val_subset_size=0,
+            stage1_epochs=1,
+            stage2_epochs=1,
+            evaluate_after_training=True,
+            enforce_no_collapse_gate=True,
+        )
+
+        with patch("train.train", side_effect=_fake_train), patch(
+            "evaluate.evaluate_on_test_set", return_value=failing_metrics
+        ):
+            with self.assertRaises(RuntimeError):
+                mod.run_training(
+                    cfg,
+                    model=_TinyBaseModel(),
+                    train_loader=loader,
+                    val_loader=loader,
+                    test_loader=loader,
+                )
 
 
 if __name__ == "__main__":
