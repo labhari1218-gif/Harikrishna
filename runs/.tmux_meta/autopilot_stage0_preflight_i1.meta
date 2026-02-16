@@ -1,0 +1,4 @@
+run_id=autopilot_stage0_preflight_i1
+run_dir=runs/autopilot_stage0_preflight_i1
+log_file=runs/autopilot_stage0_preflight_i1/run_console.log
+exit_file=runs/autopilot_stage0_preflight_i1/.tmux_exit_code

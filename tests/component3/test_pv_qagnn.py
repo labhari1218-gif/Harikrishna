@@ -83,7 +83,7 @@ def _make_graph(hidden_size: int = 16) -> Data:
 class PVQAGNNTests(unittest.TestCase):
     @patch("models.get_bert_model", side_effect=_dummy_get_bert_model)
     def test_mask_params_are_trainable_with_locked_defaults(self, _mock_get_bert_model) -> None:
-        model = PV_QAGNN(model_name="pv_qagnn_test")
+        model = PV_QAGNN(model_name="pv_qagnn_test", edge_feature_dim=5)
 
         self.assertAlmostEqual(float(model.mask_sup_alpha.item()), 4.0)
         self.assertAlmostEqual(float(model.mask_sup_beta.item()), -2.0)
@@ -97,7 +97,7 @@ class PVQAGNNTests(unittest.TestCase):
 
     @patch("models.get_bert_model", side_effect=_dummy_get_bert_model)
     def test_support_and_refute_streams_have_independent_parameters(self, _mock_get_bert_model) -> None:
-        model = PV_QAGNN(model_name="pv_qagnn_test")
+        model = PV_QAGNN(model_name="pv_qagnn_test", edge_feature_dim=5)
 
         self.assertEqual(len(model.gnn_layers_sup), 2)
         self.assertEqual(len(model.gnn_layers_ref), 2)
@@ -115,6 +115,7 @@ class PVQAGNNTests(unittest.TestCase):
             n_gnn_layers=2,
             gnn_hidden_dim=32,
             gnn_out_features=16,
+            edge_feature_dim=5,
         )
 
         graphs = [_make_graph() for _ in range(5)]
@@ -135,7 +136,7 @@ class PVQAGNNTests(unittest.TestCase):
 
     @patch("models.get_bert_model", side_effect=_dummy_get_bert_model)
     def test_edge_attr_mismatch_raises_explicit_error(self, _mock_get_bert_model) -> None:
-        model = PV_QAGNN(model_name="pv_qagnn_test")
+        model = PV_QAGNN(model_name="pv_qagnn_test", edge_feature_dim=5)
 
         bad_graph = _make_graph()
         bad_graph.edge_attr = bad_graph.edge_attr[:3]  # edge_index has 4 edges
@@ -149,6 +150,24 @@ class PVQAGNNTests(unittest.TestCase):
         with self.assertRaises(ValueError) as ctx:
             model(claim_tokens, batch_graph)
         self.assertIn("edge_attr/edge_index row mismatch", str(ctx.exception))
+
+    @patch("models.get_bert_model", side_effect=_dummy_get_bert_model)
+    def test_promotion_gamma_boosts_promoted_edge_weights(self, _mock_get_bert_model) -> None:
+        model = PV_QAGNN(model_name="pv_qagnn_test", promotion_gamma=2.0, edge_feature_dim=5)
+        graph = _make_graph()
+        # Mark first directed pair as promoted.
+        graph.edge_is_promoted = torch.tensor([1.0, 1.0, 0.0, 0.0], dtype=torch.float32)
+        batch_graph = Batch.from_data_list([graph])
+        claim_tokens = {
+            "input_ids": torch.randint(0, 20, (1, 6), dtype=torch.long),
+            "attention_mask": torch.ones((1, 6), dtype=torch.long),
+        }
+        _ = model(claim_tokens, batch_graph)
+        sup_weights = model.latest_edge_weight_sup.abs().detach().cpu()
+        self.assertEqual(int(sup_weights.numel()), 4)
+        promoted_mean = float(sup_weights[:2].mean().item())
+        non_promoted_mean = float(sup_weights[2:].mean().item())
+        self.assertGreater(promoted_mean, non_promoted_mean)
 
 
 if __name__ == "__main__":

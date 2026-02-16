@@ -1,0 +1,23 @@
+{
+  "run_dir": "runs/t33_phase12_strict_smoke_v6",
+  "predictions_path": "runs/t33_phase12_strict_smoke_v6/predictions.jsonl",
+  "recovery_actions_path": "runs/t33_phase12_strict_smoke_v6/recovery_actions.jsonl",
+  "splits": {
+    "test": {
+      "claims_total": 9041,
+      "triggered_claims": 1750,
+      "trigger_rate": 0.19356265899789846,
+      "useful_delta_threshold": 0.01,
+      "useful_recovery_claims": 2,
+      "useful_recovery_rate": 0.001142857142857143,
+      "flip_to_correct_claims": 0,
+      "flip_to_correct_rate": null,
+      "flip_metrics_available_claims": 0,
+      "rounds_total": 3332,
+      "rounds_useful": 2,
+      "rounds_useful_rate": 0.0006002400960384153,
+      "rounds_negative": 1938,
+      "rounds_negative_rate": 0.5816326530612245
+    }
+  }
+}

@@ -1,0 +1,77 @@
+run_id: t33_phase12_gpu_smoke_20260216_0005
+output_root: runs
+model_name: pv_qagnn_component3
+dataset_name: factkg
+subgraph_type: direct_filled
+fever_data_root: data/fever
+fever_component1_logs_root: logs/component1_fever
+fever_include_s_pool: false
+fever_auto_precompute_embeddings: false
+loader_num_workers: 2
+loader_pin_memory: true
+loader_persistent_workers: true
+loader_prefetch_factor: 2
+non_blocking_transfers: true
+factkg_claim_triple_cache_path: data/claim_triple_embeddings.pkl
+factkg_require_claim_triple_cache: true
+factkg_precompute_batch_size: 32
+factkg_include_s_pool: true
+deterministic_mode: false
+no_collapse_precision_accuracy_gap_min: 0.005
+batch_size: 8
+max_seq_len: 256
+train_subset_size: 256
+val_subset_size: 128
+subset_sampling: stratified
+seed: 57
+gnn_hidden_dim: 256
+gnn_out_features: 256
+n_gnn_layers: 2
+gnn_dropout: 0.3
+classifier_dropout: 0.2
+lm_layer_dropout: 0.4
+gnn_batch_norm: true
+lambda_evidence: 0.1
+enable_component5: false
+component5_evidence_weight: 1.0
+lambda_starv: 0.1
+tau_starv: 0.3
+lambda_counter: 0.1
+lambda_recovery: 0.1
+loss_ablation_variant: full
+stage1_epochs: 1
+stage2_epochs: 1
+stage1_lr: 1.0e-05
+stage2_lr: 2.0e-06
+warmup_steps: 50
+n_early_stop: 3
+evaluate_after_training: true
+online_embeddings: false
+mix_graphs: false
+use_roberta: false
+use_component1_pairs: true
+component1_logs_root: logs/component1
+missing_pv_policy: hybrid_fallback
+enable_backtracking: true
+backtracking_margin_threshold: 0.15
+backtracking_min_a: 5
+backtracking_rel_threshold: 0.3
+backtracking_max_rounds: 2
+backtracking_top_k: 3
+gradient_accumulation_steps: 4
+enforce_no_collapse_gate: false
+stages:
+- name: stage1_freeze_bert
+  epochs: 1
+  learning_rate: 1.0e-05
+  unfreeze_pooler: false
+- name: stage2_unfreeze_pooler
+  epochs: 1
+  learning_rate: 2.0e-06
+  unfreeze_pooler: true
+pipeline: pv_enhanced_qa_gnn
+task: T3.3
+loss:
+  name: multitask_bce_plus_dual_evidence
+  formula: L_total = L_BCE(claim_pred,label) + lambda * mean(L_support(edge->A), L_counter(edge->C))
+  lambda_evidence: 0.1

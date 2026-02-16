@@ -12,7 +12,13 @@ import pytest
 
 from component1.evidence import EvidenceItem, PVResult
 from component1.sufficiency_metrics import compute_cr_at_k, compute_esi
-from component1.logging_utils import PairLogConfig, save_examples, write_claim_log, write_pair_log
+from component1.logging_utils import (
+    PairLogConfig,
+    save_examples,
+    write_claim_log,
+    write_empty_evidence_pair_sentinel,
+    write_pair_log,
+)
 
 
 def _make_triple(
@@ -333,6 +339,8 @@ def test_write_pair_log_includes_pool_assignment():
         )
 
         row = json.loads(out.read_text().strip())
+        assert row["schema_version"] == 2
+        assert row["record_type"] == "pair"
         assert row["pool"] == "S"
         assert row["evidence_assignment"] == "S"
 
@@ -367,6 +375,26 @@ def test_write_pair_log_serializes_sentence_payload():
         assert row["raw_sentence"] == "Roman Atwood is a content creator."
         assert row["sentence_page"] == "Roman_Atwood"
         assert row["sentence_line"] == 1
+
+
+def test_write_empty_evidence_pair_sentinel():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        out = Path(tmpdir) / "pairs.jsonl"
+        write_empty_evidence_pair_sentinel(
+            claim_id="train_404",
+            claim_text="No evidence claim",
+            model_name="dummy-model",
+            verbalizer_id="v_test",
+            out_file=out,
+        )
+        row = json.loads(out.read_text().strip())
+        assert row["schema_version"] == 2
+        assert row["record_type"] == "claim_sentinel"
+        assert row["empty_evidence_sentinel"] is True
+        assert row["claim_id"] == "train_404"
+        assert row["pool"] == "S"
+        assert row["probs"] == {"entail": 0.0, "contra": 0.0, "neutral": 1.0}
+        assert row["derived"]["rel"] == 0.0
 
 
 if __name__ == "__main__":

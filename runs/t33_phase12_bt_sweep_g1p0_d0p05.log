@@ -1,0 +1,279 @@
+/home/bs_thesis/miniconda/envs/bert_factcheck/lib/python3.10/site-packages/transformers/utils/hub.py:110: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.
+  warnings.warn(
+Run directory: runs/t33_phase12_bt_sweep_g1p0_d0p05
+{
+  "run_id": "t33_phase12_bt_sweep_g1p0_d0p05",
+  "stages": [
+    {
+      "stage": "stage1_freeze_bert",
+      "epochs": 1,
+      "learning_rate": 1e-05,
+      "unfreeze_pooler": false,
+      "best_epoch": 1,
+      "best_val_loss": 0.7758560180664062,
+      "best_val_accuracy": 48.5,
+      "last_loss_bce": 0.6882710456848145,
+      "last_loss_evidence": 0.6865505576133728,
+      "last_loss_starvation": 0.0,
+      "last_loss_counter": 0.0,
+      "last_loss_recovery": 0.0,
+      "last_loss_total": 0.7569261193275452,
+      "trainable_summary": {
+        "total": 110014471,
+        "trainable": 532231,
+        "bert_total": 109482240,
+        "bert_trainable": 0,
+        "pooler_total": 590592,
+        "pooler_trainable": 0
+      },
+      "optimizer_id": 132616078922016,
+      "optimizer_state_size": 38
+    },
+    {
+      "stage": "stage2_unfreeze_pooler",
+      "epochs": 0,
+      "learning_rate": 2e-06,
+      "unfreeze_pooler": true,
+      "best_epoch": -1,
+      "best_val_loss": Infinity,
+      "best_val_accuracy": -1,
+      "last_loss_bce": 0.0,
+      "last_loss_evidence": 0.0,
+      "last_loss_starvation": 0.0,
+      "last_loss_counter": 0.0,
+      "last_loss_recovery": 0.0,
+      "last_loss_total": 0.0,
+      "trainable_summary": {
+        "total": 110014471,
+        "trainable": 1122823,
+        "bert_total": 109482240,
+        "bert_trainable": 590592,
+        "pooler_total": 590592,
+        "pooler_trainable": 590592
+      },
+      "optimizer_id": 132616078922016,
+      "optimizer_state_size": 38
+    }
+  ],
+  "data_contract": {
+    "component1_coverage": {
+      "train": {
+        "split": "train",
+        "logs_root": "logs/component1",
+        "pairs_file": "logs/component1/train/pairs.jsonl",
+        "pairs_file_exists": true,
+        "missing_policy": "hybrid_fallback",
+        "claims_total": 86367,
+        "claims_with_component1_pairs": 86367,
+        "claims_missing_component1_pairs": 0,
+        "claims_using_fallback": 0,
+        "claims_with_empty_evidence": 1126,
+        "claims_with_component1_pairs_pct": 1.0,
+        "claims_missing_component1_pairs_pct": 0.0,
+        "claims_using_fallback_pct": 0.0,
+        "claims_with_empty_evidence_pct": 0.013037386964928734,
+        "pair_rows_total": 1752453,
+        "pair_rows_parsed": 1752453,
+        "pair_rows_dropped": 0,
+        "pair_rows_nonzero_pv": 1751327,
+        "pair_rows_nonzero_pv_pct": 0.999357472069151,
+        "pair_rows_sentinel": 1126,
+        "pair_rows_missing_schema_version": 0,
+        "pair_rows_non_v2_schema": 0,
+        "claims_missing_schema_version": 0,
+        "claims_non_v2_schema": 0,
+        "fallback_edge_rows": 0,
+        "claims_with_empty_sentinel": 1126,
+        "extra_claim_ids_in_pairs": 0,
+        "extra_claim_id_examples": [],
+        "pool_summary": {
+          "include_s_pool": true,
+          "claims_total": 86367,
+          "ac_triples_total": 955774,
+          "s_pool_available_total": 795553,
+          "s_pool_retained_total": 795553,
+          "claims_with_s_pool_available": 19699,
+          "claims_with_s_pool_retained": 19699,
+          "fallback_total": 0,
+          "missing_embeddings_total": 0,
+          "missing_embedding_entities_total": 0
+        }
+      },
+      "val": {
+        "split": "val",
+        "logs_root": "logs/component1",
+        "pairs_file": "logs/component1/val/pairs.jsonl",
+        "pairs_file_exists": true,
+        "missing_policy": "hybrid_fallback",
+        "claims_total": 13266,
+        "claims_with_component1_pairs": 13266,
+        "claims_missing_component1_pairs": 0,
+        "claims_using_fallback": 0,
+        "claims_with_empty_evidence": 125,
+        "claims_with_component1_pairs_pct": 1.0,
+        "claims_missing_component1_pairs_pct": 0.0,
+        "claims_using_fallback_pct": 0.0,
+        "claims_with_empty_evidence_pct": 0.009422584049449722,
+        "pair_rows_total": 282855,
+        "pair_rows_parsed": 282855,
+        "pair_rows_dropped": 0,
+        "pair_rows_nonzero_pv": 282730,
+        "pair_rows_nonzero_pv_pct": 0.9995580774601828,
+        "pair_rows_sentinel": 125,
+        "pair_rows_missing_schema_version": 0,
+        "pair_rows_non_v2_schema": 0,
+        "claims_missing_schema_version": 0,
+        "claims_non_v2_schema": 0,
+        "fallback_edge_rows": 0,
+        "claims_with_empty_sentinel": 125,
+        "extra_claim_ids_in_pairs": 0,
+        "extra_claim_id_examples": [],
+        "pool_summary": {
+          "include_s_pool": true,
+          "claims_total": 13266,
+          "ac_triples_total": 147670,
+          "s_pool_available_total": 135060,
+          "s_pool_retained_total": 135060,
+          "claims_with_s_pool_available": 3140,
+          "claims_with_s_pool_retained": 3140,
+          "fallback_total": 0,
+          "missing_embeddings_total": 0,
+          "missing_embedding_entities_total": 0
+        }
+      },
+      "test": {
+        "split": "test",
+        "logs_root": "logs/component1",
+        "pairs_file": "logs/component1/test/pairs.jsonl",
+        "pairs_file_exists": true,
+        "missing_policy": "hybrid_fallback",
+        "claims_total": 9041,
+        "claims_with_component1_pairs": 9041,
+        "claims_missing_component1_pairs": 0,
+        "claims_using_fallback": 0,
+        "claims_with_empty_evidence": 108,
+        "claims_with_component1_pairs_pct": 1.0,
+        "claims_missing_component1_pairs_pct": 0.0,
+        "claims_using_fallback_pct": 0.0,
+        "claims_with_empty_evidence_pct": 0.011945581241013163,
+        "pair_rows_total": 168247,
+        "pair_rows_parsed": 168247,
+        "pair_rows_dropped": 0,
+        "pair_rows_nonzero_pv": 168139,
+        "pair_rows_nonzero_pv_pct": 0.9993580866226441,
+        "pair_rows_sentinel": 108,
+        "pair_rows_missing_schema_version": 0,
+        "pair_rows_non_v2_schema": 0,
+        "claims_missing_schema_version": 0,
+        "claims_non_v2_schema": 0,
+        "fallback_edge_rows": 0,
+        "claims_with_empty_sentinel": 108,
+        "extra_claim_ids_in_pairs": 0,
+        "extra_claim_id_examples": [],
+        "pool_summary": {
+          "include_s_pool": true,
+          "claims_total": 9041,
+          "ac_triples_total": 94738,
+          "s_pool_available_total": 73401,
+          "s_pool_retained_total": 73401,
+          "claims_with_s_pool_available": 1858,
+          "claims_with_s_pool_retained": 1858,
+          "fallback_total": 0,
+          "missing_embeddings_total": 0,
+          "missing_embedding_entities_total": 0
+        }
+      }
+    },
+    "missing_pv_policy": "hybrid_fallback",
+    "use_component1_pairs": true
+  },
+  "runtime_flags": {
+    "used_s_pool": true,
+    "used_backtracking": true,
+    "backtracking_enabled": true,
+    "backtracking_triggered": true,
+    "backtracking_attempted": true,
+    "used_router": false,
+    "used_component5": false
+  },
+  "backtracking_summary": {
+    "enabled": true,
+    "attempted_claims": 9041,
+    "claims_with_s_pool": 1858,
+    "claims_triggered": 208,
+    "claims_promoted": 51,
+    "promotions_total": 129,
+    "rounds_total": 235,
+    "rounds_reverted": 178,
+    "rounds_top1_fallback": 5,
+    "rounds_accepted": 57,
+    "promotion_gamma": 1.0,
+    "directional_delta": 0.05,
+    "candidate_log_top_n": 50,
+    "candidates_ranked_total": 12725,
+    "candidates_logged_total": 8296,
+    "recovery_actions_path": "runs/t33_phase12_bt_sweep_g1p0_d0p05/recovery_actions.jsonl",
+    "recovery_candidates_path": "runs/t33_phase12_bt_sweep_g1p0_d0p05/recovery_candidates.jsonl"
+  },
+  "test_metrics": {
+    "existence": {
+      "accuracy": 0.49191685912240185,
+      "precision": 0.4911059551430781,
+      "recall": 0.9968602825745683,
+      "f1": 0.6580310880829016
+    },
+    "substitution": {
+      "accuracy": 0.055915721231766614,
+      "precision": 0.0411522633744856,
+      "recall": 1.0,
+      "f1": 0.07905138339920949
+    },
+    "multi hop": {
+      "accuracy": 0.537867824409069,
+      "precision": 0.5385370643102602,
+      "recall": 0.9838565022421525,
+      "f1": 0.6960659898477157
+    },
+    "multi claim": {
+      "accuracy": 0.4236258730640753,
+      "precision": 0.42142857142857143,
+      "recall": 0.9748563218390804,
+      "f1": 0.5884648742411102
+    },
+    "negation": {
+      "accuracy": 0.4657534246575342,
+      "precision": 0.4618937644341801,
+      "recall": 0.9950248756218906,
+      "f1": 0.6309148264984227
+    },
+    "single hop": {
+      "accuracy": 0.4708668197474168,
+      "precision": 0.47059679767103346,
+      "recall": 0.9847700274139507,
+      "f1": 0.6368561016448341
+    },
+    "overall": {
+      "accuracy": 0.4862293994027209,
+      "loss": 0.7069414790528971,
+      "precision": 0.4861345009543056,
+      "recall": 0.9845384265575261,
+      "f1": 0.6508831266441187
+    }
+  },
+  "no_collapse_gate": {
+    "passed": false,
+    "checks": {
+      "recall_lt_0_99": true,
+      "precision_accuracy_gap_ge_min": false,
+      "best_val_accuracy_ge_55": false
+    },
+    "observed": {
+      "overall_recall": 0.9845384265575261,
+      "overall_precision": 0.4861345009543056,
+      "overall_accuracy": 0.4862293994027209,
+      "precision_accuracy_gap": 9.48984484153148e-05,
+      "precision_accuracy_gap_min": 0.005,
+      "best_val_accuracy": 48.5
+    }
+  }
+}

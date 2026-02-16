@@ -1,0 +1,4 @@
+run_id=autopilot_stage2_claim_only_i3
+run_dir=runs/autopilot_stage2_claim_only_i3
+log_file=runs/autopilot_stage2_claim_only_i3/run_console.log
+exit_file=runs/autopilot_stage2_claim_only_i3/.tmux_exit_code

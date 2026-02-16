@@ -36,6 +36,10 @@ class PV_QAGNN(QAGNN):
         mask_sup_beta_init: float = -2.0,
         mask_ref_alpha_init: float = 4.0,
         mask_ref_beta_init: float = -2.0,
+        promotion_gamma: float = 0.0,
+        edge_feature_dim: int = 773,
+        edge_message_dim: int = 64,
+        edge_encoder_dropout: float = 0.1,
     ) -> None:
         super().__init__(
             model_name=model_name,
@@ -62,18 +66,52 @@ class PV_QAGNN(QAGNN):
         self.mask_sup_beta = nn.Parameter(torch.tensor(float(mask_sup_beta_init), dtype=torch.float32))
         self.mask_ref_alpha = nn.Parameter(torch.tensor(float(mask_ref_alpha_init), dtype=torch.float32))
         self.mask_ref_beta = nn.Parameter(torch.tensor(float(mask_ref_beta_init), dtype=torch.float32))
+        self.promotion_gamma = float(promotion_gamma)
         self.gnn_out_features = int(gnn_out_features)
+        self.edge_feature_dim = int(edge_feature_dim)
+        self.edge_message_dim = int(edge_message_dim)
         self.latest_x_sup = None
         self.latest_x_ref = None
         self.latest_edge_index = None
+        self.latest_edge_weight_sup = None
+        self.latest_edge_weight_ref = None
+        self.latest_edge_attr_sup = None
+        self.latest_edge_attr_ref = None
+        self.latest_gate_sup = None
+        self.latest_gate_ref = None
+        self.latest_edge_boost = None
+        self.latest_edge_is_promoted = None
+
+        if self.edge_feature_dim < 5:
+            raise ValueError(
+                "Argument `edge_feature_dim` must include at least PV metadata "
+                "[p_ent,p_con,p_neu,rel,pool_id]."
+            )
+        if self.edge_message_dim <= 0:
+            raise ValueError("Argument `edge_message_dim` must be positive.")
+        if not (0.0 <= float(edge_encoder_dropout) <= 1.0):
+            raise ValueError("Argument `edge_encoder_dropout` must be in [0, 1].")
 
         in_dim = self.bert.config.hidden_size
+        self.edge_encoder_sup = nn.Sequential(
+            nn.Linear(self.edge_feature_dim, self.edge_message_dim),
+            nn.LayerNorm(self.edge_message_dim),
+            nn.GELU(),
+            nn.Dropout(float(edge_encoder_dropout)),
+        )
+        self.edge_encoder_ref = nn.Sequential(
+            nn.Linear(self.edge_feature_dim, self.edge_message_dim),
+            nn.LayerNorm(self.edge_message_dim),
+            nn.GELU(),
+            nn.Dropout(float(edge_encoder_dropout)),
+        )
         self.gnn_layers_sup = self._build_stream_layers(
             n_gnn_layers=n_gnn_layers,
             in_dim=in_dim,
             hidden_dim=gnn_hidden_dim,
             out_dim=gnn_out_features,
             dropout=gnn_dropout,
+            edge_dim=self.edge_message_dim,
         )
         self.gnn_layers_ref = self._build_stream_layers(
             n_gnn_layers=n_gnn_layers,
@@ -81,6 +119,7 @@ class PV_QAGNN(QAGNN):
             hidden_dim=gnn_hidden_dim,
             out_dim=gnn_out_features,
             dropout=gnn_dropout,
+            edge_dim=self.edge_message_dim,
         )
 
         if self.gnn_batch_norm:
@@ -96,13 +135,18 @@ class PV_QAGNN(QAGNN):
 
     @staticmethod
     def _build_stream_layers(
-        n_gnn_layers: int, in_dim: int, hidden_dim: int, out_dim: int, dropout: float
+        n_gnn_layers: int,
+        in_dim: int,
+        hidden_dim: int,
+        out_dim: int,
+        dropout: float,
+        edge_dim: int,
     ) -> nn.ModuleList:
         layers = nn.ModuleList()
-        layers.append(GATConv(in_dim, hidden_dim, heads=1, concat=True, dropout=dropout, edge_dim=1))
+        layers.append(GATConv(in_dim, hidden_dim, heads=1, concat=True, dropout=dropout, edge_dim=edge_dim))
         for _ in range(n_gnn_layers - 2):
-            layers.append(GATConv(hidden_dim, hidden_dim, heads=1, concat=True, dropout=dropout, edge_dim=1))
-        layers.append(GATConv(hidden_dim, out_dim, heads=1, concat=True, dropout=dropout, edge_dim=1))
+            layers.append(GATConv(hidden_dim, hidden_dim, heads=1, concat=True, dropout=dropout, edge_dim=edge_dim))
+        layers.append(GATConv(hidden_dim, out_dim, heads=1, concat=True, dropout=dropout, edge_dim=edge_dim))
         return layers
 
     def support_gate(self, p_ent: torch.Tensor) -> torch.Tensor:
@@ -122,12 +166,17 @@ class PV_QAGNN(QAGNN):
             )
         return edge_attr[:, -5], edge_attr[:, -4]
 
-    def _compute_joint_edge_weights(
+    def _compute_joint_edge_inputs(
         self, claim_embeddings: torch.Tensor, batch_graph
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         edge_attr = getattr(batch_graph, "edge_attr", None)
         if edge_attr is None:
             raise ValueError("PV_QAGNN requires `edge_attr` containing PV scores.")
+        if int(edge_attr.size(1)) != self.edge_feature_dim:
+            raise ValueError(
+                "edge_attr feature mismatch in PV_QAGNN: "
+                f"expected edge_feature_dim={self.edge_feature_dim}, got edge_dim={int(edge_attr.size(1))}."
+            )
 
         claim_embeddings_expanded = claim_embeddings[batch_graph.batch]
         node_relevance = F.cosine_similarity(claim_embeddings_expanded, batch_graph.x, dim=-1)
@@ -148,20 +197,48 @@ class PV_QAGNN(QAGNN):
         gate_sup = self.support_gate(p_ent)
         gate_ref = self.refute_gate(p_con)
 
-        weight_sup = (edge_relevance * gate_sup).unsqueeze(-1)
-        weight_ref = (edge_relevance * gate_ref).unsqueeze(-1)
-        return weight_sup, weight_ref
+        weight_sup = edge_relevance * gate_sup
+        weight_ref = edge_relevance * gate_ref
+        boost = torch.ones_like(weight_sup)
+        if self.promotion_gamma > 0.0:
+            promoted_mask = getattr(batch_graph, "edge_is_promoted", None)
+            if promoted_mask is not None:
+                promoted_mask = promoted_mask.view(-1).to(weight_sup.device, dtype=weight_sup.dtype)
+                if int(promoted_mask.numel()) == num_edges:
+                    pv_confidence = torch.maximum(p_ent, p_con)
+                    boost = 1.0 + (self.promotion_gamma * pv_confidence * promoted_mask)
+                    weight_sup = weight_sup * boost
+                    weight_ref = weight_ref * boost
+
+        edge_attr_sup = self.edge_encoder_sup(edge_attr)
+        edge_attr_ref = self.edge_encoder_ref(edge_attr)
+        edge_attr_sup = edge_attr_sup * weight_sup.unsqueeze(-1)
+        edge_attr_ref = edge_attr_ref * weight_ref.unsqueeze(-1)
+
+        self.latest_gate_sup = gate_sup.detach()
+        self.latest_gate_ref = gate_ref.detach()
+        self.latest_edge_weight_sup = weight_sup.detach()
+        self.latest_edge_weight_ref = weight_ref.detach()
+        self.latest_edge_attr_sup = edge_attr_sup.detach()
+        self.latest_edge_attr_ref = edge_attr_ref.detach()
+        self.latest_edge_boost = boost.detach()
+        promoted_snapshot = getattr(batch_graph, "edge_is_promoted", None)
+        if promoted_snapshot is not None:
+            self.latest_edge_is_promoted = promoted_snapshot.view(-1).detach()
+        else:
+            self.latest_edge_is_promoted = None
+        return edge_attr_sup, edge_attr_ref
 
     def _run_stream(
         self,
         x: torch.Tensor,
         edge_index: torch.Tensor,
-        edge_weight: torch.Tensor,
+        edge_attr: torch.Tensor,
         gnn_layers: nn.ModuleList,
         batch_norm_layers: nn.ModuleList | None,
     ) -> torch.Tensor:
         for idx, gnn_layer in enumerate(gnn_layers):
-            x = gnn_layer(x, edge_index, edge_weight)
+            x = gnn_layer(x, edge_index, edge_attr=edge_attr)
             if batch_norm_layers is not None and idx < len(gnn_layers) - 1:
                 x = batch_norm_layers[idx](x)
             x = F.relu(x)
@@ -171,7 +248,7 @@ class PV_QAGNN(QAGNN):
         claim_outputs = self.bert(**claim_tokens)
         claim_embeddings = claim_outputs.last_hidden_state[:, 0]
 
-        weight_sup, weight_ref = self._compute_joint_edge_weights(
+        edge_attr_sup, edge_attr_ref = self._compute_joint_edge_inputs(
             claim_embeddings=claim_embeddings,
             batch_graph=data_graphs,
         )
@@ -182,14 +259,14 @@ class PV_QAGNN(QAGNN):
         x_sup = self._run_stream(
             x=data_graphs.x,
             edge_index=data_graphs.edge_index,
-            edge_weight=weight_sup,
+            edge_attr=edge_attr_sup,
             gnn_layers=self.gnn_layers_sup,
             batch_norm_layers=sup_batch_norm,
         )
         x_ref = self._run_stream(
             x=data_graphs.x,
             edge_index=data_graphs.edge_index,
-            edge_weight=weight_ref,
+            edge_attr=edge_attr_ref,
             gnn_layers=self.gnn_layers_ref,
             batch_norm_layers=ref_batch_norm,
         )

@@ -1,0 +1,23 @@
+{
+  "run_dir": "runs/t33_phase12_bt_sweep_g1p0_d0p0",
+  "predictions_path": "runs/t33_phase12_bt_sweep_g1p0_d0p0/predictions.jsonl",
+  "recovery_actions_path": "runs/t33_phase12_bt_sweep_g1p0_d0p0/recovery_actions.jsonl",
+  "splits": {
+    "test": {
+      "claims_total": 9041,
+      "triggered_claims": 1724,
+      "trigger_rate": 0.19068687092135825,
+      "useful_delta_threshold": 0.002,
+      "useful_recovery_claims": 428,
+      "useful_recovery_rate": 0.2482598607888631,
+      "flip_to_correct_claims": 0,
+      "flip_to_correct_rate": 0.0,
+      "flip_metrics_available_claims": 1724,
+      "rounds_total": 2124,
+      "rounds_useful": 521,
+      "rounds_useful_rate": 0.2452919020715631,
+      "rounds_negative": 1057,
+      "rounds_negative_rate": 0.4976459510357815
+    }
+  }
+}

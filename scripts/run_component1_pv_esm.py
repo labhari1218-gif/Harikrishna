@@ -41,6 +41,7 @@ from component1.evidence import stable_hash
 from component1.logging_utils import (
     write_claim_log,
     write_pair_log,
+    write_empty_evidence_pair_sentinel,
     PairLogConfig,
 )
 
@@ -154,8 +155,29 @@ def process_claim(
         cache_only: If True, require all PV scores to exist in cache (no model scoring)
     """
     if not evidence_pool:
-        logger.warning(f"Claim {claim_id} has no evidence. Skipping.")
-        return False
+        logger.warning(f"Claim {claim_id} has no evidence triples. Writing sentinel records.")
+        write_claim_log(
+            claim_id=claim_id,
+            claim_text=claim_text,
+            label=label,
+            claim_entities=claim_entities,
+            A=[],
+            S=[],
+            C=[],
+            pool=[],
+            min_A=esm_config.min_A,
+            contra_tau=esm_config.contra_tau,
+            out_file=claim_log_file,
+        )
+        if pair_log_config.mode != "none":
+            write_empty_evidence_pair_sentinel(
+                claim_id=claim_id,
+                claim_text=claim_text,
+                model_name=pv_config.model_name,
+                verbalizer_id=VERBALIZER_VERSION,
+                out_file=pair_log_file,
+            )
+        return True
 
     claim_hash = stable_hash(claim_text)
     

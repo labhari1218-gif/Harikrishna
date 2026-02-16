@@ -513,6 +513,7 @@ class LearnedBacktrackingController:
                 suspended_triples=remaining_s,
                 bridge_bonus_by_id=prediction.get("bridge_bonus_by_id", {}),
                 salience_by_id=prediction.get("salience_by_id", {}),
+                prediction=prediction,
             )
             if not ranked_rows:
                 break

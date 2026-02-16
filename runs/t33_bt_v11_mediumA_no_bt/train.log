@@ -1,0 +1,14 @@
+/home/bs_thesis/miniconda/envs/fact_check_env/lib/python3.10/site-packages/transformers/utils/hub.py:110: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.
+  warnings.warn(
+Traceback (most recent call last):
+  File "/home/bs_thesis/miniconda/envs/fact_check_env/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/home/bs_thesis/miniconda/envs/fact_check_env/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/home/bs_thesis/shift (Copy)/Fact-or-Fiction/src/component3/run_train.py", line 1982, in <module>
+    run_dir, run_results = run_training(cfg)
+  File "/home/bs_thesis/shift (Copy)/Fact-or-Fiction/src/component3/run_train.py", line 1821, in run_training
+    raise RuntimeError(
+RuntimeError: No-collapse gate failed. See metrics.json -> no_collapse_gate for details.
+
+ERROR conda.cli.main_run:execute(127): `conda run env PYTHONPATH=src python -m component3.run_train --run-id t33_bt_v11_mediumA_no_bt --use-component1-pairs --component1-logs-root logs/component1 --factkg-require-pv-metadata --stage1-epochs 1 --stage2-epochs 0 --train-subset-size 10000 --val-subset-size 2000 --seed 57` failed. (See above for error)

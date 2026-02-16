@@ -1,0 +1,109 @@
+{
+  "run_id": "unit_test_no_collapse_subset_advisory",
+  "stages": [
+    {
+      "stage": "stage1_freeze_bert",
+      "epochs": 1,
+      "learning_rate": 1e-05,
+      "unfreeze_pooler": false,
+      "best_epoch": 1,
+      "best_val_loss": 0.1,
+      "best_val_accuracy": 50.0,
+      "train_accuracy_last": 0.0,
+      "train_accuracy_best": 0.0,
+      "train_accuracy_last_pct": 0.0,
+      "train_accuracy_best_pct": 0.0,
+      "last_loss_bce": 0.0,
+      "last_loss_evidence": 0.0,
+      "last_loss_starvation": 0.0,
+      "last_loss_counter": 0.0,
+      "last_loss_recovery": 0.0,
+      "last_loss_total": 0.0,
+      "trainable_summary": {
+        "total": 559,
+        "trainable": 519,
+        "bert_total": 40,
+        "bert_trainable": 0,
+        "pooler_total": 20,
+        "pooler_trainable": 0
+      },
+      "optimizer_id": 130304018644800,
+      "optimizer_state_size": 0
+    },
+    {
+      "stage": "stage2_unfreeze_pooler",
+      "epochs": 1,
+      "learning_rate": 2e-06,
+      "unfreeze_pooler": true,
+      "best_epoch": 1,
+      "best_val_loss": 0.1,
+      "best_val_accuracy": 50.0,
+      "train_accuracy_last": 0.0,
+      "train_accuracy_best": 0.0,
+      "train_accuracy_last_pct": 0.0,
+      "train_accuracy_best_pct": 0.0,
+      "last_loss_bce": 0.0,
+      "last_loss_evidence": 0.0,
+      "last_loss_starvation": 0.0,
+      "last_loss_counter": 0.0,
+      "last_loss_recovery": 0.0,
+      "last_loss_total": 0.0,
+      "trainable_summary": {
+        "total": 559,
+        "trainable": 539,
+        "bert_total": 40,
+        "bert_trainable": 20,
+        "pooler_total": 20,
+        "pooler_trainable": 20
+      },
+      "optimizer_id": 130304018644800,
+      "optimizer_state_size": 0
+    }
+  ],
+  "data_contract": {
+    "component1_coverage": {},
+    "missing_pv_policy": "hybrid_fallback",
+    "use_component1_pairs": true
+  },
+  "runtime_flags": {
+    "used_s_pool": false,
+    "used_backtracking": false,
+    "no_collapse_gate_enforced": false,
+    "backtracking_enabled": true,
+    "backtracking_triggered": false,
+    "backtracking_attempted": false,
+    "used_router": false,
+    "used_component5": false,
+    "model_mode": "pv_qagnn",
+    "encoder_tune": "none"
+  },
+  "test_metrics": {
+    "overall": {
+      "accuracy": 0.6,
+      "precision": 0.58,
+      "recall": 0.8,
+      "f1": 0.67
+    }
+  },
+  "no_collapse_gate": {
+    "passed": false,
+    "checks": {
+      "recall_lt_0_99": true,
+      "precision_accuracy_gap_ge_min": true,
+      "best_val_accuracy_ge_55": false
+    },
+    "observed": {
+      "overall_recall": 0.8,
+      "overall_precision": 0.58,
+      "overall_accuracy": 0.6,
+      "precision_accuracy_gap": 0.020000000000000018,
+      "precision_accuracy_gap_min": 0.005,
+      "best_val_accuracy": 50.0
+    },
+    "enforcement_skipped_for_subset_run": true,
+    "subset_context": {
+      "train_subset_size": 2,
+      "val_subset_size": 2
+    }
+  }
+}

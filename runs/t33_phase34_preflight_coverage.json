@@ -1,0 +1,220 @@
+{
+  "logs_root": "logs/component1",
+  "splits": {
+    "train": {
+      "split": "train",
+      "paths": {
+        "pairs_jsonl": "logs/component1/train/pairs.jsonl"
+      },
+      "rows": {
+        "total": 1752453,
+        "bad_json": 0,
+        "missing_claim_id": 0,
+        "empty_evidence_sentinel": 1126,
+        "missing_schema_version": 0
+      },
+      "claims": {
+        "total": 86367,
+        "with_at_least_1_pair_row": 86367,
+        "without_pair_rows": 0,
+        "without_pair_rows_with_zero_subgraph_triples": 0,
+        "without_pair_rows_with_nonzero_subgraph_triples": 0,
+        "missing_pv_fields": 0,
+        "missing_pool_labels": 0,
+        "malformed_probs": 0,
+        "missing_rel": 0,
+        "missing_triple_text_fields": 0,
+        "missing_entity_embeddings": 0,
+        "empty_evidence_sentinel": 1126,
+        "missing_schema_version": 0,
+        "extra_claim_ids_in_pairs": 0
+      },
+      "examples": {
+        "missing_pair_claim_ids": [],
+        "extra_pair_claim_ids": [],
+        "missing_pv_fields_claim_ids": [],
+        "missing_pool_labels_claim_ids": [],
+        "malformed_probs_claim_ids": [],
+        "missing_rel_claim_ids": [],
+        "missing_triple_text_claim_ids": [],
+        "missing_entity_embedding_claim_ids": [],
+        "empty_sentinel_claim_ids": [
+          "train_10088",
+          "train_10089",
+          "train_10804",
+          "train_10806",
+          "train_10807",
+          "train_10810",
+          "train_10832",
+          "train_10834",
+          "train_10835",
+          "train_10837",
+          "train_10838",
+          "train_11328",
+          "train_1362",
+          "train_1366",
+          "train_1369",
+          "train_1373",
+          "train_1375",
+          "train_1376",
+          "train_1377",
+          "train_1381",
+          "train_1384",
+          "train_1385",
+          "train_1387",
+          "train_1392",
+          "train_1393"
+        ],
+        "missing_schema_version_claim_ids": []
+      },
+      "entity_embedding_check": {
+        "enabled": true,
+        "embedding_entities_total": 514417
+      }
+    },
+    "val": {
+      "split": "val",
+      "paths": {
+        "pairs_jsonl": "logs/component1/val/pairs.jsonl"
+      },
+      "rows": {
+        "total": 282855,
+        "bad_json": 0,
+        "missing_claim_id": 0,
+        "empty_evidence_sentinel": 125,
+        "missing_schema_version": 0
+      },
+      "claims": {
+        "total": 13266,
+        "with_at_least_1_pair_row": 13266,
+        "without_pair_rows": 0,
+        "without_pair_rows_with_zero_subgraph_triples": 0,
+        "without_pair_rows_with_nonzero_subgraph_triples": 0,
+        "missing_pv_fields": 0,
+        "missing_pool_labels": 0,
+        "malformed_probs": 0,
+        "missing_rel": 0,
+        "missing_triple_text_fields": 0,
+        "missing_entity_embeddings": 0,
+        "empty_evidence_sentinel": 125,
+        "missing_schema_version": 0,
+        "extra_claim_ids_in_pairs": 0
+      },
+      "examples": {
+        "missing_pair_claim_ids": [],
+        "extra_pair_claim_ids": [],
+        "missing_pv_fields_claim_ids": [],
+        "missing_pool_labels_claim_ids": [],
+        "malformed_probs_claim_ids": [],
+        "missing_rel_claim_ids": [],
+        "missing_triple_text_claim_ids": [],
+        "missing_entity_embedding_claim_ids": [],
+        "empty_sentinel_claim_ids": [
+          "val_10496",
+          "val_10503",
+          "val_10506",
+          "val_10507",
+          "val_10508",
+          "val_10510",
+          "val_10515",
+          "val_10516",
+          "val_10517",
+          "val_10520",
+          "val_10525",
+          "val_10532",
+          "val_10538",
+          "val_10561",
+          "val_10564",
+          "val_10570",
+          "val_10583",
+          "val_10587",
+          "val_10588",
+          "val_10599",
+          "val_10610",
+          "val_10632",
+          "val_10636",
+          "val_10707",
+          "val_10711"
+        ],
+        "missing_schema_version_claim_ids": []
+      },
+      "entity_embedding_check": {
+        "enabled": true,
+        "embedding_entities_total": 514417
+      }
+    },
+    "test": {
+      "split": "test",
+      "paths": {
+        "pairs_jsonl": "logs/component1/test/pairs.jsonl"
+      },
+      "rows": {
+        "total": 168247,
+        "bad_json": 0,
+        "missing_claim_id": 0,
+        "empty_evidence_sentinel": 108,
+        "missing_schema_version": 0
+      },
+      "claims": {
+        "total": 9041,
+        "with_at_least_1_pair_row": 9041,
+        "without_pair_rows": 0,
+        "without_pair_rows_with_zero_subgraph_triples": 0,
+        "without_pair_rows_with_nonzero_subgraph_triples": 0,
+        "missing_pv_fields": 0,
+        "missing_pool_labels": 0,
+        "malformed_probs": 0,
+        "missing_rel": 0,
+        "missing_triple_text_fields": 0,
+        "missing_entity_embeddings": 0,
+        "empty_evidence_sentinel": 108,
+        "missing_schema_version": 0,
+        "extra_claim_ids_in_pairs": 0
+      },
+      "examples": {
+        "missing_pair_claim_ids": [],
+        "extra_pair_claim_ids": [],
+        "missing_pv_fields_claim_ids": [],
+        "missing_pool_labels_claim_ids": [],
+        "malformed_probs_claim_ids": [],
+        "missing_rel_claim_ids": [],
+        "missing_triple_text_claim_ids": [],
+        "missing_entity_embedding_claim_ids": [],
+        "empty_sentinel_claim_ids": [
+          "test_1094",
+          "test_137",
+          "test_139",
+          "test_150",
+          "test_156",
+          "test_157",
+          "test_168",
+          "test_188",
+          "test_190",
+          "test_224",
+          "test_225",
+          "test_227",
+          "test_2531",
+          "test_327",
+          "test_334",
+          "test_344",
+          "test_345",
+          "test_346",
+          "test_347",
+          "test_353",
+          "test_355",
+          "test_357",
+          "test_3593",
+          "test_3663",
+          "test_3816"
+        ],
+        "missing_schema_version_claim_ids": []
+      },
+      "entity_embedding_check": {
+        "enabled": true,
+        "embedding_entities_total": 514417
+      }
+    }
+  },
+  "embeddings_path": "data/embeddings.pkl",
+  "prob_sum_tol": 0.001
+}

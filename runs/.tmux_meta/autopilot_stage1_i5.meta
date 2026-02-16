@@ -1,0 +1,4 @@
+run_id=autopilot_stage1_overfit200_i5
+run_dir=runs/autopilot_stage1_overfit200_i5
+log_file=runs/autopilot_stage1_overfit200_i5/run_console.log
+exit_file=runs/autopilot_stage1_overfit200_i5/.tmux_exit_code

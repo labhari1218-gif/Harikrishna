@@ -1,0 +1,20 @@
+{
+  "mode": "gate",
+  "stage": "stage1_overfit200",
+  "pass": false,
+  "reasons": [
+    "G1_FAIL_train_acc=0.530000<0.95"
+  ],
+  "run_id": "autopilot_stage1_overfit200_i3",
+  "run_dir": "runs/autopilot_stage1_overfit200_i3",
+  "artifact_required": [
+    "config.yaml",
+    "metrics.json",
+    "predictions.jsonl",
+    "run_console.log"
+  ],
+  "artifact_missing": [],
+  "gate": "G1 Overfit200",
+  "threshold": 0.95,
+  "train_acc": 0.53
+}

@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "args": {
+    "env": "bert_factcheck",
+    "max_iters": 5,
+    "resume": 0,
+    "only": null
+  },
+  "stages": {
+    "stage0_preflight": {
+      "status": "pass",
+      "attempts": 1,
+      "patch_retries": 0,
+      "last_run_id": "autopilot_stage0_preflight_i1",
+      "last_gate_path": "runs/PREFLIGHT_REPORT.json",
+      "last_error": ""
+    },
+    "stage1_overfit200": {
+      "status": "fail",
+      "attempts": 4,
+      "patch_retries": 3,
+      "last_run_id": "autopilot_stage1_overfit200_i5",
+      "last_gate_path": "runs/autopilot_stage1_overfit200_i5/gate_stage1.json",
+      "last_error": "stage_exit=0;gate_ok=0"
+    },
+    "stage2_claim_only": {
+      "status": "pending",
+      "attempts": 0,
+      "patch_retries": 0,
+      "last_run_id": "",
+      "last_gate_path": "",
+      "last_error": ""
+    },
+    "stage3_pvqagnn_no_bt": {
+      "status": "pending",
+      "attempts": 0,
+      "patch_retries": 0,
+      "last_run_id": "",
+      "last_gate_path": "",
+      "last_error": ""
+    },
+    "stage4_bt_helping": {
+      "status": "pending",
+      "attempts": 0,
+      "patch_retries": 0,
+      "last_run_id": "",
+      "last_gate_path": "",
+      "last_error": ""
+    },
+    "stage5_readiness": {
+      "status": "pending",
+      "attempts": 0,
+      "patch_retries": 0,
+      "last_run_id": "",
+      "last_gate_path": "",
+      "last_error": ""
+    }
+  }
+}

@@ -45,6 +45,7 @@ class BacktrackingTests(unittest.TestCase):
             margin_threshold=0.15,
             min_a=2,
             rel_threshold=0.3,
+            hunger_mode="absolute",
         )
         active_dense = [
             {"evidence_id": "a1", "pool": "A", "raw_triple": ["A", "r1", "B"], "rel": 0.9},
@@ -188,6 +189,7 @@ class BacktrackingTests(unittest.TestCase):
             margin_threshold=0.15,
             min_a=1,
             rel_threshold=0.3,
+            enable_do_no_harm_gate=False,
         )
 
         active = [
@@ -212,7 +214,7 @@ class BacktrackingTests(unittest.TestCase):
             suspended_triples=suspended,
             predictor=predictor,
         )
-        self.assertEqual(result.promoted_evidence_ids, ("triple_0",))
+        self.assertEqual(result.promoted_evidence_ids, ("triple_1",))
 
     def test_conservative_gate_blocks_non_bridge_promotions(self) -> None:
         mod = _load_backtracking_module()
@@ -236,7 +238,7 @@ class BacktrackingTests(unittest.TestCase):
         def predictor(_current_active):
             return {
                 "probabilities": [0.51, 0.49],
-                "is_disconnected": False,
+                "is_disconnected": True,
                 "bridge_bonus_by_id": {"s0": 0.8, "s1": 0.7},
                 "salience_by_id": {"s0": 0.2, "s1": 0.2},
             }
@@ -249,6 +251,275 @@ class BacktrackingTests(unittest.TestCase):
         )
         self.assertFalse(result.triggered)
         self.assertEqual(result.promoted_evidence_ids, ())
+
+    def test_polarity_mode_allows_non_bridge_opposite_selection(self) -> None:
+        mod = _load_backtracking_module()
+        controller = mod.RuleBasedBacktrackingController(
+            max_backtrack_rounds=1,
+            backtrack_k=1,
+            margin_threshold=0.2,
+            min_a=1,
+            rel_threshold=0.3,
+            hunger_mode="absolute",
+            enable_do_no_harm_gate=False,
+        )
+        active = [
+            {"evidence_id": "a0", "pool": "A", "raw_triple": ["X", "r", "Y"], "rel": 0.9, "p_ent": 0.9, "p_con": 0.05},
+        ]
+        # Neither suspended edge bridges the active component.
+        suspended = [
+            {"evidence_id": "s_ent", "pool": "S", "raw_triple": ["A", "r1", "B"], "rel": 0.8, "p_ent": 0.9, "p_con": 0.1},
+            {"evidence_id": "s_con", "pool": "S", "raw_triple": ["C", "r2", "D"], "rel": 0.7, "p_ent": 0.2, "p_con": 0.92},
+        ]
+
+        def predictor(rows):
+            ids = {str(row.get("evidence_id")) for row in rows if isinstance(row, dict)}
+            if "s_con" in ids:
+                return {"logit": -0.2, "probabilities": [0.45, 0.55], "is_disconnected": False}
+            return {"logit": 0.1, "probabilities": [0.525, 0.475], "is_disconnected": False}
+
+        result = controller.run(
+            claim_id="claim_polarity_mode",
+            active_triples=active,
+            suspended_triples=suspended,
+            predictor=predictor,
+        )
+        self.assertTrue(result.triggered)
+        self.assertEqual(result.promoted_evidence_ids, ("s_con",))
+        self.assertEqual(result.actions[0].recovery_mode, "polarity")
+
+    def test_challenge_mode_picks_more_decisive_counterfactual(self) -> None:
+        mod = _load_backtracking_module()
+        controller = mod.RuleBasedBacktrackingController(
+            max_backtrack_rounds=1,
+            backtrack_k=3,
+            margin_threshold=0.2,
+            min_a=1,
+            rel_threshold=0.3,
+            hunger_mode="absolute",
+            challenge_mode=True,
+            enable_do_no_harm_gate=False,
+        )
+        active = [
+            {"evidence_id": "a0", "pool": "A", "raw_triple": ["X", "r", "Y"], "rel": 0.9, "p_ent": 0.9, "p_con": 0.05},
+        ]
+        suspended = [
+            {"evidence_id": "s_sup", "pool": "S", "raw_triple": ["A", "r1", "B"], "rel": 0.8, "p_ent": 0.92, "p_con": 0.2},
+            {"evidence_id": "s_ref", "pool": "S", "raw_triple": ["C", "r2", "D"], "rel": 0.75, "p_ent": 0.2, "p_con": 0.93},
+        ]
+
+        def predictor(rows):
+            ids = {str(row.get("evidence_id")) for row in rows if isinstance(row, dict)}
+            if "s_ref" in ids:
+                return {"logit": -0.4, "probabilities": [0.40, 0.60], "is_disconnected": False}
+            if "s_sup" in ids:
+                return {"logit": 0.2, "probabilities": [0.55, 0.45], "is_disconnected": False}
+            return {"logit": 0.05, "probabilities": [0.5125, 0.4875], "is_disconnected": False}
+
+        result = controller.run(
+            claim_id="claim_challenge_mode",
+            active_triples=active,
+            suspended_triples=suspended,
+            predictor=predictor,
+        )
+        self.assertTrue(result.triggered)
+        self.assertEqual(result.promoted_evidence_ids, ("s_ref",))
+        self.assertEqual(result.actions[0].recovery_mode, "polarity")
+        self.assertEqual(result.actions[0].selection_mode, "challenge_refute")
+
+    def test_percentile_hunger_uses_claim_local_threshold(self) -> None:
+        mod = _load_backtracking_module()
+        controller = mod.RuleBasedBacktrackingController(
+            min_a=5,
+            hunger_mode="percentile",
+            hunger_rel_percentile=0.9,
+        )
+        active = [
+            {"evidence_id": f"a{i}", "pool": "A", "raw_triple": [f"E{i}", "r", f"E{i+1}"], "rel": float(i) / 10.0}
+            for i in range(10)
+        ]
+        decision = controller.evaluate_trigger(
+            prediction={"probabilities": [0.9, 0.1], "is_disconnected": False},
+            active_triples=active,
+        )
+        self.assertFalse(decision.evidence_hunger)
+        self.assertEqual(decision.active_high_rel_required, 1)
+        self.assertGreaterEqual(decision.active_high_rel_count, 1)
+
+    def test_semantic_tie_breaker_prefers_refute_polarity_when_refute_leaning(self) -> None:
+        mod = _load_backtracking_module()
+        controller = mod.RuleBasedBacktrackingController(max_backtrack_rounds=2, backtrack_k=3)
+        active = [
+            {"evidence_id": "a1", "raw_triple": ["A", "r_left", "B"], "pool": "A", "p_ent": 0.8, "p_con": 0.1},
+        ]
+        suspended = [
+            {"evidence_id": "s_ent", "raw_triple": ["B", "r_bridge", "C"], "pool": "S", "p_ent": 0.9, "p_con": 0.1},
+            {"evidence_id": "s_con", "raw_triple": ["B", "r_bridge2", "C"], "pool": "S", "p_ent": 0.4, "p_con": 0.9},
+        ]
+        ranked = controller.rank_suspended(
+            active_triples=active,
+            suspended_triples=suspended,
+            bridge_bonus_by_id={"s_ent": 0.8, "s_con": 0.8},
+            prediction={"logit": -1.2},
+        )
+        self.assertEqual(ranked[0].evidence_id, "s_con")
+
+    def test_directional_delta_filters_polarity_mismatched_candidates(self) -> None:
+        mod = _load_backtracking_module()
+        controller = mod.RuleBasedBacktrackingController(
+            max_backtrack_rounds=1,
+            backtrack_k=2,
+            margin_threshold=0.2,
+            min_a=1,
+            rel_threshold=0.3,
+            directional_delta=0.1,
+            hunger_mode="absolute",
+            enable_do_no_harm_gate=False,
+        )
+        active = [
+            {"evidence_id": "a0", "pool": "A", "raw_triple": ["X", "r", "Y"], "rel": 0.9, "p_ent": 0.9, "p_con": 0.05},
+            {"evidence_id": "a1", "pool": "A", "raw_triple": ["Y", "r", "Z"], "rel": 0.8, "p_ent": 0.8, "p_con": 0.05},
+        ]
+        suspended = [
+            {"evidence_id": "s_ent", "pool": "S", "raw_triple": ["Y", "rb", "A"], "rel": 0.6, "p_ent": 0.7, "p_con": 0.2},
+            {"evidence_id": "s_con", "pool": "S", "raw_triple": ["Y", "rb", "B"], "rel": 0.6, "p_ent": 0.2, "p_con": 0.7},
+        ]
+
+        def predictor(rows):
+            ids = {str(row.get("evidence_id")) for row in rows if isinstance(row, dict)}
+            # Refute-leaning initial prediction, then confident after adding selected edge.
+            if "s_con" in ids:
+                return {"logit": -1.5, "probabilities": [0.18, 0.82], "is_disconnected": False}
+            return {"logit": -0.1, "probabilities": [0.475, 0.525], "is_disconnected": False}
+
+        result = controller.run(
+            claim_id="claim_directional",
+            active_triples=active,
+            suspended_triples=suspended,
+            predictor=predictor,
+        )
+        self.assertTrue(result.triggered)
+        self.assertEqual(result.promoted_evidence_ids, ("s_ent",))
+
+    def test_do_no_harm_reverts_non_helpful_round(self) -> None:
+        mod = _load_backtracking_module()
+        controller = mod.RuleBasedBacktrackingController(
+            max_backtrack_rounds=1,
+            backtrack_k=2,
+            margin_threshold=0.15,
+            min_a=1,
+            rel_threshold=0.3,
+            hunger_mode="absolute",
+            do_no_harm_margin_eps=0.002,
+        )
+        active = [
+            {"evidence_id": "a0", "pool": "A", "raw_triple": ["X", "r", "Y"], "rel": 0.9, "p_ent": 0.9, "p_con": 0.05},
+            {"evidence_id": "a1", "pool": "A", "raw_triple": ["Y", "r", "Z"], "rel": 0.8, "p_ent": 0.8, "p_con": 0.05},
+        ]
+        suspended = [
+            {"evidence_id": "s0", "pool": "S", "raw_triple": ["Y", "rb", "A"], "rel": 0.6, "p_ent": 0.6, "p_con": 0.1},
+            {"evidence_id": "s1", "pool": "S", "raw_triple": ["Y", "rb", "B"], "rel": 0.6, "p_ent": 0.55, "p_con": 0.1},
+        ]
+
+        call_count = {"n": 0}
+
+        def predictor(_current_active):
+            call_count["n"] += 1
+            if call_count["n"] == 1:
+                return {"probabilities": [0.53, 0.47], "is_disconnected": False}
+            if call_count["n"] == 2:
+                return {"probabilities": [0.525, 0.475], "is_disconnected": False}
+            return {"probabilities": [0.524, 0.476], "is_disconnected": False}
+
+        result = controller.run(
+            claim_id="claim_no_harm",
+            active_triples=active,
+            suspended_triples=suspended,
+            predictor=predictor,
+        )
+        self.assertTrue(result.triggered)
+        self.assertEqual(result.promoted_evidence_ids, ())
+        self.assertEqual(result.actions[0].selection_mode, "reverted")
+        self.assertTrue(result.actions[0].do_no_harm_reverted)
+
+    def test_do_no_harm_accepts_decisive_label_flip(self) -> None:
+        mod = _load_backtracking_module()
+        controller = mod.RuleBasedBacktrackingController(
+            max_backtrack_rounds=1,
+            backtrack_k=1,
+            margin_threshold=0.15,
+            min_a=1,
+            rel_threshold=0.3,
+            hunger_mode="absolute",
+            do_no_harm_margin_eps=0.002,
+            flip_conf_min=0.1,
+            flip_abslogit_eps=0.02,
+        )
+        active = [
+            {"evidence_id": "a0", "pool": "A", "raw_triple": ["X", "r", "Y"], "rel": 0.9, "p_ent": 0.9, "p_con": 0.05},
+            {"evidence_id": "a1", "pool": "A", "raw_triple": ["C", "r", "D"], "rel": 0.8, "p_ent": 0.8, "p_con": 0.05},
+        ]
+        suspended = [
+            {"evidence_id": "s_flip", "pool": "S", "raw_triple": ["Y", "rb", "C"], "rel": 0.6, "p_ent": 0.6, "p_con": 0.2},
+        ]
+
+        def predictor(rows):
+            ids = {str(row.get("evidence_id")) for row in rows if isinstance(row, dict)}
+            if "s_flip" in ids:
+                return {"logit": -0.08, "probabilities": [0.48, 0.52], "is_disconnected": False}
+            return {"logit": 0.04, "probabilities": [0.51, 0.49], "is_disconnected": False}
+
+        result = controller.run(
+            claim_id="claim_confident_flip",
+            active_triples=active,
+            suspended_triples=suspended,
+            predictor=predictor,
+        )
+        self.assertTrue(result.triggered)
+        self.assertEqual(result.promoted_evidence_ids, ("s_flip",))
+        self.assertFalse(result.actions[0].do_no_harm_reverted)
+        self.assertEqual(result.actions[0].selection_mode, "top_k")
+        self.assertLess(float(result.final_prediction["logit"]), 0.0)
+
+    def test_do_no_harm_reverts_weak_label_flip(self) -> None:
+        mod = _load_backtracking_module()
+        controller = mod.RuleBasedBacktrackingController(
+            max_backtrack_rounds=1,
+            backtrack_k=1,
+            margin_threshold=0.15,
+            min_a=1,
+            rel_threshold=0.3,
+            hunger_mode="absolute",
+            do_no_harm_margin_eps=0.002,
+            flip_conf_min=0.1,
+            flip_abslogit_eps=0.02,
+        )
+        active = [
+            {"evidence_id": "a0", "pool": "A", "raw_triple": ["X", "r", "Y"], "rel": 0.9, "p_ent": 0.9, "p_con": 0.05},
+            {"evidence_id": "a1", "pool": "A", "raw_triple": ["C", "r", "D"], "rel": 0.8, "p_ent": 0.8, "p_con": 0.05},
+        ]
+        suspended = [
+            {"evidence_id": "s_flip", "pool": "S", "raw_triple": ["Y", "rb", "C"], "rel": 0.6, "p_ent": 0.6, "p_con": 0.2},
+        ]
+
+        def predictor(rows):
+            ids = {str(row.get("evidence_id")) for row in rows if isinstance(row, dict)}
+            if "s_flip" in ids:
+                return {"logit": -0.05, "probabilities": [0.4875, 0.5125], "is_disconnected": False}
+            return {"logit": 0.04, "probabilities": [0.51, 0.49], "is_disconnected": False}
+
+        result = controller.run(
+            claim_id="claim_weak_flip",
+            active_triples=active,
+            suspended_triples=suspended,
+            predictor=predictor,
+        )
+        self.assertTrue(result.triggered)
+        self.assertEqual(result.promoted_evidence_ids, ())
+        self.assertTrue(result.actions[0].do_no_harm_reverted)
+        self.assertEqual(result.actions[0].selection_mode, "reverted")
+        self.assertLess(float(result.actions[0].tentative_prediction["logit"]), 0.0)
+        self.assertGreater(float(result.actions[0].prediction_after["logit"]), 0.0)
 
     def test_component3_package_exposes_core_api_without_optional_deps(self) -> None:
         repo_root = Path(__file__).resolve().parents[2]

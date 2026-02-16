@@ -161,6 +161,10 @@ class FactKGPVDatasetGraphTests(unittest.TestCase):
             self.assertEqual(suspended_rows[0]["pool"], "S")
             self.assertEqual(suspended_rows[0]["evidence_id"], "e2")
 
+            summary = dataset.get_pool_summary()
+            self.assertEqual(int(summary["fallback_total"]), 0)
+            self.assertEqual(int(summary["missing_embeddings_total"]), 0)
+
     def test_recovery_graph_builder_keeps_initial_graph_ac_only(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             base = Path(tmp_dir)
@@ -249,6 +253,36 @@ class FactKGPVDatasetGraphTests(unittest.TestCase):
 
             with self.assertRaises(ValueError):
                 _claim, _graph, _label = dataset[0]
+
+    def test_pool_summary_reports_fallback_and_missing_embedding_counts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            base = Path(tmp_dir)
+            embeddings_path = base / "embeddings.pkl"
+            self._write_embeddings(embeddings_path)
+
+            df = pd.DataFrame(
+                {
+                    "claim_id": ["c1"],
+                    "Sentence": ["A relates to Z"],
+                    "Label": [[1]],
+                }
+            )
+            evidence = [[["A", "r_missing", "Z"]]]
+
+            dataset = FactKGPVDatasetGraph(
+                df=df,
+                evidence=evidence,
+                embeddings_path=embeddings_path,
+                claim_triple_encoder=_toy_encoder,
+                claim_triple_dim=6,
+                require_pv_metadata=False,
+                auto_precompute=False,
+            )
+
+            summary = dataset.get_pool_summary()
+            self.assertEqual(int(summary["fallback_total"]), 1)
+            self.assertEqual(int(summary["missing_embeddings_total"]), 1)
+            self.assertEqual(int(summary["missing_embedding_entities_total"]), 1)
 
     def test_require_claim_triple_cache_raises_on_missing_embedding(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:

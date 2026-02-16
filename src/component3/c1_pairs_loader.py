@@ -78,11 +78,15 @@ def _parse_component1_pair_row(row: dict[str, Any], row_idx: int) -> tuple[str, 
     if not claim_id:
         return None
 
+    record_type = str(row.get("record_type") or "pair").strip().lower()
+    is_empty_sentinel = bool(row.get("empty_evidence_sentinel")) or record_type == "claim_sentinel"
     raw_triple = row.get("raw_triple")
     has_raw_triple = isinstance(raw_triple, (list, tuple)) and len(raw_triple) >= 3
     raw_sentence = str(row.get("raw_sentence") or row.get("premise_text") or "").strip()
-    if (not has_raw_triple) and (not raw_sentence):
+    if (not has_raw_triple) and (not raw_sentence) and (not is_empty_sentinel):
         return None
+    if is_empty_sentinel and not raw_sentence:
+        raw_sentence = "__EMPTY_EVIDENCE_SENTINEL__"
 
     probs = row.get("probs") if isinstance(row.get("probs"), dict) else {}
     derived = row.get("derived") if isinstance(row.get("derived"), dict) else {}
@@ -100,6 +104,12 @@ def _parse_component1_pair_row(row: dict[str, Any], row_idx: int) -> tuple[str, 
     line = row.get("line")
     if line is None:
         line = row.get("sentence_line")
+    schema_version = row.get("schema_version")
+    if schema_version is not None:
+        try:
+            schema_version = int(schema_version)
+        except (TypeError, ValueError):
+            schema_version = None
     evidence_row = {
         "evidence_id": evidence_id,
         "raw_triple": [str(raw_triple[0]), str(raw_triple[1]), str(raw_triple[2])] if has_raw_triple else None,
@@ -112,6 +122,9 @@ def _parse_component1_pair_row(row: dict[str, Any], row_idx: int) -> tuple[str, 
         "p_con": p_con,
         "p_neu": p_neu,
         "rel": rel,
+        "schema_version": schema_version,
+        "record_type": record_type,
+        "empty_evidence_sentinel": bool(is_empty_sentinel),
     }
     return claim_id, evidence_row
 
@@ -162,6 +175,11 @@ def load_component1_evidence_rows(
     pair_rows_parsed = 0
     pair_rows_dropped = 0
     pair_rows_nonzero_pv = 0
+    pair_rows_sentinel = 0
+    pair_rows_missing_schema_version = 0
+    pair_rows_non_v2_schema = 0
+    claims_missing_schema_version: set[str] = set()
+    claims_non_v2_schema: set[str] = set()
 
     if pairs_path.exists():
         with pairs_path.open("r", encoding="utf-8") as handle:
@@ -185,6 +203,15 @@ def load_component1_evidence_rows(
                 claim_id, evidence_row = parsed
                 rows_by_claim_id[claim_id].append(evidence_row)
                 pair_rows_parsed += 1
+                if bool(evidence_row.get("empty_evidence_sentinel")):
+                    pair_rows_sentinel += 1
+                schema_version = evidence_row.get("schema_version")
+                if schema_version is None:
+                    pair_rows_missing_schema_version += 1
+                    claims_missing_schema_version.add(claim_id)
+                elif int(schema_version) != 2:
+                    pair_rows_non_v2_schema += 1
+                    claims_non_v2_schema.add(claim_id)
                 if (
                     abs(float(evidence_row["p_ent"])) > 0.0
                     or abs(float(evidence_row["p_con"])) > 0.0
@@ -197,13 +224,18 @@ def load_component1_evidence_rows(
     claims_missing_c1_pairs = 0
     claims_using_fallback = 0
     claims_with_empty_evidence = 0
+    claims_with_empty_sentinel = 0
     fallback_edge_rows = 0
 
     for row_idx, claim_id in enumerate(expected_claim_ids):
-        c1_rows = rows_by_claim_id.get(claim_id, [])
-        if c1_rows:
-            aligned_rows.append(c1_rows)
+        c1_rows_all = rows_by_claim_id.get(claim_id, [])
+        if c1_rows_all:
+            usable_rows = [row for row in c1_rows_all if not bool(row.get("empty_evidence_sentinel"))]
+            aligned_rows.append(usable_rows)
             claims_with_c1_pairs += 1
+            if not usable_rows:
+                claims_with_empty_evidence += 1
+                claims_with_empty_sentinel += 1
             continue
 
         claims_missing_c1_pairs += 1
@@ -242,7 +274,13 @@ def load_component1_evidence_rows(
         "pair_rows_dropped": pair_rows_dropped,
         "pair_rows_nonzero_pv": pair_rows_nonzero_pv,
         "pair_rows_nonzero_pv_pct": _pct(pair_rows_nonzero_pv, max(pair_rows_parsed, 1)),
+        "pair_rows_sentinel": pair_rows_sentinel,
+        "pair_rows_missing_schema_version": pair_rows_missing_schema_version,
+        "pair_rows_non_v2_schema": pair_rows_non_v2_schema,
+        "claims_missing_schema_version": int(len(claims_missing_schema_version)),
+        "claims_non_v2_schema": int(len(claims_non_v2_schema)),
         "fallback_edge_rows": fallback_edge_rows,
+        "claims_with_empty_sentinel": claims_with_empty_sentinel,
         "extra_claim_ids_in_pairs": len(extra_claim_ids),
         "extra_claim_id_examples": extra_claim_ids[:10],
     }
@@ -319,6 +357,11 @@ def load_component1_evidence_rows_fever(
     pair_rows_parsed = 0
     pair_rows_dropped = 0
     pair_rows_nonzero_pv = 0
+    pair_rows_sentinel = 0
+    pair_rows_missing_schema_version = 0
+    pair_rows_non_v2_schema = 0
+    claims_missing_schema_version: set[str] = set()
+    claims_non_v2_schema: set[str] = set()
 
     if pairs_path.exists():
         with pairs_path.open("r", encoding="utf-8") as handle:
@@ -342,6 +385,15 @@ def load_component1_evidence_rows_fever(
                 claim_id, evidence_row = parsed
                 rows_by_claim_id[claim_id].append(evidence_row)
                 pair_rows_parsed += 1
+                if bool(evidence_row.get("empty_evidence_sentinel")):
+                    pair_rows_sentinel += 1
+                schema_version = evidence_row.get("schema_version")
+                if schema_version is None:
+                    pair_rows_missing_schema_version += 1
+                    claims_missing_schema_version.add(claim_id)
+                elif int(schema_version) != 2:
+                    pair_rows_non_v2_schema += 1
+                    claims_non_v2_schema.add(claim_id)
                 if (
                     abs(float(evidence_row["p_ent"])) > 0.0
                     or abs(float(evidence_row["p_con"])) > 0.0
@@ -354,13 +406,18 @@ def load_component1_evidence_rows_fever(
     claims_missing_c1_pairs = 0
     claims_using_fallback = 0
     claims_with_empty_evidence = 0
+    claims_with_empty_sentinel = 0
     fallback_edge_rows = 0
 
     for row_idx, claim_id in enumerate(expected_claim_ids):
-        c1_rows = rows_by_claim_id.get(claim_id, [])
-        if c1_rows:
-            aligned_rows.append(c1_rows)
+        c1_rows_all = rows_by_claim_id.get(claim_id, [])
+        if c1_rows_all:
+            usable_rows = [row for row in c1_rows_all if not bool(row.get("empty_evidence_sentinel"))]
+            aligned_rows.append(usable_rows)
             claims_with_c1_pairs += 1
+            if not usable_rows:
+                claims_with_empty_evidence += 1
+                claims_with_empty_sentinel += 1
             continue
 
         claims_missing_c1_pairs += 1
@@ -399,7 +456,13 @@ def load_component1_evidence_rows_fever(
         "pair_rows_dropped": pair_rows_dropped,
         "pair_rows_nonzero_pv": pair_rows_nonzero_pv,
         "pair_rows_nonzero_pv_pct": _pct(pair_rows_nonzero_pv, max(pair_rows_parsed, 1)),
+        "pair_rows_sentinel": pair_rows_sentinel,
+        "pair_rows_missing_schema_version": pair_rows_missing_schema_version,
+        "pair_rows_non_v2_schema": pair_rows_non_v2_schema,
+        "claims_missing_schema_version": int(len(claims_missing_schema_version)),
+        "claims_non_v2_schema": int(len(claims_non_v2_schema)),
         "fallback_edge_rows": fallback_edge_rows,
+        "claims_with_empty_sentinel": claims_with_empty_sentinel,
         "extra_claim_ids_in_pairs": len(extra_claim_ids),
         "extra_claim_id_examples": extra_claim_ids[:10],
     }

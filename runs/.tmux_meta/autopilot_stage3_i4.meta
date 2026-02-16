@@ -1,0 +1,4 @@
+run_id=autopilot_stage3_pvqagnn_no_bt_i4
+run_dir=runs/autopilot_stage3_pvqagnn_no_bt_i4
+log_file=runs/autopilot_stage3_pvqagnn_no_bt_i4/run_console.log
+exit_file=runs/autopilot_stage3_pvqagnn_no_bt_i4/.tmux_exit_code

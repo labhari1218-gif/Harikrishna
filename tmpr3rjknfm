@@ -1,0 +1,3 @@
+eval "$(/home/bs_thesis/miniconda/bin/conda shell.posix hook)"
+conda activate  /home/bs_thesis/miniconda/envs/fact_check_env
+python3 scripts/run_component1_pv_esm.py --split train --limit_claims 100 --device cpu --batch_size 8 --pair_log_mode none --model_name MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli

@@ -1,0 +1,237 @@
+{
+  "run_id": "t33_phase12_gpu_smoke_20260216_0005",
+  "stages": [
+    {
+      "stage": "stage1_freeze_bert",
+      "epochs": 1,
+      "learning_rate": 1e-05,
+      "unfreeze_pooler": false,
+      "best_epoch": 1,
+      "best_val_loss": 0.7750164791941643,
+      "best_val_accuracy": 49.21875,
+      "last_loss_bce": 0.740423858165741,
+      "last_loss_evidence": 0.6797860264778137,
+      "last_loss_starvation": 0.0,
+      "last_loss_counter": 0.0,
+      "last_loss_recovery": 0.0,
+      "last_loss_total": 0.8084024786949158,
+      "trainable_summary": {
+        "total": 110014471,
+        "trainable": 532231,
+        "bert_total": 109482240,
+        "bert_trainable": 0,
+        "pooler_total": 590592,
+        "pooler_trainable": 0
+      },
+      "optimizer_id": 131373234567632,
+      "optimizer_state_size": 38
+    },
+    {
+      "stage": "stage2_unfreeze_pooler",
+      "epochs": 1,
+      "learning_rate": 2e-06,
+      "unfreeze_pooler": true,
+      "best_epoch": 1,
+      "best_val_loss": 0.7756492309272289,
+      "best_val_accuracy": 49.21875,
+      "last_loss_bce": 0.7421011924743652,
+      "last_loss_evidence": 0.6821212768554688,
+      "last_loss_starvation": 0.0,
+      "last_loss_counter": 0.0,
+      "last_loss_recovery": 0.0,
+      "last_loss_total": 0.81031334400177,
+      "trainable_summary": {
+        "total": 110014471,
+        "trainable": 1122823,
+        "bert_total": 109482240,
+        "bert_trainable": 590592,
+        "pooler_total": 590592,
+        "pooler_trainable": 590592
+      },
+      "optimizer_id": 131373234567632,
+      "optimizer_state_size": 38
+    }
+  ],
+  "data_contract": {
+    "component1_coverage": {
+      "train": {
+        "split": "train",
+        "logs_root": "logs/component1",
+        "pairs_file": "logs/component1/train/pairs.jsonl",
+        "pairs_file_exists": true,
+        "missing_policy": "hybrid_fallback",
+        "claims_total": 86367,
+        "claims_with_component1_pairs": 85241,
+        "claims_missing_component1_pairs": 1126,
+        "claims_using_fallback": 1126,
+        "claims_with_empty_evidence": 1126,
+        "claims_with_component1_pairs_pct": 0.9869626130350713,
+        "claims_missing_component1_pairs_pct": 0.013037386964928734,
+        "claims_using_fallback_pct": 0.013037386964928734,
+        "claims_with_empty_evidence_pct": 0.013037386964928734,
+        "pair_rows_total": 1751327,
+        "pair_rows_parsed": 1751327,
+        "pair_rows_dropped": 0,
+        "pair_rows_nonzero_pv": 1751327,
+        "pair_rows_nonzero_pv_pct": 1.0,
+        "fallback_edge_rows": 0,
+        "extra_claim_ids_in_pairs": 0,
+        "extra_claim_id_examples": [],
+        "pool_summary": {
+          "include_s_pool": true,
+          "claims_total": 86367,
+          "ac_triples_total": 955774,
+          "s_pool_available_total": 795553,
+          "s_pool_retained_total": 795553,
+          "claims_with_s_pool_available": 19699,
+          "claims_with_s_pool_retained": 19699
+        }
+      },
+      "val": {
+        "split": "val",
+        "logs_root": "logs/component1",
+        "pairs_file": "logs/component1/val/pairs.jsonl",
+        "pairs_file_exists": true,
+        "missing_policy": "hybrid_fallback",
+        "claims_total": 13266,
+        "claims_with_component1_pairs": 13141,
+        "claims_missing_component1_pairs": 125,
+        "claims_using_fallback": 125,
+        "claims_with_empty_evidence": 125,
+        "claims_with_component1_pairs_pct": 0.9905774159505503,
+        "claims_missing_component1_pairs_pct": 0.009422584049449722,
+        "claims_using_fallback_pct": 0.009422584049449722,
+        "claims_with_empty_evidence_pct": 0.009422584049449722,
+        "pair_rows_total": 282730,
+        "pair_rows_parsed": 282730,
+        "pair_rows_dropped": 0,
+        "pair_rows_nonzero_pv": 282730,
+        "pair_rows_nonzero_pv_pct": 1.0,
+        "fallback_edge_rows": 0,
+        "extra_claim_ids_in_pairs": 0,
+        "extra_claim_id_examples": [],
+        "pool_summary": {
+          "include_s_pool": true,
+          "claims_total": 13266,
+          "ac_triples_total": 147670,
+          "s_pool_available_total": 135060,
+          "s_pool_retained_total": 135060,
+          "claims_with_s_pool_available": 3140,
+          "claims_with_s_pool_retained": 3140
+        }
+      },
+      "test": {
+        "split": "test",
+        "logs_root": "logs/component1",
+        "pairs_file": "logs/component1/test/pairs.jsonl",
+        "pairs_file_exists": true,
+        "missing_policy": "hybrid_fallback",
+        "claims_total": 9041,
+        "claims_with_component1_pairs": 8933,
+        "claims_missing_component1_pairs": 108,
+        "claims_using_fallback": 108,
+        "claims_with_empty_evidence": 108,
+        "claims_with_component1_pairs_pct": 0.9880544187589868,
+        "claims_missing_component1_pairs_pct": 0.011945581241013163,
+        "claims_using_fallback_pct": 0.011945581241013163,
+        "claims_with_empty_evidence_pct": 0.011945581241013163,
+        "pair_rows_total": 168139,
+        "pair_rows_parsed": 168139,
+        "pair_rows_dropped": 0,
+        "pair_rows_nonzero_pv": 168139,
+        "pair_rows_nonzero_pv_pct": 1.0,
+        "fallback_edge_rows": 0,
+        "extra_claim_ids_in_pairs": 0,
+        "extra_claim_id_examples": [],
+        "pool_summary": {
+          "include_s_pool": true,
+          "claims_total": 9041,
+          "ac_triples_total": 94738,
+          "s_pool_available_total": 73401,
+          "s_pool_retained_total": 73401,
+          "claims_with_s_pool_available": 1858,
+          "claims_with_s_pool_retained": 1858
+        }
+      }
+    },
+    "missing_pv_policy": "hybrid_fallback",
+    "use_component1_pairs": true
+  },
+  "runtime_flags": {
+    "used_s_pool": true,
+    "used_backtracking": true,
+    "used_router": false,
+    "used_component5": false
+  },
+  "backtracking_summary": {
+    "enabled": true,
+    "attempted_claims": 9041,
+    "claims_with_s_pool": 1858,
+    "claims_triggered": 1742,
+    "claims_promoted": 1742,
+    "promotions_total": 9612,
+    "recovery_actions_path": "runs/t33_phase12_gpu_smoke_20260216_0005/recovery_actions.jsonl",
+    "recovery_candidates_path": "runs/t33_phase12_gpu_smoke_20260216_0005/recovery_candidates.jsonl"
+  },
+  "test_metrics": {
+    "existence": {
+      "accuracy": 0.4911470361816782,
+      "precision": 0.490726429675425,
+      "recall": 0.9968602825745683,
+      "f1": 0.6576903158984981
+    },
+    "substitution": {
+      "accuracy": 0.05429497568881685,
+      "precision": 0.041084634346754315,
+      "recall": 1.0,
+      "f1": 0.07892659826361484
+    },
+    "multi hop": {
+      "accuracy": 0.537867824409069,
+      "precision": 0.5384992643452673,
+      "recall": 0.9847533632286996,
+      "f1": 0.6962587190868738
+    },
+    "multi claim": {
+      "accuracy": 0.4236258730640753,
+      "precision": 0.42162329615861216,
+      "recall": 0.9777298850574713,
+      "f1": 0.5891774891774891
+    },
+    "negation": {
+      "accuracy": 0.4649923896499239,
+      "precision": 0.46153846153846156,
+      "recall": 0.9950248756218906,
+      "f1": 0.6305832895428272
+    },
+    "single hop": {
+      "accuracy": 0.4708668197474168,
+      "precision": 0.47064806742226095,
+      "recall": 0.9865976241242765,
+      "f1": 0.6372848007870142
+    },
+    "overall": {
+      "accuracy": 0.4862293994027209,
+      "loss": 0.7076423904257872,
+      "precision": 0.48615626050891153,
+      "recall": 0.9861300591177808,
+      "f1": 0.6512500938508897
+    }
+  },
+  "no_collapse_gate": {
+    "passed": false,
+    "checks": {
+      "recall_lt_0_99": true,
+      "precision_accuracy_gap_ge_min": false,
+      "best_val_accuracy_ge_55": false
+    },
+    "observed": {
+      "overall_recall": 0.9861300591177808,
+      "overall_precision": 0.48615626050891153,
+      "overall_accuracy": 0.4862293994027209,
+      "precision_accuracy_gap": 7.313889380938798e-05,
+      "precision_accuracy_gap_min": 0.005,
+      "best_val_accuracy": 49.21875
+    }
+  }
+}

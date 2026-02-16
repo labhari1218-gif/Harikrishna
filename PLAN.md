@@ -5,12 +5,16 @@
 > - Codex should tick checkboxes and add completion notes after each task.
 > - Each Component is a milestone with sub-tasks (T-codes).
 > - Run artifacts go to `runs/<run_id>/` with mandatory files per run.
+>
+> [!IMPORTANT]
+> “Implemented” does not mean “active in runtime path”.
+> Treat any task as DONE only when Phase-0 audit proves it is wired into the active train/eval path for the baseline command.
 
 ---
 
 ## Status
 - Completed: ✅ Component 1, ✅ Component 2 (M0-M3)
-- Current phase: ✅ **M4 Residuals** → ✅ Component 3 → ✅ Component 4 → ✅ Component 5 → ✅ Component 6 → ✅ Component 7
+- Current phase: ☐ **Phase-0 wiring audit** (mandatory) → ☐ targeted remediation phases from `AGENTS.md`
 - Primary dataset: **FactKG** (108k claims, 2-way SUPPORTED/REFUTED)
 - Foundation model: **QA-GNN** (already implemented in `models.py`)
 - GPU: 8 GB VRAM
@@ -43,16 +47,16 @@
 > you'll compare against.
 
 - [x] **T11** Ablation: no PV mask
-  - Completed 2026-02-15: Added ablation mode `A4` (full pipeline with `mask_sup=mask_ref=1.0`) in `src/component2/ablation_runner.py`.
+  - Implemented 2026-02-15 (pending wiring audit): Added ablation mode `A4` (full pipeline with `mask_sup=mask_ref=1.0`) in `src/component2/ablation_runner.py`.
   - Added test coverage for mask-disable behavior and A4 smoke artifacts (`tests/component2/test_reasoner.py`, `tests/component2/test_ablation_modes_smoke.py`).
 - [x] **T14** Stress tests: drop bridge triples / add distractors
-  - Completed 2026-02-14: Added stress ablation modes `A5` (drop bridge-like `S` triples) and `A6` (inject high-rel `S` distractors) in `src/component2/ablation_runner.py`, with per-claim stress mutation diagnostics.
+  - Implemented 2026-02-14 (pending wiring audit): Added stress ablation modes `A5` (drop bridge-like `S` triples) and `A6` (inject high-rel `S` distractors) in `src/component2/ablation_runner.py`, with per-claim stress mutation diagnostics.
   - Added smoke coverage in `tests/component2/test_ablation_stress.py` and verified no regression in existing ablation smoke tests.
 - [x] **T15** Ablation: learnable PV mask coefficients (`a_s, b_s, a_r, b_r`)
-  - Completed 2026-02-14: Finalized/validated mask-coefficient tuning flow (`src/component2/mask_tuning.py`) and surfaced active mask coefficients in per-mode ablation metrics.
+  - Implemented 2026-02-14 (pending wiring audit): Finalized/validated mask-coefficient tuning flow (`src/component2/mask_tuning.py`) and surfaced active mask coefficients in per-mode ablation metrics.
   - Added/updated tuning tests to verify joint-search candidate accounting and tuned-parameter propagation into run config + `metrics_A{mode}.json`.
 - [x] **T16** Recovery-threshold sensitivity (`tau_esi` sweep: {0.2, 0.3, 0.4})
-  - Completed 2026-02-14: Added `run_tau_esi_sweep(...)` in `src/component2/ablation_runner.py` to evaluate `{0.2,0.3,0.4}` with per-`tau` outputs and `tau_esi_sweep.json/.md` tradeoff summary (accuracy, risk/coverage, recovery trigger rate).
+  - Implemented 2026-02-14 (pending wiring audit): Added `run_tau_esi_sweep(...)` in `src/component2/ablation_runner.py` to evaluate `{0.2,0.3,0.4}` with per-`tau` outputs and `tau_esi_sweep.json/.md` tradeoff summary (accuracy, risk/coverage, recovery trigger rate).
   - Added smoke coverage in `tests/component2/test_tau_esi_sweep.py` and validated compatibility with existing ablation-mode/tuning smoke tests.
 
 **Existing M4 runner**: `src/component2/ablation_runner.py` with modes A0-A3.
@@ -85,7 +89,7 @@ Extend the existing `QAGNN` class with: (1) dual-stream GAT with PV edge masks, 
   - GATConv config: hidden=256, layers=2, heads=1, dropout=0.3 (matching existing QAGNN)
   - Must fit in 8GB with batch_size=8
   - Acceptance: forward pass on 5 claims with PV scores produces logits
-  - Completed 2026-02-14: Implemented `PV_QAGNN` in `src/component3/pv_qagnn.py` with separate support/refute `GATConv` stacks, trainable PV mask parameters (`mask_sup_alpha`, `mask_sup_beta`, `mask_ref_alpha`, `mask_ref_beta`), and joint per-edge weighting (`cosine × PV gate`) feeding a `concat(support_pool, refute_pool, claim_embed)` classifier head.
+  - Implemented 2026-02-14 (pending wiring audit): Implemented `PV_QAGNN` in `src/component3/pv_qagnn.py` with separate support/refute `GATConv` stacks, trainable PV mask parameters (`mask_sup_alpha`, `mask_sup_beta`, `mask_ref_alpha`, `mask_ref_beta`), and joint per-edge weighting (`cosine × PV gate`) feeding a `concat(support_pool, refute_pool, claim_embed)` classifier head.
   - Added `src/component3/__init__.py` export and `tests/component3/test_pv_qagnn.py` covering mask-parameter defaults/trainability, support-vs-refute parameter independence, and a 5-claim forward-pass smoke setup with PV edge scores.
   - Validation note 2026-02-14: Runtime unit-test execution is blocked in this shell (`pytest` not installed, `torch` unavailable), but syntax smoke checks passed via `python3 -m compileall` on the new Component 3 source/test files.
 
@@ -101,7 +105,7 @@ Extend the existing `QAGNN` class with: (1) dual-stream GAT with PV edge masks, 
   - Node features: precomputed BERT entity embeddings (reuse existing `embeddings.pkl`)
   - Edge index from A+C triples only
   - Acceptance: loads 100 claims, each graph has node features + rich edge_attr
-  - Completed 2026-02-14: Added `src/component3/pv_dataset.py` with `FactKGPVDatasetGraph` (extends `FactKGDatasetGraph`) that enforces precomputed entity embeddings (`embeddings.pkl`) with explicit error when missing and no hash fallback.
+  - Implemented 2026-02-14 (pending wiring audit): Added `src/component3/pv_dataset.py` with `FactKGPVDatasetGraph` (extends `FactKGDatasetGraph`) that enforces precomputed entity embeddings (`embeddings.pkl`) with explicit error when missing and no hash fallback.
   - Added claim-conditioned edge encoding and cache support for `[CLS] claim [SEP] subject relation object [SEP]` embeddings via `claim_triple_embeddings.pkl` (auto-load, precompute, persist).
   - Implemented A+C-only graph construction, rich edge attributes (`claim_triple_embed + [p_ent, p_con, p_neu, rel, pool_id]`), strict missing-entity behavior, and empty-graph safety fallback.
   - Added tests in `tests/component3/test_pv_dataset.py` covering: missing embeddings-file failure, A+C-only edge filtering and edge-attr layout, cache-file creation, and no-fallback behavior when entity embeddings are missing.
@@ -122,7 +126,7 @@ Extend the existing `QAGNN` class with: (1) dual-stream GAT with PV edge masks, 
   - batch_size=8, max_seq_len=256 (for 8GB GPU)
   - Config persistence: `runs/<run_id>/config.yaml`
   - Acceptance: training converges on 1000-claim subset
-  - Completed 2026-02-14: Added `src/component3/run_train.py` with `Component3TrainConfig` + locked two-stage schedule (Stage 1 freeze BERT; Stage 2 unfreeze pooler), model/dataloader wiring, and explicit reuse of `train.py::train()` and `evaluate.py::evaluate_on_test_set()`.
+  - Implemented 2026-02-14 (pending wiring audit): Added `src/component3/run_train.py` with `Component3TrainConfig` + locked two-stage schedule (Stage 1 freeze BERT; Stage 2 unfreeze pooler), model/dataloader wiring, and explicit reuse of `train.py::train()` and `evaluate.py::evaluate_on_test_set()`.
   - Implemented multi-task criterion adapter `L_total = L_BCE + λ·L_evidence` via `MultiTaskLossAdapter` and `MultiTaskPVModel` wrapper (auxiliary evidence-quality head + edge-level supervision hook from graph attributes when present).
   - Added run artifact persistence for `runs/<run_id>/config.yaml` and `runs/<run_id>/metrics.json`, with CLI defaults aligned to 8GB constraints (`batch_size=8`, `max_seq_len=256`, subset default 1000).
   - Added tests in `tests/component3/test_run_train.py` for stage-plan correctness, config serialization/YAML writing, and stage-specific parameter freezing/unfreezing behavior.
@@ -137,10 +141,13 @@ Extend the existing `QAGNN` class with: (1) dual-stream GAT with PV edge masks, 
     3. **rel**: relevance tiebreaker (= p_ent + p_con)
   - Component 3 adds a 4th factor after GNN pass: `salience × PV` (GNN attention × p_ent)
   - **Budget**: `max_backtrack_rounds=2`, `backtrack_k=3` per round (max 6 total)
-  - **Trigger**: low confidence (margin < 0.15) AND structural deficiency (disconnected graph)
+  - **Trigger**: low confidence (margin < 0.15) OR structural deficiency (disconnected graph) OR evidence-hunger
+  - **Conservative execution gate**: execute S->A promotion only when ranked S candidates include at least one bridge with `connects_components=true`
+  - **Bridge score definition (Round-0 A+C graph, anchor-seeded PPR)**:
+    - `bridge_bonus(u,v) = ppr[u] * (epsilon + rel_uv) * ppr[v] * neutral_cap(p_neu_uv)`
   - If triggered: promote top-k S triples → rebuild graph → re-run GNN forward
   - Acceptance: toy test where bridge rescue changes prediction
-  - Completed 2026-02-14: Added `src/component3/pv_bridge.py` with `PVBridgeRecoveryEngine` implementing bounded S-only recovery (`max_backtrack_rounds<=2`, `backtrack_k<=3`) and low-confidence+disconnected trigger logic (`margin < 0.15` and graph structural deficiency).
+  - Implemented 2026-02-14 (pending wiring audit): Added `src/component3/pv_bridge.py` with `PVBridgeRecoveryEngine` implementing bounded S-only recovery (`max_backtrack_rounds<=2`, `backtrack_k<=3`) and trigger logic currently centered on low-confidence + structural deficiency (must be verified against final OR-policy in Phase-0 wiring audit).
   - Implemented canonical ranked selection for suspended candidates with ordering aligned to validated Component 2 policy: `connects_components` → `bridge_bonus` → `rel`, plus Component 3 tie-break extension `salience_x_pv`.
   - Added bridge run trace dataclasses (`RankedCandidate`, `RecoveryAction`, `BridgeRunResult`) and a callback-based rerun flow supporting: promote S→A, rebuild graph, rerun predictor/model.
   - Integrated Component 2 wrapper handles (`BridgeRescuePPR`, `BridgeRecoveryPolicy`) when importable, with safe fallback for lightweight test runtime.
@@ -151,7 +158,7 @@ Extend the existing `QAGNN` class with: (1) dual-stream GAT with PV edge masks, 
   - Verify PV_QAGNN with α=4.0, β=−2.0 and single-stream mode
     produces comparable attention patterns to numpy C2 reasoner
   - Acceptance: correlation > 0.9 on edge attention weights for 10 claims
-  - Completed 2026-02-14: Added `src/component3/pv_parity.py` implementing a reproducible parity harness that locks α/β to `4.0/-2.0`, evaluates 10 synthetic claims, and compares C2 edge attentions against a PV-QAGNN single-stream proxy weight formulation.
+  - Implemented 2026-02-14 (pending wiring audit): Added `src/component3/pv_parity.py` implementing a reproducible parity harness that locks α/β to `4.0/-2.0`, evaluates 10 synthetic claims, and compares C2 edge attentions against a PV-QAGNN single-stream proxy weight formulation.
   - Implemented parity report with aggregate Pearson correlation + per-claim correlations and pass/fail thresholding (`run_numeric_parity_check(..., threshold=0.9)`).
   - Added direct CLI runner (`python3 src/component3/pv_parity.py --num-claims 10 --threshold 0.9`) with import-path fallback for standalone execution.
   - Added tests in `tests/component3/test_pv_parity.py` covering acceptance threshold on 10 claims and invalid-argument handling.
@@ -165,7 +172,7 @@ Extend the existing `QAGNN` class with: (1) dual-stream GAT with PV edge masks, 
   - **Claim types** (from evaluate.py): existence, substitution, multi hop, multi claim, negation, single hop
   - **Target: beat published SOTA (~86.82% PGR 2025) and match/exceed BERT baseline (~93%), especially on hard types (multi hop, negation)**
   - Output: `runs/<run_id>/metrics.json`
-  - Completed 2026-02-14: Added `src/component3/run_validation.py` with 3-seed validation orchestration over `bert_baseline`, `qagnn_baseline`, and `pv_qagnn`, including aggregate reporting (`mean ± std`) for overall and per-type metrics.
+  - Implemented 2026-02-14 (pending wiring audit): Added `src/component3/run_validation.py` with 3-seed validation orchestration over `bert_baseline`, `qagnn_baseline`, and `pv_qagnn`, including aggregate reporting (`mean ± std`) for overall and per-type metrics.
   - Implemented required comparison summary deltas (`pv_vs_bert`, `pv_vs_qagnn`, `bert_vs_qagnn`), best-model selection, and run artifact persistence to `runs/<run_id>/config.yaml` and `runs/<run_id>/metrics.json`.
   - Added tests in `tests/component3/test_run_validation.py` covering 3-seed aggregation, artifact writing, per-type metric presence, and strict seed-count validation.
   - Validation 2026-02-14: `python3 -m unittest discover -s Fact-or-Fiction/tests/component3 -p test_run_validation.py` passed (2 tests); `python3 -m compileall -q Fact-or-Fiction/src/component3/run_validation.py Fact-or-Fiction/tests/component3/test_run_validation.py` passed.
@@ -185,7 +192,7 @@ Persistent ESM state with rule-based S→A backtracking controller.
   - Track per-triple history: when suspended, why, recovery attempts
   - S pool is the recovery source; A+C are fixed in graph
   - Serializes to `runs/<run_id>/esm_pools.jsonl`
-  - Completed 2026-02-14: Added `ESMMemoryStore` with per-claim snapshot/state APIs, per-triple history (`initial/current pool`, suspension reason/round/timestamp, recovery-attempt log, promotion round), and JSONL persistence helpers (`for_run(...)`, `write_claim_snapshot(...)`, `write_all_snapshots(...)`).
+  - Implemented 2026-02-14 (pending wiring audit): Added `ESMMemoryStore` with per-claim snapshot/state APIs, per-triple history (`initial/current pool`, suspension reason/round/timestamp, recovery-attempt log, promotion round), and JSONL persistence helpers (`for_run(...)`, `write_claim_snapshot(...)`, `write_all_snapshots(...)`).
   - Added S-only guardrails: recovery attempts must be S-sourced, and promotions enforce `S -> A` only.
   - Added test coverage in `tests/component3/test_esm_memory.py` for snapshot serialization, history tracking, and S-only enforcement errors.
 
@@ -196,9 +203,10 @@ Persistent ESM state with rule-based S→A backtracking controller.
     2. **Low connectivity**: graph has disconnected components
     3. **Evidence hunger**: Active pool has `< min_A` triples with `rel > 0.3`
   - Action: promote top-k S triples (by bridge score rank) → rebuild graph → re-run GNN
+  - Conservative execution gate: only promote when at least one selected S candidate has `connects_components=true`
   - Config: `max_backtrack_rounds=2`, `backtrack_k=3`
   - Acceptance: test where S→A recovery changes prediction
-  - Completed 2026-02-14: Added `RuleBasedBacktrackingController` with explicit ANY-trigger policy (low confidence OR low connectivity OR evidence hunger), bounded config checks (`rounds<=2`, `k<=3`), and canonical bridge ranking (`connects_components -> bridge_bonus -> rel -> salience x PV`).
+  - Implemented 2026-02-14 (pending wiring audit): Added `RuleBasedBacktrackingController` with explicit ANY-trigger policy (low confidence OR low connectivity OR evidence hunger), bounded config checks (`rounds<=2`, `k<=3`), and canonical bridge ranking (`connects_components -> bridge_bonus -> rel -> salience x PV`).
   - Implemented S-only promotion loop with optional graph rebuild/rerun callbacks and optional ESM-memory integration (records per-round recovery attempts and promotions).
   - Added tests in `tests/component3/test_backtracking.py` for trigger semantics, ranking order, budget validation, and acceptance behavior where bridge recovery flips the prediction.
 
@@ -206,7 +214,7 @@ Persistent ESM state with rule-based S→A backtracking controller.
   - Starvation rate, recovered-gold rate, recovery impact (Δ accuracy)
   - File: `src/component3/diagnostics.py` [NEW]
   - Output: `runs/<run_id>/diagnostics.json`
-  - Completed 2026-02-14: Added diagnostics aggregation functions for starvation rate, recovered-gold rate, and recovery impact (`delta_accuracy`, before/after accuracy, trigger rate), plus run-level writer `run_component4_diagnostics(...)` producing `runs/<run_id>/diagnostics.json`.
+  - Implemented 2026-02-14 (pending wiring audit): Added diagnostics aggregation functions for starvation rate, recovered-gold rate, and recovery impact (`delta_accuracy`, before/after accuracy, trigger rate), plus run-level writer `run_component4_diagnostics(...)` producing `runs/<run_id>/diagnostics.json`.
   - Added tests in `tests/component3/test_diagnostics.py` for metric correctness and diagnostics artifact generation.
   - Validation 2026-02-14: `python3 -m unittest discover -s Fact-or-Fiction/tests/component3 -p 'test_esm_memory.py'` (3 tests), `python3 -m unittest discover -s Fact-or-Fiction/tests/component3 -p 'test_backtracking.py'` (4 tests), and `python3 -m unittest discover -s Fact-or-Fiction/tests/component3 -p 'test_diagnostics.py'` (2 tests) all passed; `python3 -m compileall -q` passed for new Component 4 source + tests.
 
@@ -228,32 +236,32 @@ Replace rule-based triggers with a trainable MLP controller. Add custom losses.
   - Input (6 features): prediction entropy, top-2 margin, connectivity, counter mass, active mass, ESI score
   - Output: {no-op, recover top-1, recover top-3} from S
   - Architecture: 2-layer MLP, hidden=64, ReLU, softmax
-  - Completed 2026-02-14: Added `ControllerMLP` (6->64->3), `ControllerFeatures`, `ControllerDecision`, and `LearnedBacktrackingController` in `src/component3/controller.py`, with explicit action mapping `{no-op, top-1, top-3}` and S-only promotions.
+  - Implemented 2026-02-14 (pending wiring audit): Added `ControllerMLP` (6->64->3), `ControllerFeatures`, `ControllerDecision`, and `LearnedBacktrackingController` in `src/component3/controller.py`, with explicit action mapping `{no-op, top-1, top-3}` and S-only promotions.
   - Added controller behavior tests in `tests/component3/test_controller.py` (feature extraction, action selection, and prediction-flip recovery smoke scenario).
 
 - [x] **T5.2** Starvation penalty loss
   - `L_starv = λ₁ · max(0, τ_starv - mean_rel_A)`, λ₁=0.1, τ_starv=0.3
-  - Completed 2026-02-14: Implemented `starvation_penalty_loss(...)` with exact formula and active-evidence helper utilities (`compute_mean_rel_active`, mass feature helpers) in `src/component3/controller.py`.
+  - Implemented 2026-02-14 (pending wiring audit): Implemented `starvation_penalty_loss(...)` with exact formula and active-evidence helper utilities (`compute_mean_rel_active`, mass feature helpers) in `src/component3/controller.py`.
   - Added direct formula tests in `tests/component3/test_controller.py`.
 
 - [x] **T5.3** Counter-evidence preservation loss
   - `L_counter = λ₂ · max(0, max_contra_pool - max_contra_used)`, λ₂=0.1
-  - Completed 2026-02-14: Implemented `counter_evidence_preservation_loss(...)` with exact hinge form in `src/component3/controller.py`.
+  - Implemented 2026-02-14 (pending wiring audit): Implemented `counter_evidence_preservation_loss(...)` with exact hinge form in `src/component3/controller.py`.
   - Added formula-validation coverage in `tests/component3/test_controller.py`.
 
 - [x] **T5.4** Recovery utility loss (synthetic masking)
   - Mask 1-3 gold triples → run GNN → restore → measure improvement
   - `L_recovery = λ₃ · max(0, P_restored - P_masked)`, λ₃=0.1
-  - Completed 2026-02-14: Added `synthetic_masking_recovery_loss(...)` with per-mask trace dataclass `SyntheticMaskingStep`; supports masking 1-3 gold triples and computes averaged `L_recovery`.
+  - Implemented 2026-02-14 (pending wiring audit): Added `synthetic_masking_recovery_loss(...)` with per-mask trace dataclass `SyntheticMaskingStep`; supports masking 1-3 gold triples and computes averaged `L_recovery`.
   - Added synthetic-masking tests in `tests/component3/test_controller.py`.
 
 - [x] **T5.5** Joint training: `L = L_BCE + L_evidence + L_starv + L_counter + L_recovery`
-  - Completed 2026-02-14: Added `compute_component5_joint_loss(...)` + `Component5JointLossAdapter` in `src/component3/controller.py`, and wired Component 5 training options into `src/component3/run_train.py` (`--enable-component5`, loss weights, ablation variant).
+  - Implemented 2026-02-14 (pending wiring audit): Added `compute_component5_joint_loss(...)` + `Component5JointLossAdapter` in `src/component3/controller.py`, and wired Component 5 training options into `src/component3/run_train.py` (`--enable-component5`, loss weights, ablation variant).
   - Updated `MultiTaskPVModel` in `src/component3/run_train.py` to expose `latest_component5_context` (mean rel, contra pool/used, restored/masked probs) consumed by joint-loss training.
   - Added `run_train` config serialization coverage for Component 5 settings in `tests/component3/test_run_train.py`.
 
 - [x] **T5.6** Ablation: each loss term's marginal contribution
-  - Completed 2026-02-14: Added `LOSS_ABLATION_VARIANTS`, `resolve_loss_ablation_variant(...)`, and `run_loss_ablation(...)` for full/no-starvation/no-counter/no-recovery/BCE+evidence-only comparisons with `delta_vs_full`.
+  - Implemented 2026-02-14 (pending wiring audit): Added `LOSS_ABLATION_VARIANTS`, `resolve_loss_ablation_variant(...)`, and `run_loss_ablation(...)` for full/no-starvation/no-counter/no-recovery/BCE+evidence-only comparisons with `delta_vs_full`.
   - Added ablation-output validation tests in `tests/component3/test_controller.py`.
   - Validation 2026-02-14: `python3 -m unittest discover -s Fact-or-Fiction/tests/component3 -p test_controller.py` passed (8 tests, 1 skipped when `torch` unavailable); `python3 -m unittest discover -s Fact-or-Fiction/tests/component3 -p test_run_train.py` passed (5 tests); `python3 -m compileall -q` passed for updated Component 5 source/tests; `python3 Fact-or-Fiction/src/component3/run_train.py --help` passed with new C5 CLI flags.
 
@@ -263,6 +271,9 @@ Replace rule-based triggers with a trainable MLP controller. Add custom losses.
 
 ### Goal
 Train a router that selects **which model** to use per claim — not just budgets.
+
+> [!CAUTION]
+> Router work is blocked until Phases 1-4 in `AGENTS.md` show stable slice gains and stable explainability artifacts.
 
 > [!IMPORTANT]
 > **Key upgrade from previous plan**: The router doesn't just set budgets — it routes
@@ -274,21 +285,21 @@ Train a router that selects **which model** to use per claim — not just budget
 - [x] **T6.1** Router classifier
   - Fine-tune BERT-base claim-only → 6-way (existence, substitution, multi hop, multi claim, negation, single hop)
   - Target: > 80% accuracy on dev set
-  - Completed 2026-02-14: Added `src/component3/router.py` with `train_router_classifier(...)` and a pluggable classifier backend for claim-only routing (`bert_finetune` when `torch+transformers` are available, deterministic `naive_bayes` fallback otherwise).
+  - Implemented 2026-02-14 (pending wiring audit): Added `src/component3/router.py` with `train_router_classifier(...)` and a pluggable classifier backend for claim-only routing (`bert_finetune` when `torch+transformers` are available, deterministic `naive_bayes` fallback otherwise).
   - Implemented `RouterClassifierConfig` with 8GB-safe limits (`batch_size<=8`, `max_seq_len<=256`) and explicit dev-target enforcement (`min_dev_accuracy=0.80`).
   - Added synthetic smoke corpus helper `build_synthetic_component6_data()` and end-to-end run support in `run_component6_pipeline(...)` for constrained runtimes.
 
 - [x] **T6.2** Difficulty scoring
   - Beyond claim type, add: prediction margin, graph connectivity, evidence count
   - Use these features to classify easy vs hard
-  - Completed 2026-02-14: Added `DifficultyFeatures`, `DifficultyConfig`, and `score_claim_difficulty(...)` using all required features (`claim_type`, `prediction_margin`, `graph_connectivity`, `evidence_count`) to produce a calibrated `hard_score` + `is_hard`.
+  - Implemented 2026-02-14 (pending wiring audit): Added `DifficultyFeatures`, `DifficultyConfig`, and `score_claim_difficulty(...)` using all required features (`claim_type`, `prediction_margin`, `graph_connectivity`, `evidence_count`) to produce a calibrated `hard_score` + `is_hard`.
   - Hard/easy logic now explicitly captures low-margin and disconnected-graph behavior while preserving type-aware priors.
 
 - [x] **T6.3** Model routing
   - **Easy claims** (existence, substitution, single hop, high margin) → BERT single-step baseline (fast, ~93%)
   - **Hard claims** (multi hop, negation, low margin, disconnected graph) → PV-QA-GNN + backtracking
   - Threshold tuning on dev set to maximize overall accuracy
-  - Completed 2026-02-14: Added threshold sweep `tune_routing_threshold(...)` and policy router `Component6ModelRouter` with claim-level dispatch between `bert_baseline` and `pv_qagnn_backtracking`.
+  - Implemented 2026-02-14 (pending wiring audit): Added threshold sweep `tune_routing_threshold(...)` and policy router `Component6ModelRouter` with claim-level dispatch between `bert_baseline` and `pv_qagnn_backtracking`.
   - Easy profile routing: easy type + high margin + high connectivity; hard profile routing: hard type OR low margin OR disconnected/low connectivity OR high hard-score.
   - Added routed-accuracy evaluator `evaluate_routed_accuracy(...)` and integrated tuning outputs into `run_component6_pipeline(...)` metrics.
 
@@ -296,7 +307,7 @@ Train a router that selects **which model** to use per claim — not just budget
   - Per type: max_active, backtrack_rounds, mask α
   - Simple → fewer GNN layers, no backtracking
   - Complex → more GNN layers, allow 2 backtracking rounds
-  - Completed 2026-02-14: Added `RouterBudget`, canonical `DEFAULT_PV_BUDGETS`, and `get_pv_route_budget(...)` for per-type PV-route budgets (`max_active`, `backtrack_rounds`, `mask_alpha`, `gnn_layers`).
+  - Implemented 2026-02-14 (pending wiring audit): Added `RouterBudget`, canonical `DEFAULT_PV_BUDGETS`, and `get_pv_route_budget(...)` for per-type PV-route budgets (`max_active`, `backtrack_rounds`, `mask_alpha`, `gnn_layers`).
   - Enforced simple-type policy (`existence/substitution/single hop`: fewer layers, no backtracking) and complex-type policy (`multi hop/multi claim/negation`: deeper GNN, up to 2 backtracking rounds).
   - Added Component 6 artifact writing (`runs/<run_id>/config.yaml`, `runs/<run_id>/metrics.json`) with tuned routing threshold and per-claim routing decisions.
   - Validation 2026-02-14: `python3 -m unittest discover -s Fact-or-Fiction/tests/component3 -p test_router.py` passed (6 tests); `python3 -m compileall -q Fact-or-Fiction/src/component3/router.py Fact-or-Fiction/tests/component3/test_router.py` passed; CLI smoke passed via `python3 Fact-or-Fiction/src/component3/router.py --help` and synthetic run `python3 Fact-or-Fiction/src/component3/router.py --run-id t6_smoke_20260214 --output-root Fact-or-Fiction/runs --backend naive_bayes --min-dev-accuracy 0.8`.
@@ -311,10 +322,10 @@ Comprehensive evaluation to beat SOTA on all claim types, with robustness checks
 ### Sub-Tasks
 
 - [x] **T7.1** Standard metrics (accuracy, P/R/F1 per type and overall, **3 seeds**, mean ± std)
-  - Completed 2026-02-14: Added `src/component3/run_component7.py` with 3-seed evaluation flow producing overall + per-type `accuracy/precision/recall/f1` aggregates (`mean`, `std`, seed values) under `t7_1_standard_metrics`.
+  - Implemented 2026-02-14 (pending wiring audit): Added `src/component3/run_component7.py` with 3-seed evaluation flow producing overall + per-type `accuracy/precision/recall/f1` aggregates (`mean`, `std`, seed values) under `t7_1_standard_metrics`.
   - Added/validated synthetic fallback evaluator for constrained runtime and persisted run artifacts to `runs/<run_id>/metrics.json` + `config.yaml`.
 - [x] **T7.2** Custom diagnostics (starvation, recovery, CR@5, ESI distribution)
-  - Completed 2026-02-14: Integrated Component 4 diagnostics (`starvation`, `recovered_gold`, `recovery_impact`) and added Component 7 diagnostics for `CR@5` and `ESI` histogram/per-type distribution in `src/component3/run_component7.py`.
+  - Implemented 2026-02-14 (pending wiring audit): Integrated Component 4 diagnostics (`starvation`, `recovered_gold`, `recovery_impact`) and added Component 7 diagnostics for `CR@5` and `ESI` histogram/per-type distribution in `src/component3/run_component7.py`.
   - Added aggregation over 3 seeds in `t7_2_custom_diagnostics.aggregate` (rates + combined ESI histogram/per-type ESI).
 - [x] **T7.3** Component ablation study (8 variants):
   1. No PV masks (plain QA-GNN baseline)
@@ -325,16 +336,16 @@ Comprehensive evaluation to beat SOTA on all claim types, with robustness checks
   6. No warm-up (train everything from start)
   7. No model routing (PV-QA-GNN on all claims)
   8. Full pipeline
-  - Completed 2026-02-14: Implemented 8-variant ablation execution + reporting in `src/component3/run_component7.py` (`t7_3_ablation_study`), with per-variant seed metrics, aggregate metrics, and `delta_vs_full_accuracy`.
+  - Implemented 2026-02-14 (pending wiring audit): Implemented 8-variant ablation execution + reporting in `src/component3/run_component7.py` (`t7_3_ablation_study`), with per-variant seed metrics, aggregate metrics, and `delta_vs_full_accuracy`.
   - Includes locked variant ordering and automatic best-variant selection (synthetic smoke currently ranks `full_pipeline` best).
 - [x] **T7.4** VitaminC-style contrastive robustness (flip rate > 70%)
-  - Completed 2026-02-14: Added VitaminC-style contrastive evaluator (`compute_vitaminc_flip_rate`) with per-seed/per-type flip-rate reporting and threshold check (`target_flip_rate=0.70`) under `t7_4_vitaminc_robustness`.
+  - Implemented 2026-02-14 (pending wiring audit): Added VitaminC-style contrastive evaluator (`compute_vitaminc_flip_rate`) with per-seed/per-type flip-rate reporting and threshold check (`target_flip_rate=0.70`) under `t7_4_vitaminc_robustness`.
   - Smoke run `t7_smoke_20260214_v2` reports aggregate flip-rate mean `0.8194` (>0.70).
 - [x] **T7.5** Faithfulness comparison vs ProoFVer
-  - Completed 2026-02-14: Added faithfulness metrics aggregation (`rationale_precision`, `rationale_recall`, `rationale_f1`, `counterfactual_improvement`) and explicit comparison block vs ProoFVer reference (`counterfactual_improvement=0.1321`) under `t7_5_faithfulness_vs_proofver`.
+  - Implemented 2026-02-14 (pending wiring audit): Added faithfulness metrics aggregation (`rationale_precision`, `rationale_recall`, `rationale_f1`, `counterfactual_improvement`) and explicit comparison block vs ProoFVer reference (`counterfactual_improvement=0.1321`) under `t7_5_faithfulness_vs_proofver`.
   - Added COLING-2025 paper comparison section (`paper_comparison_coling_2025_main_311`) mapping FactKG table metrics to our labels with per-metric delta.
 - [x] **T7.6** HoVer multi-hop stress test (if time permits)
-  - Completed 2026-02-14: Added HoVer-style stress evaluation (`compute_hover_stress`) with per-hop (2/3/4) accuracy and 2→4 hop degradation tracking under `t7_6_hover_stress`.
+  - Implemented 2026-02-14 (pending wiring audit): Added HoVer-style stress evaluation (`compute_hover_stress`) with per-hop (2/3/4) accuracy and 2→4 hop degradation tracking under `t7_6_hover_stress`.
   - Runner supports explicit disable flag (`--disable-hover-stress`) while keeping default execution enabled.
 
 ---
@@ -388,8 +399,36 @@ Every run in `runs/<run_id>/`:
   - V5: Router upgraded: model selection (BERT baseline vs PV-QA-GNN), not just budgets
   - V6: `recovery.py:_select_bridge_top_k()` already ranks (connects_components, bridge_bonus, rel) → validated
 - **2026-02-15:** Added 3-seed reporting, accelerated controller timeline.
+- **2026-02-16:** Implemented strict Component 1 coverage hardening:
+  - Added `scripts/audit_component1_coverage.py` producing per-split `logs/component1/<split>/coverage_report.json` with claim-level diagnostics for missing rows/schema/PV/pool/rel/text/embedding coverage.
+  - Patched `scripts/run_component1_pv_esm.py` + `src/component1/logging_utils.py` to emit `schema_version=2` pair rows and write explicit empty-evidence sentinel rows for zero-triple claims (instead of silently skipping claims).
+  - Patched `src/component3/c1_pairs_loader.py` to consume sentinel rows without fallback, track schema counters, and expose strict-coverage fields in `coverage_stats`.
+  - Patched strict checks in `src/component3/run_train.py` to fail on fallback usage, missing embeddings, or non-v2/missing schema rows in strict mode.
+- **2026-02-16:** Strict smoke validation passed:
+  - Run: `runs/t33_phase12_strict_smoke_v6` with strict PV metadata enabled.
+  - Coverage after regeneration: `claims_using_fallback=0` and `claims_missing_component1_pairs=0` on train/val/test.
+  - Runtime artifacts/flags verified with bounded candidate logging (`candidate_log_top_n=50`) and backtracking diagnostics present.
 - **2026-02-14:** Component 6 (T6.1-T6.4) completed in `src/component3/router.py` with unit coverage in `tests/component3/test_router.py`, including classifier target checks (>0.80 on synthetic dev), difficulty scoring, threshold-tuned model routing, and per-type PV budget mapping.
 - **2026-02-14:** Component 7 (T7.1-T7.6) completed in `src/component3/run_component7.py` with unit coverage in `tests/component3/test_run_component7.py`.
   - Validation: `python3 -m unittest discover -s Fact-or-Fiction/tests/component3 -p test_run_component7.py` passed (4 tests).
   - Validation: `python3 -m compileall -q Fact-or-Fiction/src/component3/run_component7.py Fact-or-Fiction/tests/component3/test_run_component7.py` passed.
   - Smoke run: `python3 Fact-or-Fiction/src/component3/run_component7.py --run-id t7_smoke_20260214_v2 --output-root Fact-or-Fiction/runs` generated all mandatory artifacts and reported COLING-2025 overall delta `+10.0344` pct points.
+- **2026-02-16:** Backtracking efficacy tuning pass (post strict-pipeline validation):
+  - Added percentile-based hunger trigger controls (`backtracking_hunger_mode`, `backtracking_hunger_percentile`) plus semantic-aware candidate tie-breakers (`p_ent/p_con` conditioned on prediction lean) in `src/component3/backtracking.py`.
+  - Added do-no-harm gating (`backtracking_do_no_harm_eps`) with top-1 fallback / round revert if margin does not improve.
+  - Extended recovery action logging with before/after predictions, correctness flips, margin deltas, hunger thresholds, and selection mode; extended candidate logging with semantic/PV score fields.
+  - Added analysis utility `scripts/analyze_backtracking_effectiveness.py` and unit test `tests/component3/test_analyze_backtracking_effectiveness.py`.
+  - Strict smoke comparison:
+    - Baseline `runs/t33_phase12_strict_smoke_v6`: trigger rate `19.36%`, useful recovery rate (`Δmargin>0.01`) `0.11%`, negative-round rate `58.16%`, median round delta `-5.76e-4`.
+    - Tuned `runs/t33_phase12_strict_smoke_v7_bt_tuned`: trigger rate `19.07%`, useful recovery rate (`Δmargin>0.01`) `0.17%`, negative-round rate `49.76%`, median round delta `+2.15e-5`.
+- **2026-02-16:** Backtracking influence instrumentation + promotion amplitude sweep:
+  - Added promoted-edge influence diagnostics in eval artifacts:
+    - `recovery_actions.jsonl` now logs stream mass before/after, promoted mass/share per stream, and per-promoted-edge weight before/after.
+    - `predictions.jsonl` now logs claim-level stream mass and promoted-share summaries after backtracking.
+  - Added promotion amplification in `PV_QAGNN` (`--backtracking-promotion-gamma`) using per-edge `edge_is_promoted` mask and PV confidence.
+  - Added directional polarity gate (`--backtracking-directional-delta`) in `RuleBasedBacktrackingController` to require promoted edges match prediction polarity.
+  - Ran strict 3x3 sweep on smoke settings (`gamma∈{0.5,1.0,2.0}`, `delta∈{0.0,0.05,0.1}`), summary at `runs/t33_phase12_bt_sweep_summary.json`.
+  - Observed:
+    - Directional delta strongly controls trigger/promote volume (`delta=0.1` reduced trigger to ~`1.67%` with highest useful-rate-on-trigger).
+    - Promotion gamma increases promoted-edge mass share on accepted rounds (median sup share `0.118→0.123→0.131` for `gamma=0.5→1.0→2.0` at `delta=0.0`).
+    - Flip-to-correct remained `0.0` across all 9 smoke runs (decision-boundary crossing still not achieved).

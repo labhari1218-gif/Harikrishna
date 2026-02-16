@@ -1,0 +1,45 @@
+{
+  "splits": {
+    "train": {
+      "claims_using_fallback": 0,
+      "missing_entity_embeddings_total": 0,
+      "missing_pv_fields": 0,
+      "missing_pool_labels": 0,
+      "malformed_probs": 0,
+      "missing_rel": 0,
+      "missing_schema_version": 0,
+      "non_v2_schema": 0,
+      "empty_evidence_sentinel_claims": 1126,
+      "sentinel_zero_subgraph_claims": 1126,
+      "sentinel_nonzero_subgraph_claims": 0
+    },
+    "val": {
+      "claims_using_fallback": 0,
+      "missing_entity_embeddings_total": 0,
+      "missing_pv_fields": 0,
+      "missing_pool_labels": 0,
+      "malformed_probs": 0,
+      "missing_rel": 0,
+      "missing_schema_version": 0,
+      "non_v2_schema": 0,
+      "empty_evidence_sentinel_claims": 125,
+      "sentinel_zero_subgraph_claims": 125,
+      "sentinel_nonzero_subgraph_claims": 0
+    },
+    "test": {
+      "claims_using_fallback": 0,
+      "missing_entity_embeddings_total": 0,
+      "missing_pv_fields": 0,
+      "missing_pool_labels": 0,
+      "malformed_probs": 0,
+      "missing_rel": 0,
+      "missing_schema_version": 0,
+      "non_v2_schema": 0,
+      "empty_evidence_sentinel_claims": 108,
+      "sentinel_zero_subgraph_claims": 108,
+      "sentinel_nonzero_subgraph_claims": 0
+    }
+  },
+  "gate_passed": true,
+  "fail_reasons": []
+}

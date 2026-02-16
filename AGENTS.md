@@ -1,151 +1,342 @@
-# AGENTS.md — Post-Component 2 Continuation Guide
+# AGENTS.md - Component 3 Recovery and SOTA Plan (Planning Stage)
 
 ## Purpose
-This file gives any new Codex/Antigravity chat the exact context and continuation rules for Component 3+ work.
+This file is the execution contract for fixing low Component 3 performance in this repo.
+It is intentionally planning-first: establish verified reality, then execute fixes in controlled phases.
 
----
+Use this when starting a new Codex chat for Component 3 remediation.
 
-## Current Project State (as of 2026-02-15)
+## Mode
+- Stage: `planning`
+- Priority: correctness and traceability over speed
+- Rule: every claim about behavior must be tied to code or run artifacts
 
-### ✅ Component 1 — Evidence Scoring & Partitioning (COMPLETE)
-- **Source**: `src/component1/` (7 files)
-- PV scoring with DeBERTa, ESM A/S/C partitioning, ESI/CR@k/RPI@k metrics
-- Status: Production-ready, 5 tests passing
+## Execution anchors (single-source runtime contract)
+- `WORKING_BRANCH`: `fix/component1-v4-hardening`
+- `BASELINE_COMMIT`: `d7c8cd3`
+- `BASELINE_RUN_ID`: `runs/t33_full_seed57_rerun7_tmux_20260215_1755`
+- `BASELINE_RUN_CMD` (wrapper entrypoint):
+  - `bash scripts/t33_full_recovery_run.sh t33_full_seed57_rerun7_tmux_20260215_1755`
+- `BASELINE_TRAIN_CMD` (inside wrapper, must match Phase-0 audit):
+  - `python -m component3.run_train --run-id t33_full_seed57_rerun7_tmux_20260215_1755 ...`
+- If your local run used a different entrypoint, update these anchors before executing fixes.
 
-### ✅ Component 2 — Graph Reasoning (M0-M3 COMPLETE, M4 PARTIAL)
-- **Source**: `src/component2/` (19 files)
-- Dual-stream masked GNN (numpy), PPR bridge rescue, recovery, selective prediction, salience
-- **M4 open tasks**: T11 (no-PV-mask ablation), T14 (stress tests), T15 (learnable PV masks), T16 (tau_esi sweep)
-- **Hash embeddings**: `reasoner.py:_entity_hash_vector()` uses blake2b → random vectors (MUST NOT use in C3)
+## Environment and artifact contract
+- Required local artifacts (no silent fallback):
+  - `data/embeddings.pkl` is required for Component 3 node features.
+  - `logs/component1/<split>/pairs.jsonl` is required when `--use-component1-pairs` is enabled.
+  - `data/claim_triple_embeddings.pkl` is required in strict cache mode (`--factkg-require-claim-triple-cache`).
+- Failure policy:
+  - fail loudly with actionable error if required artifacts are missing.
+  - do not fallback to hash embeddings for Component 3.
 
-### ✅ Original QA-GNN Pipeline (ALREADY EXISTS)
-- **Source**: Root-level files — original Fact-or-Fiction implementation
+## Current Reality (Verified from code plus one run on 2026-02-15)
 
-| File | What it does |
-|------|-------------|
-| `models.py` | `QAGNN`: BERT + GATConv + cosine relevance + global_mean_pool + classifier |
-| `train.py` | `run_epoch_qa_gnn()`: BCEWithLogitsLoss, training loop, early stopping=3 |
-| `evaluate.py` | Per-type metrics (existence, substitution, multi hop, multi claim, negation, single hop) |
-| `datasets.py` | `convert_to_pyg_format()`: precomputed BERT embeddings → PyG |
-| `run_stuff.py` | CLI: GNN h=256, L=2, dropout=0.3, lr=1e-5, batch=32, AdamW, linear warmup |
+### Run under investigation
+- Run: `runs/t33_full_seed57_rerun7_tmux_20260215_1755`
+- Config: `enable_component5: false`, `dataset_name: factkg`, `batch_size: 8`, `max_seq_len: 256`
+- Test overall: accuracy `0.6021`, F1 `0.5858`
+- Weak slices:
+  - negation accuracy `0.4056`
+  - substitution precision `0.0428`
 
-### ☐ Component 3+ — Not Started
-- `src/component3/` exists but is empty
+### What actually runs
+1. If `--use-component1-pairs` is enabled, Component 1 pair logs are loaded and aligned by `claim_id` (must be confirmed per run via Phase-0 audit output).
+2. FactKG dataset graph uses only `A` and `C` triples.
+3. PV-QAGNN does dual streams with trainable gates.
+4. Training uses claim BCE + auxiliary edge losses.
+5. Backtracking/router are not in the train/eval path of this run.
 
----
+### BERT usage (two roles)
+- Node embeddings:
+  - precomputed entity/sentence vectors provided in dataset graphs.
+  - these are not re-encoded per batch in PV-QAGNN forward.
+- Claim representation and relevance:
+  - claim tokens are encoded in model forward and used for relevance/logits.
+  - if encoder layers are mostly frozen, hard semantic slices (negation/substitution) usually stagnate.
 
-## Architecture: PV-Enhanced QA-GNN
+### Code-level evidence
+- S dropped in FactKG dataset path:
+  - `src/component3/pv_dataset.py:278` (search: `_parse_ac_triples_for_index`)
+  - `src/component3/pv_dataset.py:286` (search: `if triple.pool in {"A", "C"}`)
+- FactKG training wrapper uses this dataset:
+  - `src/component3/run_train.py:615` (search: `_build_factkg_loaders`)
+  - `src/component3/run_train.py:659` (search: `FactKGPVDatasetGraph(`)
+- Backtracking exists but is not wired into `run_train.py`/`evaluate.py` flow:
+  - controller implementation: `src/component3/backtracking.py:121` (search: `class RuleBasedBacktrackingController`)
+  - training loop entry: `src/component3/run_train.py:899` (search: `def run_training(`)
+  - eval call used: `src/component3/run_train.py:1065` (search: `evaluate_on_test_set(`)
+- Router exists but not used in Component 3 training path:
+  - `src/component3/router.py:1` (search: `Component 6 router`)
+- Edge features are rich in dataset (`768 + 5`) but GAT message passing uses `edge_dim=1`:
+  - edge features built: `src/component3/pv_dataset.py:500` (search: `edge_feature = torch.cat((claim_triple_embedding, pv_meta)`)
+  - GAT setup: `src/component3/pv_qagnn.py:102` (search: `edge_dim=1`)
+- Model computes edge relevance from claim-node cosine, not from dataset `rel`:
+  - `src/component3/pv_qagnn.py:133` (search: `node_relevance = F.cosine_similarity`)
+  - `src/component3/pv_qagnn.py:135` (search: `edge_relevance = 0.5 *`)
+- C5 losses are disabled in investigated run:
+  - config file: `runs/t33_full_seed57_rerun7_tmux_20260215_1755/config.yaml`
+  - zeros in metrics: `runs/t33_full_seed57_rerun7_tmux_20260215_1755/metrics.json`
 
-```
-                    ┌──────────────────────────────────────────┐
-                    │          PV-QA-GNN (Component 3)         │
-                    │                                          │
-  Claim text ──────►│  BERT encoder ──► [CLS] claim embedding  │
-                    │         │                                │
-  C1 evidence ─────►│  Build PyG graph (A+C triples)           │
-  (A/S/C pools)     │  Node features = BERT entity embeddings  │
-                    │  Edge attrs = claim-conditioned +PV      │
-                    │         │                                │
-                    │    ┌────┴────┐                           │
-                    │    ▼         ▼                           │
-                    │  Support   Refute                        │
-                    │  GATConv   GATConv     ← SEPARATE params │
-                    │  (cosine   (cosine                       │
-                    │   × σ(α·   × σ(α·                       │
-                    │   p_ent+β)) p_con+β))                    │
-                    │    │         │                           │
-                    │   pool      pool                        │
-                    │    └────┬────┘                           │
-                    │         ▼                                │
-                    │  concat(sup_pool, ref_pool, claim_embed) │
-                    │         ▼                                │
-                    │     Classifier → SUPPORTED / REFUTED     │
-                    │                                          │
-                    │  If low confidence + disconnected graph: │
-                    │    → S-only bridge rescue (ranked)       │
-                    │    → Re-run GNN (max 2 rounds, k=3)     │
-                    └──────────────────────────────────────────┘
-```
+### Important artifact interpretation
+- `logs/component1/*/claims.jsonl`:
+  - claim-level summary of A/S/C counts and diagnostics from Component 1.
+  - proof of partitioning and sufficiency diagnostics, not proof of C3 usage.
+- `logs/component1/*/pairs.jsonl`:
+  - row-level evidence with `pool`, `probs`, `rel`.
+  - direct input source for C3 when `--use-component1-pairs` is enabled.
+- `runs/.../train.log`:
+  - process output and final JSON dump.
+  - does not prove backtracking/router activation unless explicit traces are logged.
 
----
+## Target Architecture (What we planned)
+- Graph reasoner starts from `A + C`.
+- Suspended `S` remains available for bounded recovery.
+- Triggered backtracking promotes top-k `S -> A`, reruns once/twice.
+- C5 losses (starvation/counter/recovery) are optional phase-2 upgrades.
+- Router is a later optimization after core baseline is fixed.
 
-## Locked Design Decisions (Validated 2026-02-15)
+## Paper-backed Locks
+- QA-GNN is base model family.
+- CO-GAT: soft gating, warmup, auxiliary evidence supervision.
+- Component 2 bridge rescue: anchor-conditioned weighted PPR and bridge bonus.
+  - formula implementation: `src/component2/bridge_rescue.py:216`
+  - neutral cap: `src/component2/bridge_rescue.py:217`
+- FactKG claim-type taxonomy used for slice reporting.
+- VitaminC and ProoFVer are robustness/faithfulness references, not direct training objectives.
 
-| Decision | Value | Source | Codebase Validation |
-|----------|-------|--------|-------------------|
-| Dual-stream GAT | **Separate** parameters | Novel contribution | N/A — new code |
-| Edge masking | **Soft** `σ(α·p+β)` | CO-GAT (+0.79%) | N/A — new code |
-| Joint attention | **cosine × PV gate** | QA-GNN + CO-GAT | `models.py:forward()` already has cosine |
-| Node embeddings | **Precomputed BERT** only | `datasets.py` | `convert_to_pyg_format()` supports `embedding_dict` |
-| No hash vectors | **Enforced** (error if missing) | User decision | `reasoner.py:_entity_hash_vector()` = C2 only |
-| Claim-conditioned edges | **[CLS] claim [SEP] triple [SEP]** | GEAR, CO-GAT | `convert_to_pyg_format()` does entity-only — needs upgrade |
-| Multi-task loss | BCE + evidence quality | CO-GAT (+0.18%) | N/A — new code |
-| Training | 2-stage warm-up | CO-GAT | `run_stuff.py` has AdamW+warmup |
-| Batch size | 8 (8GB GPU) | CO-GAT | Existing is 32 → reduce |
-| Max seq length | 256 | CO-GAT | Existing is 512 → reduce |
-| Backtracking | **S-only**, ranked | User + RPS | `recovery.py:_select_bridge_top_k()` already ranks correctly |
-| Recovery budget | rounds≤2, k≤3 | RPS sensitivity | `config.py:recovery_top_k=3` |
-| Router | **Model selection** (BERT vs PV-QA-GNN) | User feedback | `evaluate.py` has per-type breakdown |
-| Reporting | **3 seeds** + mean ± std | User feedback | N/A — new code |
-| PV mask init | α=4.0, β=−2.0 (trainable) | C2 defaults | `reasoner.py` uses fixed 4/−2 |
+## Non-negotiable Engineering Rules
+- Keep 8GB-safe defaults (`batch<=8`, `max_seq_len<=256`) unless profiling proves headroom.
+- Do not claim SOTA with synthetic metrics.
+  - `run_component7.py` currently defaults to synthetic metrics and must be disabled for real claims.
+- Do not compare to hardcoded SOTA numbers unless evaluation settings are matched and documented.
+- Every phase must emit machine-readable artifacts and pass targeted tests.
 
----
+## Recovery Program (Phased Plan)
 
-## Hard Constraints
+### Phase 0 - Forensic baseline and instrumentation
+Goal: make runtime behavior auditable before changing model logic.
 
-1. **Finish M4 residuals first** (T11, T14, T15, T16)
-2. New code under `src/component3/`, tests under `tests/component3/`
-3. Do NOT modify Component 1 source code. Component 2 source may ONLY be modified for M4 residual tasks (T11, T14, T15, T16)
-4. Do NOT modify original `models.py` / `train.py` etc. — **extend** them
-5. **No hash embeddings** in Component 3 — use precomputed BERT only
-6. **Separate GAT layers** for support and refute streams
-7. **8GB GPU**: batch_size ≤ 8, max_seq_len=256, gradient accumulation if needed
-8. After each task, tick checkbox in `PLAN.md` with completion note
+Tasks:
+1. Add explicit runtime flags to `metrics.json`:
+   - `used_s_pool`, `used_backtracking`, `used_router`, `used_component5`.
+2. Emit per-run evidence contract summary:
+   - A/S/C counts seen by C3 loader.
+3. Add a one-page method trace in artifacts:
+   - from input logs to final prediction path.
 
----
+Acceptance:
+- You can answer "was S available and used?" from one artifact file.
 
-## Canonical Docs to Read First
+### Phase 1 - Fix A/S/C data path
+Goal: preserve S for recovery while still running initial graph on A+C.
 
-1. `AGENTS.md` ← you are here
-2. `PLAN.md` — Components 3-7 task-level roadmap
-3. `docs/BEST_PRACTICES.md` — **15 paper-backed design decisions** (MUST read)
-4. `docs/TRAINING_SPEC.md` — **Trainable params, metrics, I/O spec** (MUST read)
-5. `PAPERS_NEXT.md` — Paper references with links
-6. `models.py` — **Existing QA-GNN implementation** (MUST read)
-7. `train.py` — Existing training loop (reuse for C3)
-8. `datasets.py` — Existing graph dataset (extend for C3)
-9. `evaluate.py` — Existing per-type evaluation (reuse for all experiments)
-10. `run_stuff.py` — Existing CLI and hyperparameters
-11. `docs/component2/COMPONENT2_PLAN.md` — M4 residuals
-12. `docs/component2/COMPONENT2_DECISIONS.md` — Locked C2 decisions
+Tasks:
+1. FactKG dataset:
+   - add `include_s_pool` handling analogous to FEVER design.
+   - keep A+C for initial graph edges.
+   - preserve S rows per claim as recoverable pool metadata.
+2. Keep dual evidence labels:
+   - support target from A
+   - counter target from C
+   - do not train a single "good evidence" head where C is always target `0`.
+   - use either two heads (support/counter) or one 3-way edge-role head.
+   - locked default objective:
+     - `L_evidence = 0.5 * (BCE(support_head, is_A) + BCE(counter_head, is_C))`
+   - optional alternative objective:
+     - `L_edge_role = CE(edge_role_logits, {support,counter,other})`
+3. Add tests:
+   - S retention metadata exists.
+   - initial graph excludes S.
+   - support/counter heads receive correct labels.
 
----
+Acceptance:
+- C3 can access S per claim without contaminating initial graph edges.
 
-## Copy-Paste Prompt For New Chat
+### Phase 2 - Integrate inference-time backtracking (minimal viable)
+Goal: make backtracking real before training a learned controller.
+
+Tasks:
+1. Wire `RuleBasedBacktrackingController` or `PVBridgeRecoveryEngine` into evaluation path.
+2. Trigger policy:
+   - low margin OR low connectivity OR evidence hunger.
+   - conservative execution gate: only perform promotion if ranked S candidates include at least one `connects_components=true`.
+3. Ranking policy for S:
+   - `connects_components`
+   - PPR `bridge_bonus`
+   - `rel`
+   - `salience x p_ent` tie-breaker
+   - compute PPR on Round-0 graph built from A+C edges.
+   - seed PPR from claim anchor entities (claim entity set / claim-linked anchors from C1 logs).
+   - explicit bridge score for S edge `(u,v)`:
+     - `bridge_bonus(u,v) = ppr[u] * (eps + rel_uv) * ppr[v] * neutral_cap(p_neu_uv)`
+4. Run bounded recovery:
+   - rounds <= 2
+   - k <= 3
+5. Emit `recovery_actions.jsonl` and `recovery_candidates.jsonl`.
+
+Acceptance:
+- At least one real claim in eval shows logged S->A promotion and rerun.
+
+### Phase 3 - Use edge features in message passing
+Goal: stop wasting claim-conditioned edge representations.
+
+Tasks:
+1. Replace the `edge_dim=1` bottleneck strategy.
+2. Default implementation:
+   - learned edge scorer MLP `773 -> 1` per stream, fused with PV gates.
+3. Optional fallback experiment:
+   - full edge attr in GAT (`edge_dim=773`) only if MLP path plateaus and memory allows.
+4. Blend relevance signals:
+   - dataset `rel` plus semantic relevance (do not drop either without ablation).
+5. Add ablation toggles:
+   - cosine-only
+   - rel-only
+   - blended
+
+Acceptance:
+- Measurable delta over baseline on validation within small and medium runs.
+
+### Phase 4 - Unfreezing and optimization
+Goal: improve semantic slices (negation/substitution) beyond frozen-encoder limits.
+
+Tasks:
+1. Add configurable unfreezing (minimal viable default):
+   - LoRA on top layers, or unfreeze last 2 transformer layers.
+2. Optional sweep:
+   - unfreeze last N layers for N in a small bounded grid.
+3. Keep warmup and early stop.
+4. Add calibration checks per type:
+   - precision-recall behavior for substitution and negation.
+
+Acceptance:
+- Negation and substitution precision improve without collapse in overall metrics.
+
+### Phase 5 - Fair SOTA comparison
+Goal: eliminate apples-to-oranges reporting.
+
+Tasks:
+1. Replace hardcoded comparison constants:
+   - `scripts/compare_component3_to_sota.py`
+2. Require explicit parity metadata for each baseline:
+   - dataset split
+   - split/source hashes for data artifacts
+   - evidence budget/top-k
+   - evidence source policy (oracle/retrieved)
+   - label space (binary vs 3-way)
+   - preprocessing path
+   - encoder backbone and tuning policy
+   - compute setup (single-model vs multi-stage/LLM)
+   - seeds and mean+-std
+3. Disable synthetic metrics for publishable tables:
+   - `src/component3/run_component7.py` with `use_synthetic_metrics=false`
+
+Acceptance:
+- SOTA report includes settings parity table and provenance per number.
+
+### Phase 6 - Explainability contract
+Goal: claim-level, auditable rationales.
+
+Output schema per claim:
+- `claim_id`, `claim_text`
+- `gold_label`, `pred_label`, `prob`, `margin`
+- `pool_items[]` with:
+  - `evidence_id`, `triple_text`, `pool`
+  - `p_ent`, `p_con`, `p_neu`, `rel`
+  - stream/gating attribution fields
+- `backtracking` block:
+  - `triggered`, `reason`, `promoted_s_to_a[]`, `margin_before`, `margin_after`
+- diagnostics:
+  - `is_disconnected_graph`, `active_high_rel_count`, `cr_at_5`, `esi_geom`
+
+Acceptance:
+- You can inspect one JSON line and explain exactly why a claim was support/refute.
+
+## Experiment Matrix (Required)
+
+### Small (smoke)
+- Purpose: logic validation, no expensive training.
+- Suggested run:
+  - `--train-subset-size 1000 --val-subset-size 1000`
+  - 1-2 epochs per stage
+- Gate:
+  - artifacts generated
+  - no shape/contract errors
+
+### Medium (directional)
+- Purpose: check expected metric direction and slice gains.
+- Suggested run:
+  - `--train-subset-size 10000 --val-subset-size 2000`
+  - full stage schedule
+- Gate:
+  - improvement on negation/substitution precision over baseline snapshot
+
+### Full (reportable)
+- Purpose: final claims and comparisons.
+- Suggested run:
+  - full train/val/test
+  - 3 seeds (`42, 1337, 2026`)
+- Gate:
+  - mean +- std reported
+  - fair SOTA protocol satisfied
+
+## Router decision
+- Now: defer router for main accuracy rescue.
+- Later: re-enable after Phases 1-4 are stable.
+- Reason: current deficits are core data/graph/training path issues, not routing policy.
+
+## Risks to watch
+- Synthetic metrics accidentally mixed with real evaluation outputs.
+- Backtracking enabled but never triggered due to missing S or too strict trigger.
+- Edge feature integration increasing memory without gains.
+- Dataset mismatch (binary vs 3-way) in FEVER runs.
+
+## Definition of Done
+1. S pool is retained and used for bounded recovery.
+2. Backtracking actions are logged and attributable.
+3. Edge claim-conditioned features affect message passing.
+4. Negation/substitution precision materially improve over run `t33_full_seed57_rerun7_tmux_20260215_1755`.
+5. SOTA comparison is fair and reproducible.
+6. Per-claim explainability JSONL is complete and stable.
+
+## Copy-Paste Prompt for Codex (Planning-first execution)
+Use this prompt in a new Codex chat:
 
 ```text
-Read (in this order):
-1. AGENTS.md — current state + architecture + locked decisions
-2. docs/BEST_PRACTICES.md — 15 paper-backed design decisions (MUST read)
-3. models.py — EXISTING QA-GNN (QAGNN class, forward, training)
-4. train.py — existing training loop (run_epoch_qa_gnn)
-5. datasets.py — existing FactKGDatasetGraph + convert_to_pyg_format
-6. evaluate.py — per-reasoning-type evaluation
-7. run_stuff.py — CLI and hyperparameters
-8. PLAN.md — Components 3-7 roadmap
+Read first:
+1) AGENTS.md
+2) PLAN.md
+3) docs/BEST_PRACTICES.md
+4) docs/TRAINING_SPEC.md
+5) runs/t33_full_seed57_rerun7_tmux_20260215_1755/{config.yaml,metrics.json,train.log,sota_comparison.json}
+6) src/component3/{run_train.py,pv_dataset.py,pv_qagnn.py,backtracking.py,pv_bridge.py,router.py,run_component7.py}
+7) scripts/{t33_full_recovery_run.sh,compare_component3_to_sota.py}
 
-Your job: Continue from PLAN.md. Check which tasks are unchecked.
+Mode: planning stage first, then phased execution.
 
-Architecture: PV-QA-GNN = existing QAGNN + dual-stream (SEPARATE GAT layers) + PV edge masks + claim-conditioned triples + joint attention prior (cosine × σ(α·p+β))
+Rules:
+- Do not start coding before writing a phase plan with acceptance criteria.
+- Tie every diagnosis to file:line evidence.
+- Keep changes minimal and testable per phase.
+- Prefer inference-time backtracking integration before learned controller training.
+- Do not use synthetic metrics for any SOTA claim.
 
-Key changes from user review (2026-02-15):
-- M4 residuals MUST be done first
-- No hash embeddings — error if embeddings.pkl missing
-- Claim-conditioned: [CLS] claim [SEP] triple [SEP] as edge_attr
-- Joint attention = cosine relevance × PV gate (not just PV alone)
-- Router selects MODEL (BERT for easy, PV-QA-GNN for hard), not just budgets
-- S-only recovery ranked: bridge_connects_components (bool) → bridge_bonus (PPR) → rel (tiebreaker). C3 adds: salience×PV after GNN pass
-- 3 seeds for all final results
+Required output format:
+1) System Diagram: current reality vs target
+2) Severity-ordered root causes with file:line refs
+3) Phase plan (0-6) with concrete edits and test commands
+4) Ablation matrix (small/medium/full) with stop criteria
+5) Explainability JSONL contract
 
-Hard constraints: 8GB GPU, batch≤8, max_len=256, S-only, separate GAT, no hash
+Then execute Phase 0 and Phase 1 in code, run targeted tests, and report artifacts.
 ```
+
+## Quick command references
+- Full orchestrated run:
+  - `bash scripts/t33_full_recovery_run.sh <run_id>`
+- Direct train:
+  - `python src/component3/run_train.py --run-id <run_id> --use-component1-pairs --component1-logs-root logs/component1`
+  - or `python -m component3.run_train --run-id <run_id> --use-component1-pairs --component1-logs-root logs/component1`
+  - confirm import path/PYTHONPATH behavior in Phase-0 audit.
+- SOTA compare helper (to be hardened):
+  - `python scripts/compare_component3_to_sota.py --run-metrics runs/<run_id>/metrics.json --baseline-metrics runs/t33_tmux_20260215_095704/metrics.json`

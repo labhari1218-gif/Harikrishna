@@ -32,6 +32,7 @@ class TripleRecord:
     p_neu: float
     rel: float
     is_fallback: bool
+    is_promoted: bool = False
 
 
 class FactKGPVDatasetGraph(FactKGDatasetGraph):
@@ -103,6 +104,18 @@ class FactKGPVDatasetGraph(FactKGDatasetGraph):
             self._s_triples_by_index = [list(rows) for rows in self._all_s_triples_by_index]
         else:
             self._s_triples_by_index = [[] for _ in range(self.length)]
+        self._fallback_total = int(
+            sum(
+                1
+                for triples in self._all_triples_by_index
+                for triple in triples
+                if bool(triple.is_fallback)
+            )
+        )
+        (
+            self._missing_embeddings_total,
+            self._missing_embedding_entities_total,
+        ) = self._summarize_missing_embeddings()
         if auto_precompute:
             self.precompute_claim_triple_embeddings()
 
@@ -252,6 +265,7 @@ class FactKGPVDatasetGraph(FactKGDatasetGraph):
                 p_neu=p_neu,
                 rel=rel,
                 is_fallback=(not has_metadata),
+                is_promoted=bool(raw_row.get("is_promoted", False)),
             )
 
         if isinstance(raw_row, (list, tuple)) and len(raw_row) >= 3:
@@ -271,6 +285,7 @@ class FactKGPVDatasetGraph(FactKGDatasetGraph):
                 p_neu=1.0,
                 rel=0.0,
                 is_fallback=True,
+                is_promoted=False,
             )
 
         raise ValueError(f"Unsupported triple row format at index {row_idx}: {type(raw_row).__name__}")
@@ -300,6 +315,17 @@ class FactKGPVDatasetGraph(FactKGDatasetGraph):
             triple = self._parse_triple_row(raw_row, row_idx=row_idx)
             parsed.append(triple)
         return parsed
+
+    def _summarize_missing_embeddings(self) -> tuple[int, int]:
+        missing_mentions = 0
+        missing_entities: set[str] = set()
+        for triples in self._all_triples_by_index:
+            for triple in triples:
+                for entity in (triple.subject, triple.object):
+                    if entity not in self.embedding_dict:
+                        missing_mentions += 1
+                        missing_entities.add(entity)
+        return int(missing_mentions), int(len(missing_entities))
 
     def _get_ac_triples(self, idx: int) -> list[TripleRecord]:
         return list(self._ac_triples_by_index[idx])
@@ -347,6 +373,9 @@ class FactKGPVDatasetGraph(FactKGDatasetGraph):
             "s_pool_retained_total": s_retained_total,
             "claims_with_s_pool_available": claims_with_s_available,
             "claims_with_s_pool_retained": claims_with_s_retained,
+            "fallback_total": int(self._fallback_total),
+            "missing_embeddings_total": int(self._missing_embeddings_total),
+            "missing_embedding_entities_total": int(self._missing_embedding_entities_total),
         }
 
     def _cache_key(self, claim_id: str, triple: TripleRecord) -> tuple[str, str]:
@@ -512,6 +541,7 @@ class FactKGPVDatasetGraph(FactKGDatasetGraph):
         edge_is_support = torch.zeros((1,), dtype=torch.float32)
         edge_is_counter = torch.zeros((1,), dtype=torch.float32)
         edge_is_fallback = torch.ones((1,), dtype=torch.float32)
+        edge_is_promoted = torch.zeros((1,), dtype=torch.float32)
         return Data(
             x=node_features,
             edge_index=edge_index,
@@ -520,6 +550,7 @@ class FactKGPVDatasetGraph(FactKGDatasetGraph):
             edge_is_support=edge_is_support,
             edge_is_counter=edge_is_counter,
             edge_is_fallback=edge_is_fallback,
+            edge_is_promoted=edge_is_promoted,
         )
 
     def _build_graph(self, claim_id: str, claim_text: str, triples: list[TripleRecord]) -> Data:
@@ -534,6 +565,7 @@ class FactKGPVDatasetGraph(FactKGDatasetGraph):
         edge_is_support: list[float] = []
         edge_is_counter: list[float] = []
         edge_is_fallback: list[float] = []
+        edge_is_promoted: list[float] = []
 
         for triple in triples:
             if triple.subject not in node_to_index:
@@ -564,6 +596,7 @@ class FactKGPVDatasetGraph(FactKGDatasetGraph):
             label_support = 1.0 if triple.pool == "A" else 0.0
             label_counter = 1.0 if triple.pool == "C" else 0.0
             label_fallback = 1.0 if triple.is_fallback else 0.0
+            label_promoted = 1.0 if triple.is_promoted else 0.0
 
             edge_indices.append([src, dst])
             edge_features.append(edge_feature)
@@ -571,6 +604,7 @@ class FactKGPVDatasetGraph(FactKGDatasetGraph):
             edge_is_support.append(label_support)
             edge_is_counter.append(label_counter)
             edge_is_fallback.append(label_fallback)
+            edge_is_promoted.append(label_promoted)
             if self.add_reverse_edges:
                 edge_indices.append([dst, src])
                 edge_features.append(edge_feature.clone())
@@ -578,6 +612,7 @@ class FactKGPVDatasetGraph(FactKGDatasetGraph):
                 edge_is_support.append(label_support)
                 edge_is_counter.append(label_counter)
                 edge_is_fallback.append(label_fallback)
+                edge_is_promoted.append(label_promoted)
 
         edge_index = torch.tensor(edge_indices, dtype=torch.long).t().contiguous()
         x = torch.stack(node_features).to(torch.float32)
@@ -586,6 +621,7 @@ class FactKGPVDatasetGraph(FactKGDatasetGraph):
         edge_is_support_tensor = torch.tensor(edge_is_support, dtype=torch.float32)
         edge_is_counter_tensor = torch.tensor(edge_is_counter, dtype=torch.float32)
         edge_is_fallback_tensor = torch.tensor(edge_is_fallback, dtype=torch.float32)
+        edge_is_promoted_tensor = torch.tensor(edge_is_promoted, dtype=torch.float32)
         return Data(
             x=x,
             edge_index=edge_index,
@@ -594,4 +630,5 @@ class FactKGPVDatasetGraph(FactKGDatasetGraph):
             edge_is_support=edge_is_support_tensor,
             edge_is_counter=edge_is_counter_tensor,
             edge_is_fallback=edge_is_fallback_tensor,
+            edge_is_promoted=edge_is_promoted_tensor,
         )

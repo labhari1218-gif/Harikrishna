@@ -26,6 +26,8 @@ from .sufficiency_metrics import (
 
 logger = logging.getLogger(__name__)
 
+PAIR_LOG_SCHEMA_VERSION = 2
+
 
 @dataclass
 class PairLogConfig:
@@ -236,6 +238,8 @@ def write_pair_log(
     
     # Construct log entry
     log_entry = {
+        "schema_version": PAIR_LOG_SCHEMA_VERSION,
+        "record_type": "pair",
         "claim_id": claim_id,
         "evidence_id": evidence_item.evidence_id,
         # Required for Component 2 A/S/C reconstruction.
@@ -261,6 +265,53 @@ def write_pair_log(
     }
     
     # Write to file
+    if isinstance(out_file, (str, Path)):
+        with open(out_file, 'a') as f:
+            f.write(json.dumps(log_entry) + '\n')
+    else:
+        out_file.write(json.dumps(log_entry) + '\n')
+
+
+def write_empty_evidence_pair_sentinel(
+    *,
+    claim_id: str,
+    claim_text: str,
+    model_name: str,
+    verbalizer_id: str,
+    out_file: Union[str, Path, TextIO],
+) -> None:
+    """
+    Write a schema-valid sentinel pair row when a claim has no retrievable triples.
+
+    The sentinel prevents silent claim-level fallback in Component 3 coverage checks
+    while carrying explicit metadata that no graph evidence was available.
+    """
+    log_entry = {
+        "schema_version": PAIR_LOG_SCHEMA_VERSION,
+        "record_type": "claim_sentinel",
+        "empty_evidence_sentinel": True,
+        "claim_id": claim_id,
+        "evidence_id": f"{claim_id}_empty_sentinel",
+        "pool": "S",
+        "evidence_assignment": "S",
+        "raw_triple": None,
+        "raw_sentence": "__EMPTY_EVIDENCE_SENTINEL__",
+        "sentence_page": None,
+        "sentence_line": None,
+        "premise_text": "__EMPTY_EVIDENCE_SENTINEL__",
+        "hypothesis_text": claim_text,
+        "model_name": model_name,
+        "verbalizer_id": verbalizer_id,
+        "probs": {
+            "entail": 0.0,
+            "contra": 0.0,
+            "neutral": 1.0,
+        },
+        "derived": {
+            "rel": 0.0,
+            "pol": 0.0,
+        },
+    }
     if isinstance(out_file, (str, Path)):
         with open(out_file, 'a') as f:
             f.write(json.dumps(log_entry) + '\n')

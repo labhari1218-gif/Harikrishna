@@ -78,6 +78,38 @@ class C1PairsLoaderTests(unittest.TestCase):
             for row in rows:
                 handle.write(json.dumps(row) + "\n")
 
+    def _write_pairs_with_empty_sentinel(self, root: Path) -> None:
+        split_dir = root / "train"
+        split_dir.mkdir(parents=True, exist_ok=True)
+        pairs_file = split_dir / "pairs.jsonl"
+        rows = [
+            {
+                "schema_version": 2,
+                "record_type": "pair",
+                "claim_id": "train_0",
+                "evidence_id": "e0",
+                "pool": "A",
+                "raw_triple": ["A", "r1", "B"],
+                "probs": {"entail": 0.8, "contra": 0.1, "neutral": 0.1},
+                "derived": {"rel": 0.9},
+            },
+            {
+                "schema_version": 2,
+                "record_type": "claim_sentinel",
+                "empty_evidence_sentinel": True,
+                "claim_id": "train_1",
+                "evidence_id": "train_1_empty_sentinel",
+                "pool": "S",
+                "raw_triple": None,
+                "raw_sentence": "__EMPTY_EVIDENCE_SENTINEL__",
+                "probs": {"entail": 0.0, "contra": 0.0, "neutral": 1.0},
+                "derived": {"rel": 0.0},
+            },
+        ]
+        with pairs_file.open("w", encoding="utf-8") as handle:
+            for row in rows:
+                handle.write(json.dumps(row) + "\n")
+
     def _fever_claims_df(self) -> pd.DataFrame:
         return pd.DataFrame(
             {
@@ -178,6 +210,28 @@ class C1PairsLoaderTests(unittest.TestCase):
             self.assertEqual(len(rows[2]), 0)  # missing claim not backfilled in strict mode
             self.assertEqual(coverage["claims_using_fallback"], 0)
             self.assertEqual(coverage["claims_with_empty_evidence"], 1)
+
+    def test_empty_evidence_sentinel_avoids_fallback_and_yields_empty_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            logs_root = Path(tmp_dir) / "logs" / "component1"
+            self._write_pairs_with_empty_sentinel(logs_root)
+
+            rows, coverage = load_component1_evidence_rows(
+                split="train",
+                claims_df=self._claims_df(),
+                subgraphs_df=self._subgraphs_df(),
+                logs_root=logs_root,
+                missing_policy="hybrid_fallback",
+            )
+
+            self.assertEqual(len(rows), 3)
+            self.assertEqual(len(rows[0]), 1)
+            self.assertEqual(len(rows[1]), 0)  # claim_sentinel parses but emits no graph triples
+            self.assertGreaterEqual(len(rows[2]), 1)  # truly missing claim still fallbacks
+            self.assertEqual(coverage["claims_with_component1_pairs"], 2)
+            self.assertEqual(coverage["claims_using_fallback"], 1)
+            self.assertEqual(coverage["claims_with_empty_sentinel"], 1)
+            self.assertEqual(coverage["pair_rows_sentinel"], 1)
 
     def test_fever_loader_parses_sentence_pairs_and_fallbacks_to_evidence_rows(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:

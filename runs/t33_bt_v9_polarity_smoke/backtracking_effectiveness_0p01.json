@@ -1,0 +1,36 @@
+{
+  "run_dir": "runs/t33_bt_v9_polarity_smoke",
+  "predictions_path": "runs/t33_bt_v9_polarity_smoke/predictions.jsonl",
+  "recovery_actions_path": "runs/t33_bt_v9_polarity_smoke/recovery_actions.jsonl",
+  "splits": {
+    "test": {
+      "claims_total": 9041,
+      "triggered_claims": 1727,
+      "trigger_rate": 0.19101869262249752,
+      "wrong_before_triggered": 1182,
+      "wrong_before_triggered_rate": 0.6844238563983787,
+      "wrong_before_available_claims": 1727,
+      "wrong_before_triggered_rate_on_available": 0.6844238563983787,
+      "useful_delta_threshold": 0.01,
+      "useful_recovery_claims": 3,
+      "useful_recovery_rate": 0.0017371163867979154,
+      "flip_to_correct_claims": 0,
+      "flip_to_correct_rate": 0.0,
+      "flip_metrics_available_claims": 1727,
+      "rounds_total": 2134,
+      "rounds_useful": 3,
+      "rounds_useful_rate": 0.0014058106841611997,
+      "rounds_negative": 0,
+      "rounds_negative_rate": 0.0,
+      "rounds_reverted": 1615,
+      "rounds_reverted_rate": 0.7567947516401125,
+      "tentative_metrics_available_rounds": 2134,
+      "tentative_flips_total": 2,
+      "tentative_flips_rate": 0.0009372071227741331,
+      "tentative_flip_to_correct_total": 1,
+      "tentative_flip_to_correct_rate": 0.00046860356138706655,
+      "tentative_flip_to_correct_but_reverted_total": 1,
+      "tentative_flip_to_correct_but_reverted_rate": 1.0
+    }
+  }
+}
